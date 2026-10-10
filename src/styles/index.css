@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root { color-scheme: light; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    @apply bg-ivory font-sans text-ink antialiased;
+    font-weight: 400;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3, h4 { @apply font-display text-ink; font-weight: 500; letter-spacing: -0.01em; }
+  ::selection { background: #3E060A; color: #F0E6D7; }
+  :focus-visible { outline: 2px solid #A1815E; outline-offset: 3px; border-radius: 4px; }
+  img { content-visibility: auto; }
+  [hidden] { display: none !important; }
+}
+
+@layer components {
+  .skip-link {
+    position: absolute; left: 12px; top: -60px; z-index: 100;
+    background: #3E060A; color: #F0E6D7; padding: 10px 16px; border-radius: 999px;
+    transition: top .2s;
+  }
+  .skip-link:focus { top: 12px; }
+
+  .container-x { @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12; }
+  .eyebrow { @apply font-sans text-[11px] font-medium uppercase tracking-brand text-gold-dark; }
+  .display-xl { @apply font-display text-[2.6rem] leading-[1.02] sm:text-6xl lg:text-7xl; }
+  .display-lg { @apply font-display text-4xl leading-tight sm:text-5xl; }
+  .display-md { @apply font-display text-3xl leading-tight sm:text-4xl; }
+  .lead { @apply text-base leading-relaxed text-ink-soft sm:text-lg; }
+
+  .btn {
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-full px-6 py-3 text-sm font-medium tracking-wide transition-all duration-300 ease-soft disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary { @apply btn bg-wine-900 text-cream shadow-soft hover:bg-wine-800 hover:shadow-lift active:scale-[.98]; }
+  .btn-gold { @apply btn bg-gold text-white hover:bg-gold-dark active:scale-[.98]; }
+  .btn-outline { @apply btn border border-ink/20 bg-transparent text-ink hover:border-wine-900 hover:bg-wine-900 hover:text-cream; }
+  .btn-light { @apply btn border border-cream/40 bg-cream/10 text-cream backdrop-blur hover:bg-cream hover:text-wine-900; }
+  .btn-ghost { @apply btn px-3 text-ink-soft hover:bg-ink/5 hover:text-ink; }
+  .btn-danger { @apply btn bg-danger text-white hover:brightness-110; }
+  .btn-sm { @apply px-4 py-2 text-xs; }
+
+  .link-underline {
+    @apply relative inline-block;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px; background-position: 0 100%; background-repeat: no-repeat;
+    transition: background-size .4s cubic-bezier(.22,.61,.36,1);
+  }
+  .link-underline:hover, .link-underline[aria-current="page"] { background-size: 100% 1px; }
+
+  /* Arco — a moldura da logo vira assinatura visual das fotos. */
+  .arch { border-radius: 999px 999px 0 0; }
+  .arch-soft { border-radius: 260px 260px 6px 6px; }
+
+  .card { @apply rounded-2xl border border-ink/[.06] bg-white shadow-soft; }
+  .card-pad { @apply p-5 sm:p-6; }
+
+  .field-label { @apply mb-1.5 block text-xs font-medium uppercase tracking-wider text-ink-muted; }
+  .field-input {
+    @apply w-full rounded-xl border border-ink/15 bg-white px-4 py-3 text-[15px] text-ink placeholder:text-ink-muted/60 transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/25 disabled:bg-paper;
+  }
+  .field-error { @apply mt-1 text-xs text-danger; }
+  .field-hint { @apply mt-1 text-xs text-ink-muted; }
+
+  .chip { @apply inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium; }
+
+  .table-wrap { @apply overflow-x-auto rounded-2xl border border-ink/[.06] bg-white; }
+  .table { @apply w-full text-left text-sm; }
+  .table th { @apply whitespace-nowrap border-b border-ink/10 bg-paper/60 px-4 py-3 text-[11px] font-medium uppercase tracking-wider text-ink-muted; }
+  .table td { @apply border-b border-ink/5 px-4 py-3 align-top; }
+  .table tr:last-child td { @apply border-0; }
+
+  .grain::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .05; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+  .scrollbar-none { scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .pb-safe { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+}
+
+/* Revelação ao rolar (componente <Reveal>). */
+.reveal { opacity: 0; transform: translateY(18px); transition: opacity .9s cubic-bezier(.22,.61,.36,1), transform .9s cubic-bezier(.22,.61,.36,1); }
+.reveal.is-visible { opacity: 1; transform: none; }
+
+/* Imagem com placeholder desfocado (componente <SmartImage>). */
+.smart-img { transition: opacity .7s ease, filter .7s ease, transform 1.2s cubic-bezier(.22,.61,.36,1); }
+.smart-img[data-loaded="false"] { opacity: 0; filter: blur(12px); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .reveal { opacity: 1; transform: none; }
+}

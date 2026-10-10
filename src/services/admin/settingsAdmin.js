@@ -1,0 +1,9 @@
+import { serverTimestamp, setDoc } from "firebase/firestore";
+import { settingsRef } from "../settingsService.js";
+import { audit } from "../auditService.js";
+
+export async function saveSettings(data) {
+  const { isDefault, ...rest } = data;
+  await setDoc(settingsRef(), { ...rest, updatedAt: serverTimestamp() }, { merge: true });
+  audit("settings.update", "siteSettings", "public");
+}
