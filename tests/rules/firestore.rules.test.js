@@ -241,6 +241,18 @@ describe("contadores de analytics", () => {
   });
 });
 
+describe("imagens (imageBlobs)", () => {
+  it("admin envia; público só lê por id; outros não enviam", async () => {
+    const data = { data: "AAAA", contentType: "image/webp", size: 3, folder: "gallery", createdAt: serverTimestamp() };
+    await assertSucceeds(setDoc(doc(admin(), "imageBlobs/img1"), data));
+    await assertSucceeds(getDoc(doc(anon(), "imageBlobs/img1")));
+    await assertFails(getDocs(collection(anon(), "imageBlobs")));
+    await assertFails(setDoc(doc(anon(), "imageBlobs/img2"), data));
+    await assertFails(setDoc(doc(stranger(), "imageBlobs/img2"), data));
+    await assertFails(setDoc(doc(admin(), "imageBlobs/img3"), { ...data, contentType: "text/html" }));
+  });
+});
+
 describe("configurações e financeiro", () => {
   it("site é público para leitura e só admin escreve", async () => {
     await assertSucceeds(getDoc(doc(anon(), "siteSettings/public")));

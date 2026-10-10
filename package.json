@@ -9,8 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-taisefoto \"vitest run --config vitest.rules.config.js\"",
-    "emulators": "firebase emulators:start --only auth,firestore,storage --project demo-taisefoto --import ./.emulator-data --export-on-exit",
+    "test:rules": "firebase emulators:exec --only firestore --project demo-taisefoto \"vitest run --config vitest.rules.config.js\"",
+    "emulators": "firebase emulators:start --only auth,firestore --project demo-taisefoto --import ./.emulator-data --export-on-exit",
     "seed:emulator": "node scripts/seed-emulator.mjs",
     "deploy": "npm run build && firebase deploy"
   },

@@ -324,6 +324,19 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // Arquivos de imagem (substitui o Storage no plano gratuito).
+    match /imageBlobs/{id} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['data', 'contentType', 'size', 'folder', 'createdAt'])
+        && request.resource.data.contentType in ['image/webp', 'image/jpeg', 'image/png']
+        && request.resource.data.data is string
+        && request.resource.data.data.size() < 1000000;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
     // Qualquer outro caminho: fechado.
     match /{document=**} {
       allow read, write: if false;

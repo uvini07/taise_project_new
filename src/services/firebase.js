@@ -1,6 +1,5 @@
 // Inicialização única do Firebase. O site público usa apenas o Firestore;
-// Auth e Storage ficam em módulos próprios (firebaseAuth.js /
-// firebaseStorage.js), carregados só pelo painel administrativo.
+// Auth fica em módulo próprio (firebaseAuth.js), carregado só pelo painel.
 import { getApp, getApps, initializeApp } from "firebase/app";
 import { connectFirestoreEmulator, getFirestore } from "firebase/firestore";
 import { firebaseConfig, useEmulators } from "../config/firebaseConfig.js";

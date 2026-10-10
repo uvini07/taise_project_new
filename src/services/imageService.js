@@ -1,12 +1,15 @@
 // Upload de imagens: valida, reduz e converte para WebP no navegador antes de
-// enviar. Cada foto vira duas versões — "full" (até 2048px) para a visualização
+// enviar. Sem o plano Blaze o Firebase Storage não está disponível, então cada
+// arquivo é guardado no Firestore (coleção imageBlobs, em base64, até ~700 KB)
+// e servido pela função /api/img/{id} (Vercel), com cache de CDN. Cada foto vira duas versões — "full" (até 2048px) para a visualização
 // ampliada e "thumb" (até 720px) para as grades — além de um mini placeholder
 // (≈20px) guardado no próprio documento para o efeito de carregamento suave.
-import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
-import { storage } from "./firebaseStorage.js";
+import { collection, deleteDoc, doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { db } from "./firebase.js";
 
 export const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 export const MAX_INPUT_BYTES = 40 * 1024 * 1024;
+const MAX_BLOB_BYTES = 700 * 1024;
 
 export function validateImageFile(file) {
   if (!file) return "Nenhum arquivo selecionado.";
@@ -54,13 +57,21 @@ function toBlob(canvas, quality) {
   });
 }
 
-export async function processImage(file, { maxEdge = 2048, thumbEdge = 720, quality = 0.84 } = {}) {
+export async function processImage(file, { maxEdge = 1800, thumbEdge = 720, quality = 0.82 } = {}) {
   const err = validateImageFile(file);
   if (err) throw new Error(err);
   const bmp = await loadBitmap(file);
   const width = bmp.width, height = bmp.height;
   if (width < 200 || height < 200) throw new Error(`${file.name}: imagem pequena demais (mínimo 200px).`);
-  const full = await toBlob(draw(bmp, maxEdge), quality);
+  // Limite do documento do Firestore: reduz qualidade/tamanho até caber.
+  let full, edge = maxEdge, q = quality;
+  for (let i = 0; i < 8; i++) {
+    full = await toBlob(draw(bmp, edge), q);
+    if (full.size <= MAX_BLOB_BYTES) break;
+    if (q > 0.6) q -= 0.08; else edge = Math.round(edge * 0.85);
+  }
+  if (full.size > MAX_BLOB_BYTES) throw new Error(`${file.name}: não foi possível reduzir a imagem o suficiente.`);
+  maxEdge = edge;
   const thumb = await toBlob(draw(bmp, thumbEdge), 0.78);
   const tiny = draw(bmp, 20).toDataURL("image/jpeg", 0.5);
   if (bmp.close) bmp.close();
@@ -68,33 +79,34 @@ export async function processImage(file, { maxEdge = 2048, thumbEdge = 720, qual
   return { full, thumb, placeholder: tiny, width: Math.round(width * scale), height: Math.round(height * scale) };
 }
 
-function ext(blob) {
-  return blob.type === "image/webp" ? "webp" : "jpg";
-}
 
-export function uploadBlob(path, blob, onProgress) {
+function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
-    const task = uploadBytesResumable(ref(storage, path), blob, {
-      contentType: blob.type,
-      cacheControl: "public, max-age=31536000",
-    });
-    task.on("state_changed",
-      (s) => onProgress?.(s.bytesTransferred / s.totalBytes),
-      reject,
-      async () => resolve({ path, url: await getDownloadURL(task.snapshot.ref) }));
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).split(",")[1]);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
   });
 }
 
+/** Grava um arquivo em imageBlobs e devolve { path, url }. */
+export async function uploadBlob(folder, blob, onProgress) {
+  const ref = doc(collection(db, "imageBlobs"));
+  onProgress?.(0.1);
+  const data = await blobToBase64(blob);
+  await setDoc(ref, { data, contentType: blob.type, size: blob.size, folder, createdAt: serverTimestamp() });
+  onProgress?.(1);
+  return { path: `imageBlobs/${ref.id}`, url: `/api/img/${ref.id}` };
+}
+
 /**
- * Processa e envia uma imagem para public/{folder}/... Retorna URLs, caminhos
- * no Storage, dimensões e placeholder.
+ * Processa e envia uma imagem. Retorna URLs, caminhos, dimensões e placeholder.
  */
 export async function uploadImage(file, folder, { onProgress, thumb = true, maxEdge } = {}) {
   const p = await processImage(file, maxEdge ? { maxEdge } : undefined);
-  const stamp = Date.now().toString(36);
-  const fullUp = await uploadBlob(`public/${folder}/${stamp}-full.${ext(p.full)}`, p.full, (x) => onProgress?.(thumb ? x * 0.8 : x));
+  const fullUp = await uploadBlob(folder, p.full, (x) => onProgress?.(thumb ? x * 0.8 : x));
   let thumbUp = null;
-  if (thumb) thumbUp = await uploadBlob(`public/${folder}/${stamp}-thumb.${ext(p.thumb)}`, p.thumb, (x) => onProgress?.(0.8 + x * 0.2));
+  if (thumb) thumbUp = await uploadBlob(folder, p.thumb, (x) => onProgress?.(0.8 + x * 0.2));
   return {
     url: fullUp.url,
     path: fullUp.path,
@@ -106,9 +118,8 @@ export async function uploadImage(file, folder, { onProgress, thumb = true, maxE
   };
 }
 
+/** Apaga arquivos enviados (aceita caminhos imageBlobs/{id}; ignora outros). */
 export async function deleteStoragePaths(paths) {
-  await Promise.all((paths || []).filter(Boolean).map((p) =>
-    deleteObject(ref(storage, p)).catch((e) => {
-      if (e?.code !== "storage/object-not-found") console.warn("Falha ao apagar", p, e);
-    })));
+  await Promise.all((paths || []).filter((p) => typeof p === "string" && p.startsWith("imageBlobs/")).map((p) =>
+    deleteDoc(doc(db, p)).catch((e) => console.warn("Falha ao apagar", p, e))));
 }

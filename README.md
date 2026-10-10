@@ -3,7 +3,7 @@
 Plataforma da **Taíse Foto / Taise Rufino Fotografia**. Tem um site público (pacotes, galeria, agenda on-line, lista VIP e contato) e um painel em `/adm`, onde a fotógrafa administra o conteúdo sem mexer no código.
 
 - **Stack:** React 18 + Vite, Tailwind CSS, React Router, Firebase (Authentication, Cloud Firestore, Storage e Analytics), Lucide e Recharts.
-- **Sem servidor próprio:** o navegador fala direto com o Firebase. A segurança fica nas regras `firestore.rules` e `storage.rules`, que são testadas automaticamente (veja [Testes](#testes)).
+- **Sem servidor próprio:** o navegador fala direto com o Firebase. A segurança fica nas regras `firestore.rules`, que são testadas automaticamente (veja [Testes](#testes)).
 
 > O projeto antigo (`uvini07/taise-project`, site de Natal) serviu só como referência. Dele vieram a logo original, o WhatsApp, o endereço e a paleta vinho/creme/dourado. O código, o Firebase e o banco de dados são novos.
 
@@ -60,7 +60,7 @@ No [console do Firebase](https://console.firebase.google.com/project/taisefoto):
 6. Publique regras, índices e site:
    ```bash
    firebase login
-   npm run deploy        # build + firebase deploy (hosting, firestore rules/indexes, storage rules)
+   npm run deploy        # build + firebase deploy (regras e índices do Firestore)
    ```
    No primeiro deploy das regras do Storage, o Firebase pede permissão para que elas consultem o Firestore (lista `adminUsers`). **Aceite**, senão o upload de fotos é negado.
 7. Opcional: ative o **Google Analytics** no projeto. Ele só é carregado quando o visitante aceita os cookies.
