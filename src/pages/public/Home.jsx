@@ -49,7 +49,7 @@ function Hero() {
           />
         </div>
       ))}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#1d0306]/90 via-[#1d0306]/35 to-[#1d0306]/30" aria-hidden />
+      <div className="absolute inset-0 bg-gradient-to-t from-wine-950/90 via-wine-950/35 to-wine-950/30" aria-hidden />
 
       <div className="container-x relative z-10 pb-16 pt-32 sm:pb-20">
         <div className="max-w-3xl">

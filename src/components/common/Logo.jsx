@@ -11,6 +11,15 @@ export default function Logo({ tone = "dark", className = "h-12 w-auto", eager =
   const custom = tone === "light" ? settings.logoLightUrl : settings.logoUrl;
   const src = custom || (tone === "light" ? LOGO.light : LOGO.dark);
   const png = tone === "light" ? LOGO.lightPng : LOGO.darkPng;
+  // Logo original em cor sólida: na versão escura ela acompanha a cor principal do tema.
+  if (!custom && tone === "dark") {
+    const mask = `url(${LOGO.darkPng}) center / contain no-repeat`;
+    return (
+      <span role="img" aria-label={settings.legalName || settings.brandName}
+        className={`inline-block aspect-[1200/738] bg-wine-900 ${className}`}
+        style={{ WebkitMask: mask, mask }} />
+    );
+  }
   return (
     <picture>
       {!custom && <source srcSet={src} type="image/webp" />}

@@ -7,10 +7,12 @@ import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
 import { saveSettings } from "../../services/admin/settingsAdmin.js";
 import { deleteStoragePaths, uploadImage } from "../../services/imageService.js";
+import { BUILTIN_THEMES, applyTheme, isHex } from "../../utils/theme.js";
 import { formatPhoneBR, isValidEmail, normalizePhoneBR } from "../../utils/validation.js";
 
 const TABS = [
   ["identidade", "Identidade"],
+  ["cores", "Cores"],
   ["inicio", "Página inicial"],
   ["sobre", "Sobre"],
   ["contato", "Contato"],
@@ -33,6 +35,9 @@ export default function SettingsAdmin() {
   const [toDelete, setToDelete] = useState([]);
 
   useEffect(() => { if (!loading && !form) setForm(settings); }, [loading, settings, form]);
+  // Ao sair sem salvar, a prévia de cores volta para o tema publicado.
+  const savedTheme = settings.theme;
+  useEffect(() => () => applyTheme(savedTheme), [savedTheme]);
 
   const pending = useMemo(() => {
     if (!form) return [];
@@ -61,6 +66,7 @@ export default function SettingsAdmin() {
     if (!wa) errs.push("WhatsApp inválido.");
     if (form.contact.email && !isValidEmail(form.contact.email)) errs.push("E-mail inválido.");
     if (!form.brandName.trim()) errs.push("Informe o nome comercial.");
+    if (!isHex(form.theme.primary) || !isHex(form.theme.background)) errs.push("Cores inválidas: use o formato #RRGGBB.");
     for (const [k, url] of Object.entries(form.social)) if (url && !/^https:\/\//.test(url)) errs.push(`Link do ${k} deve começar com https://`);
     if (errs.length) { toast.error(errs.join(" ")); return; }
     setSaving(true);
@@ -232,6 +238,10 @@ export default function SettingsAdmin() {
           </Section>
         )}
 
+        {tab === "cores" && (
+          <ThemeEditor form={form} setForm={setForm} />
+        )}
+
         {tab === "seo" && (
           <>
             <Section title="SEO e compartilhamento" text="Como o site aparece no Google e quando o link é enviado no WhatsApp ou redes sociais.">
@@ -261,6 +271,87 @@ export default function SettingsAdmin() {
       <div className="sticky bottom-4 mt-8 flex justify-end">
         <button className="btn-primary shadow-lift" onClick={save} disabled={saving}>{saving ? <Spinner className="h-4 w-4" /> : <Save className="h-4 w-4" />} Salvar alterações</button>
       </div>
+    </>
+  );
+}
+
+function ColorField({ label, value, onChange }) {
+  return (
+    <div>
+      <p className="field-label">{label}</p>
+      <div className="flex items-center gap-3">
+        <input type="color" value={isHex(value) ? value : "#000000"} onChange={(e) => onChange(e.target.value.toUpperCase())}
+          className="h-12 w-16 cursor-pointer rounded-xl border border-ink/15 bg-white p-1" aria-label={label} />
+        <input className="field-input !w-36 font-mono uppercase" value={value} maxLength={7}
+          onChange={(e) => onChange(e.target.value.startsWith("#") ? e.target.value : `#${e.target.value}`)} />
+      </div>
+    </div>
+  );
+}
+
+function ThemeSwatch({ t, active, onClick, onDelete }) {
+  return (
+    <div className={`relative rounded-2xl border bg-white p-3 transition ${active ? "border-wine-900 ring-2 ring-wine-900/30" : "border-ink/10 hover:border-ink/30"}`}>
+      <button type="button" onClick={onClick} className="block w-full text-left">
+        <div className="flex h-16 overflow-hidden rounded-xl border border-ink/10">
+          <span className="flex-1" style={{ background: t.background }} />
+          <span className="w-1/3" style={{ background: t.primary }} />
+        </div>
+        <p className="mt-2 truncate text-sm font-medium">{t.name}</p>
+      </button>
+      {onDelete && (
+        <button type="button" onClick={onDelete} aria-label={`Excluir ${t.name}`} className="absolute right-2 top-2 rounded-full bg-white/90 p-1 text-danger shadow">
+          <Trash2 className="h-3.5 w-3.5" />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ThemeEditor({ form, setForm }) {
+  const [name, setName] = useState("");
+  const theme = form.theme;
+  const presets = form.themePresets || [];
+  const setTheme = (t) => { const next = { primary: t.primary, background: t.background }; applyTheme(next); setForm((f) => ({ ...f, theme: next })); };
+  const same = (t) => t.primary.toUpperCase() === theme.primary.toUpperCase() && t.background.toUpperCase() === theme.background.toUpperCase();
+  const valid = isHex(theme.primary) && isHex(theme.background);
+  return (
+    <>
+      <Section title="Cores do site" text="A mudança aparece aqui na hora como prévia. Clique em Salvar alterações para publicar no site.">
+        <div className="grid gap-6 md:grid-cols-[auto_1fr]">
+          <div className="space-y-5">
+            <ColorField label="Cor principal (botões, rodapé, destaques)" value={theme.primary} onChange={(v) => { setForm((f) => ({ ...f, theme: { ...f.theme, primary: v } })); if (isHex(v)) applyTheme({ ...theme, primary: v }); }} />
+            <ColorField label="Cor de fundo" value={theme.background} onChange={(v) => { setForm((f) => ({ ...f, theme: { ...f.theme, background: v } })); if (isHex(v)) applyTheme({ ...theme, background: v }); }} />
+            {!valid && <p className="field-error">Use o formato #RRGGBB.</p>}
+          </div>
+          <div className="overflow-hidden rounded-2xl border border-ink/10 bg-ivory">
+            <div className="flex items-center justify-between bg-ivory px-5 py-3 text-xs uppercase tracking-widest text-ink-soft">Prévia <span className="h-6 w-16 rounded-full bg-wine-900" /></div>
+            <div className="space-y-3 bg-paper px-5 py-6">
+              <p className="font-display text-2xl text-wine-900">Momentos que merecem ser lembrados</p>
+              <div className="flex gap-2"><span className="btn-primary btn-sm">Botão principal</span><span className="btn-outline btn-sm">Secundário</span></div>
+            </div>
+            <div className="bg-wine-900 px-5 py-4 text-sm text-cream/80">Rodapé</div>
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Modelos de cores" text="Clique para aplicar. Você pode salvar as cores atuais como um modelo seu.">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {BUILTIN_THEMES.map((t) => <ThemeSwatch key={t.id} t={t} active={same(t)} onClick={() => setTheme(t)} />)}
+          {presets.map((t, i) => (
+            <ThemeSwatch key={`${t.name}-${i}`} t={t} active={same(t)} onClick={() => setTheme(t)}
+              onDelete={() => setForm((f) => ({ ...f, themePresets: presets.filter((_, j) => j !== i) }))} />
+          ))}
+        </div>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <input className="field-input !w-64 !py-2" placeholder="Nome do modelo (ex.: Páscoa)" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} />
+          <button type="button" className="btn-outline btn-sm" disabled={!name.trim() || !valid}
+            onClick={() => { setForm((f) => ({ ...f, themePresets: [...presets, { name: name.trim(), primary: theme.primary, background: theme.background }] })); setName(""); }}>
+            <Plus className="h-4 w-4" /> Salvar cores atuais como modelo
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-ink-muted">Modelos novos também precisam de “Salvar alterações”.</p>
+      </Section>
     </>
   );
 }
