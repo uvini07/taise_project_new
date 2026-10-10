@@ -269,6 +269,8 @@ describe("configurações e financeiro", () => {
     await assertSucceeds(setDoc(doc(ok, "adminUsers/tr"), { active: true, role: "owner", email: "tarufino@gmail.com" }));
     const unverified = env.authenticatedContext("tr2", { email: "tarufino@gmail.com", email_verified: false }).firestore();
     await assertFails(setDoc(doc(unverified, "adminUsers/tr2"), { active: true, role: "owner" }));
+    const second = env.authenticatedContext("mj", { email: "marcelinhojordao07@gmail.com", email_verified: true }).firestore();
+    await assertSucceeds(setDoc(doc(second, "adminUsers/mj"), { active: true, role: "owner" }));
     const other = env.authenticatedContext("x2", { email: "x@gmail.com", email_verified: true }).firestore();
     await assertFails(setDoc(doc(other, "adminUsers/x2"), { active: true, role: "owner" }));
   });

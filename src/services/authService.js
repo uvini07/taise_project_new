@@ -6,7 +6,8 @@ import { auth } from "./firebaseAuth.js";
 import { db } from "./firebase.js";
 
 // Única conta com acesso ao painel (as regras do Firestore/Storage exigem o mesmo).
-export const ADMIN_EMAIL = "tarufino@gmail.com";
+export const ADMIN_EMAILS = ["tarufino@gmail.com", "marcelinhojordao07@gmail.com"];
+export const isAllowedEmail = (e) => ADMIN_EMAILS.includes((e || "").toLowerCase());
 
 /**
  * Observa a sessão e diz se a pessoa logada é administradora (documento
@@ -16,7 +17,7 @@ export const ADMIN_EMAIL = "tarufino@gmail.com";
 export function watchAdminSession(cb) {
   return onAuthStateChanged(auth, async (user) => {
     if (!user) return cb({ user: null, admin: null, status: "signedOut" });
-    if ((user.email || "").toLowerCase() !== ADMIN_EMAIL) return cb({ user, admin: null, status: "notAdmin" });
+    if (!isAllowedEmail(user.email)) return cb({ user, admin: null, status: "notAdmin" });
     try {
       const snap = await getDoc(doc(db, "adminUsers", user.uid));
       const data = snap.exists() ? snap.data() : null;
@@ -53,7 +54,7 @@ export const currentUser = () => auth.currentUser;
  */
 export async function activateOwnerAccess() {
   const u = auth.currentUser;
-  if (!u || (u.email || "").toLowerCase() !== ADMIN_EMAIL) throw new Error("Conta não autorizada.");
+  if (!u || !isAllowedEmail(u.email)) throw new Error("Conta não autorizada.");
   await reload(u);
   if (!u.emailVerified) {
     await sendEmailVerification(u);
