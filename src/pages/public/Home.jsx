@@ -256,7 +256,7 @@ function ContactStrip() {
   const { contact } = settings;
   return (
     <section className="container-x pt-12">
-      <Reveal className="grid gap-10 rounded-[32px] border border-ink/[.06] bg-white p-8 shadow-soft sm:p-12 lg:grid-cols-2 lg:items-center">
+      <Reveal className="grid gap-10 rounded-[32px] border border-ink/[.06] bg-surface p-8 shadow-soft sm:p-12 lg:grid-cols-2 lg:items-center">
         <div>
           <p className="eyebrow">Vamos conversar</p>
           <h2 className="display-md mt-3 text-balance">Conte o que você imagina para o seu ensaio</h2>

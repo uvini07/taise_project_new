@@ -40,7 +40,7 @@ export function StatCard({ label, value, hint, icon: Icon, tone = "default", onC
 export function PeriodPicker({ value, custom, onChange }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="flex flex-wrap gap-1 rounded-full border border-ink/10 bg-white p-1">
+      <div className="flex flex-wrap gap-1 rounded-full border border-ink/10 bg-surface p-1">
         {PERIODS.map((p) => (
           <button key={p.id} onClick={() => onChange(p.id, custom)}
             className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${value === p.id ? "bg-wine-900 text-cream" : "text-ink-soft hover:bg-ink/5"}`}>
@@ -85,14 +85,14 @@ export function ImageInput({ label, value, onUpload, onRemove, aspect = "aspect-
           </button>
         )}
         {progress != null && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/80 text-sm">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-surface/80 text-sm">
             <Spinner /> {Math.round(progress * 100)}%
           </div>
         )}
         {value && progress == null && (
           <div className="absolute right-2 top-2 flex gap-1">
-            <button type="button" onClick={() => input.current?.click()} className="rounded-full bg-white/90 px-3 py-1.5 text-xs shadow hover:bg-white">Trocar</button>
-            {onRemove && <button type="button" onClick={onRemove} className="rounded-full bg-white/90 p-1.5 text-danger shadow hover:bg-white" aria-label="Remover imagem"><X className="h-4 w-4" /></button>}
+            <button type="button" onClick={() => input.current?.click()} className="rounded-full bg-surface/90 px-3 py-1.5 text-xs shadow hover:bg-surface">Trocar</button>
+            {onRemove && <button type="button" onClick={onRemove} className="rounded-full bg-surface/90 p-1.5 text-danger shadow hover:bg-surface" aria-label="Remover imagem"><X className="h-4 w-4" /></button>}
           </div>
         )}
       </div>

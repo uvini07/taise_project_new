@@ -34,8 +34,8 @@ export function ToastProvider({ children }) {
           return (
             <div key={t.id} role={t.type === "error" ? "alert" : "status"}
               className={`pointer-events-auto flex w-full max-w-sm animate-fade-up items-start gap-3 rounded-2xl border px-4 py-3 text-sm shadow-lift backdrop-blur ${
-                t.type === "error" ? "border-danger/20 bg-white text-danger"
-                  : t.type === "success" ? "border-success/20 bg-white text-success" : "border-ink/10 bg-white text-ink"}`}>
+                t.type === "error" ? "border-danger/20 bg-surface text-danger"
+                  : t.type === "success" ? "border-success/20 bg-surface text-success" : "border-ink/10 bg-surface text-ink"}`}>
               <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
               <p className="flex-1 text-ink">{t.message}</p>
               <button onClick={() => dismiss(t.id)} className="text-ink-muted hover:text-ink" aria-label="Fechar aviso">

@@ -62,7 +62,7 @@ export default function Header({ overlay = false, hasVip = false }) {
             <WhatsAppIcon className="h-4 w-4" /> Falar no WhatsApp
           </WhatsAppLink>
           <button
-            className={`rounded-full p-2.5 lg:hidden ${transparent ? "text-cream hover:bg-white/10" : "text-ink hover:bg-ink/5"}`}
+            className={`rounded-full p-2.5 lg:hidden ${transparent ? "text-cream hover:bg-surface/10" : "text-ink hover:bg-ink/5"}`}
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             aria-controls="menu-mobile"

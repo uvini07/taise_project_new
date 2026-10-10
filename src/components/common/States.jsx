@@ -2,7 +2,7 @@ import { AlertTriangle, ImageOff } from "lucide-react";
 
 export function EmptyState({ icon: Icon = ImageOff, title, text, action, className = "" }) {
   return (
-    <div className={`flex flex-col items-center justify-center rounded-2xl border border-dashed border-ink/15 bg-white/50 px-6 py-12 text-center ${className}`}>
+    <div className={`flex flex-col items-center justify-center rounded-2xl border border-dashed border-ink/15 bg-surface/50 px-6 py-12 text-center ${className}`}>
       <Icon className="mb-3 h-8 w-8 text-gold" strokeWidth={1.4} aria-hidden />
       <h3 className="font-display text-2xl">{title}</h3>
       {text && <p className="mt-2 max-w-md text-sm text-ink-muted">{text}</p>}

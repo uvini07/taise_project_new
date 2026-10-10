@@ -17,7 +17,7 @@ export default function CookieBanner() {
   if (!show) return null;
   const choose = (v) => { setConsent(v); setShow(false); };
   return (
-    <div role="dialog" aria-label="Aviso de cookies" className="fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-xl animate-fade-up rounded-2xl border border-ink/10 bg-white/95 p-4 text-sm shadow-lift backdrop-blur sm:bottom-6 sm:p-5">
+    <div role="dialog" aria-label="Aviso de cookies" className="fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-xl animate-fade-up rounded-2xl border border-ink/10 bg-surface/95 p-4 text-sm shadow-lift backdrop-blur sm:bottom-6 sm:p-5">
       <p className="text-ink-soft">
         Usamos cookies do Google Analytics para entender como o site é usado, só se você permitir.{" "}
         <Link to="/politicas#privacidade" className="text-wine-900 underline underline-offset-2">Saiba mais</Link>.

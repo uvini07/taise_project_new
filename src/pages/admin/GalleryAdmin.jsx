@@ -197,11 +197,11 @@ export default function GalleryAdmin() {
       <div className="grid gap-6 lg:grid-cols-[280px_1fr]">
         <aside className="space-y-3">
           <button onClick={() => { setCatId(null); setSelected(new Set()); }}
-            className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm ${!catId ? "bg-wine-900 text-cream" : "bg-white hover:bg-ink/5"}`}>
+            className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm ${!catId ? "bg-wine-900 text-cream" : "bg-surface hover:bg-ink/5"}`}>
             Todas as fotos <span className="tabular-nums opacity-70">{photos.length}</span>
           </button>
           {cats.map((c, i) => (
-            <div key={c.id} className={`group flex items-center gap-2 rounded-xl px-2 py-1.5 ${catId === c.id ? "bg-wine-900 text-cream" : "bg-white"}`}>
+            <div key={c.id} className={`group flex items-center gap-2 rounded-xl px-2 py-1.5 ${catId === c.id ? "bg-wine-900 text-cream" : "bg-surface"}`}>
               <button onClick={() => { setCatId(c.id); setSelected(new Set()); }} className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-2 py-1.5 text-left text-sm">
                 <span className="h-9 w-9 shrink-0 overflow-hidden rounded-lg bg-paper">{c.coverThumbUrl && <img src={c.coverThumbUrl} alt="" className="h-full w-full object-cover" />}</span>
                 <span className="min-w-0 flex-1">
@@ -220,7 +220,7 @@ export default function GalleryAdmin() {
               <p className="mb-2 text-xs uppercase tracking-wider text-ink-muted">Sugestões</p>
               <div className="flex flex-wrap gap-1.5">
                 {suggestions.map((n) => (
-                  <button key={n} onClick={() => quickAdd(n)} className="chip border-ink/15 bg-white hover:border-wine-900"><Plus className="h-3 w-3" /> {n}</button>
+                  <button key={n} onClick={() => quickAdd(n)} className="chip border-ink/15 bg-surface hover:border-wine-900"><Plus className="h-3 w-3" /> {n}</button>
                 ))}
               </div>
             </div>
@@ -248,7 +248,7 @@ export default function GalleryAdmin() {
               onDragOver={(e) => { e.preventDefault(); e.currentTarget.dataset.over = "1"; }}
               onDragLeave={(e) => { delete e.currentTarget.dataset.over; }}
               onDrop={(e) => { e.preventDefault(); delete e.currentTarget.dataset.over; handleFiles(e.dataTransfer.files); }}
-              className="mb-6 rounded-2xl border-2 border-dashed border-ink/15 bg-white p-6 text-center transition data-[over]:border-wine-900 data-[over]:bg-wine-50">
+              className="mb-6 rounded-2xl border-2 border-dashed border-ink/15 bg-surface p-6 text-center transition data-[over]:border-wine-900 data-[over]:bg-wine-50">
               <UploadCloud className="mx-auto h-8 w-8 text-gold" strokeWidth={1.4} />
               <p className="mt-2 text-sm">Arraste fotos aqui ou</p>
               <button className="btn-primary btn-sm mt-3" onClick={() => fileInput.current?.click()}><ImagePlus className="h-4 w-4" /> Escolher fotos</button>
@@ -279,10 +279,10 @@ export default function GalleryAdmin() {
           {selected.size > 0 && (
             <div className="sticky top-20 z-10 mb-4 flex flex-wrap items-center gap-2 rounded-2xl bg-ink px-4 py-3 text-sm text-cream shadow-lift lg:top-4">
               <span className="mr-2">{selected.size} selecionada(s)</span>
-              <button className="btn-sm rounded-full bg-white/10 px-3 py-1.5 hover:bg-white/20" onClick={() => bulk({ published: true }, "Fotos publicadas.")}><Eye className="mr-1 inline h-3.5 w-3.5" />Publicar</button>
-              <button className="btn-sm rounded-full bg-white/10 px-3 py-1.5 hover:bg-white/20" onClick={() => bulk({ published: false }, "Fotos ocultadas.")}><EyeOff className="mr-1 inline h-3.5 w-3.5" />Ocultar</button>
-              <button className="btn-sm rounded-full bg-white/10 px-3 py-1.5 hover:bg-white/20" onClick={() => bulk({ featured: true }, "Marcadas como destaque.")}><Star className="mr-1 inline h-3.5 w-3.5" />Destaque</button>
-              <select className="rounded-full bg-white/10 px-3 py-1.5 text-cream" defaultValue="" aria-label="Mover para categoria"
+              <button className="btn-sm rounded-full bg-surface/10 px-3 py-1.5 hover:bg-surface/20" onClick={() => bulk({ published: true }, "Fotos publicadas.")}><Eye className="mr-1 inline h-3.5 w-3.5" />Publicar</button>
+              <button className="btn-sm rounded-full bg-surface/10 px-3 py-1.5 hover:bg-surface/20" onClick={() => bulk({ published: false }, "Fotos ocultadas.")}><EyeOff className="mr-1 inline h-3.5 w-3.5" />Ocultar</button>
+              <button className="btn-sm rounded-full bg-surface/10 px-3 py-1.5 hover:bg-surface/20" onClick={() => bulk({ featured: true }, "Marcadas como destaque.")}><Star className="mr-1 inline h-3.5 w-3.5" />Destaque</button>
+              <select className="rounded-full bg-surface/10 px-3 py-1.5 text-cream" defaultValue="" aria-label="Mover para categoria"
                 onChange={(e) => { if (e.target.value) bulk({ categoryId: e.target.value }, "Fotos movidas."); e.target.value = ""; }}>
                 <option value="" disabled>Mover para…</option>
                 {cats.map((c) => <option key={c.id} value={c.id} className="text-ink">{c.name}</option>)}
@@ -303,15 +303,15 @@ export default function GalleryAdmin() {
           ) : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
               {list.map((p, i) => (
-                <div key={p.id} className={`group relative overflow-hidden rounded-2xl bg-white shadow-soft ${selected.has(p.id) ? "ring-2 ring-wine-900" : ""}`}>
+                <div key={p.id} className={`group relative overflow-hidden rounded-2xl bg-surface shadow-soft ${selected.has(p.id) ? "ring-2 ring-wine-900" : ""}`}>
                   <button className="block aspect-square w-full" onClick={() => setPreview(i)} aria-label="Visualizar">
                     <img src={p.thumbUrl} alt={p.alt || ""} loading="lazy" className={`h-full w-full object-cover ${p.published ? "" : "opacity-60 grayscale-[40%]"}`} />
                   </button>
-                  <label className="absolute left-2 top-2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-white/90 shadow">
+                  <label className="absolute left-2 top-2 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-surface/90 shadow">
                     <input type="checkbox" className="accent-wine-900" checked={selected.has(p.id)} onChange={() => toggleSel(p.id)} aria-label="Selecionar foto" />
                   </label>
                   <div className="absolute right-2 top-2 flex gap-1">
-                    {!p.published && <Badge tone="muted" className="bg-white/90">Prévia</Badge>}
+                    {!p.published && <Badge tone="muted" className="bg-surface/90">Prévia</Badge>}
                     {p.featured && <span className="rounded-full bg-gold p-1 text-white shadow" title="Destaque"><Star className="h-3.5 w-3.5" /></span>}
                   </div>
                   <div className="flex items-center justify-between gap-1 px-2 py-1.5">

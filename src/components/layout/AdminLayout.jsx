@@ -60,7 +60,7 @@ export default function AdminLayout() {
   );
 
   return (
-    <div className="min-h-screen bg-[#F7F3EC]">
+    <div className="min-h-screen bg-paper">
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-ink/5 bg-ivory p-5 lg:flex">
         <Link to="/adm/dashboard" className="mb-8 block px-2"><Logo className="h-14 w-auto" eager /></Link>
         <div className="flex-1 overflow-y-auto"><NavList /></div>

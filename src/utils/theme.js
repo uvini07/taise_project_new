@@ -2,14 +2,14 @@
 // cor de fundo; os tons intermediários são calculados aqui e aplicados como
 // variáveis CSS, que o Tailwind usa (wine-*, ivory, paper, sand, cream).
 
-export const DEFAULT_THEME = { primary: "#3E060A", background: "#FAF7F2" };
+export const DEFAULT_THEME = { primary: "#3E060A", background: "#FAF7F2", surface: "#FFFFFF", text: "#221A16", onPrimary: "#F0E6D7" };
 
 export const BUILTIN_THEMES = [
-  { id: "original", name: "Original (vinho)", primary: "#3E060A", background: "#FAF7F2" },
-  { id: "maes", name: "Dia das Mães (rosa)", primary: "#9D3C5E", background: "#FDF6F7" },
-  { id: "criancas", name: "Dia das Crianças (azul)", primary: "#1F4E79", background: "#F6F9FC" },
-  { id: "natal", name: "Natal (verde)", primary: "#1C3D2E", background: "#FAF7F0" },
-  { id: "neutro", name: "Neutro (grafite)", primary: "#2B2B2B", background: "#F7F6F4" },
+  { id: "original", name: "Original (vinho)", primary: "#3E060A", background: "#FAF7F2", surface: "#FFFFFF", text: "#221A16", onPrimary: "#F0E6D7" },
+  { id: "maes", name: "Dia das Mães (rosa)", primary: "#9D3C5E", background: "#FDF6F7", surface: "#FFFFFF", text: "#2A1A20", onPrimary: "#FFF4F7" },
+  { id: "criancas", name: "Dia das Crianças (azul)", primary: "#1F4E79", background: "#F6F9FC", surface: "#FFFFFF", text: "#1A2430", onPrimary: "#F2F7FC" },
+  { id: "natal", name: "Natal (verde)", primary: "#1C3D2E", background: "#FAF7F0", surface: "#FFFFFF", text: "#1E2420", onPrimary: "#F3EEDF" },
+  { id: "neutro", name: "Neutro (grafite)", primary: "#2B2B2B", background: "#F7F6F4", surface: "#FFFFFF", text: "#222222", onPrimary: "#F5F5F5" },
 ];
 
 const hexOk = (h) => /^#[0-9a-fA-F]{6}$/.test(h || "");
@@ -19,7 +19,11 @@ const trip = (c) => c.join(" ");
 
 export function themeVars(theme) {
   const p = toRgb(hexOk(theme?.primary) ? theme.primary : DEFAULT_THEME.primary);
-  const bg = toRgb(hexOk(theme?.background) ? theme.background : DEFAULT_THEME.background);
+  const pick = (k) => toRgb(hexOk(theme?.[k]) ? theme[k] : DEFAULT_THEME[k]);
+  const bg = pick("background");
+  const surface = pick("surface");
+  const text = pick("text");
+  const onP = pick("onPrimary");
   const W = [255, 255, 255], K = [0, 0, 0];
   return {
     "--wine-950": trip(mix(p, K, 0.32)),
@@ -32,7 +36,11 @@ export function themeVars(theme) {
     "--ivory": trip(bg),
     "--paper": trip(mix(bg, p, 0.035)),
     "--sand": trip(mix(mix(bg, K, 0.06), p, 0.04)),
-    "--cream": trip(mix(bg, [240, 230, 215], 0.6)),
+    "--cream": trip(onP),
+    "--surface": trip(surface),
+    "--ink": trip(text),
+    "--ink-soft": trip(mix(text, bg, 0.22)),
+    "--ink-muted": trip(mix(text, bg, 0.4)),
   };
 }
 

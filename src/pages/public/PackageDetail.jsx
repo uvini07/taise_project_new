@@ -131,7 +131,7 @@ export default function PackageDetail() {
                   const [label, tone] = LOT_LABEL[st];
                   const rem = lotRemaining(l);
                   return (
-                    <li key={l.id} className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border px-5 py-4 ${st === "open" ? "border-gold/40 bg-white" : "border-ink/5 bg-paper/60"}`}>
+                    <li key={l.id} className={`flex flex-wrap items-center justify-between gap-3 rounded-2xl border px-5 py-4 ${st === "open" ? "border-gold/40 bg-surface" : "border-ink/5 bg-paper/60"}`}>
                       <div>
                         <p className="font-medium">{l.name}</p>
                         <p className="text-xs text-ink-muted">

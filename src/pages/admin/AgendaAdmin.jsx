@@ -493,7 +493,7 @@ export default function AgendaAdmin() {
       <div className="mb-6 flex gap-1" role="tablist">
         {[["appointments", "Agendamentos"], ["availability", "Disponibilidade"]].map(([k, l]) => (
           <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)}
-            className={`rounded-full px-4 py-2 text-sm ${tab === k ? "bg-wine-900 text-cream" : "bg-white text-ink-soft hover:bg-ink/5"}`}>{l}</button>
+            className={`rounded-full px-4 py-2 text-sm ${tab === k ? "bg-wine-900 text-cream" : "bg-surface text-ink-soft hover:bg-ink/5"}`}>{l}</button>
         ))}
       </div>
 
@@ -519,7 +519,7 @@ export default function AgendaAdmin() {
           )}
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1 rounded-full border border-ink/10 bg-white p-1">
+            <div className="flex items-center gap-1 rounded-full border border-ink/10 bg-surface p-1">
               <button className="rounded-full p-1.5 hover:bg-ink/5" onClick={() => setMonth(addDays(`${month}-01`, -1).slice(0, 7))} aria-label="Mês anterior"><ChevronLeft className="h-4 w-4" /></button>
               <span className="min-w-36 text-center text-sm font-medium">{formatMonth(`${month}-01`)}</span>
               <button className="rounded-full p-1.5 hover:bg-ink/5" onClick={() => setMonth(addDays(`${month}-01`, 32).slice(0, 7))} aria-label="Próximo mês"><ChevronRight className="h-4 w-4" /></button>
@@ -529,7 +529,7 @@ export default function AgendaAdmin() {
               <option value="all">Todos</option>
               {Object.entries(APPOINTMENT_STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
             </select>
-            <div className="ml-auto flex rounded-full border border-ink/10 bg-white p-1">
+            <div className="ml-auto flex rounded-full border border-ink/10 bg-surface p-1">
               <button className={`rounded-full px-3 py-1.5 text-sm ${view === "list" ? "bg-ink text-cream" : ""}`} onClick={() => setView("list")}><List className="mr-1 inline h-4 w-4" />Lista</button>
               <button className={`rounded-full px-3 py-1.5 text-sm ${view === "calendar" ? "bg-ink text-cream" : ""}`} onClick={() => setView("calendar")}><CalendarDays className="mr-1 inline h-4 w-4" />Calendário</button>
             </div>

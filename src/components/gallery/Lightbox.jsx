@@ -55,11 +55,11 @@ export default function Lightbox({ photos, index, onClose, onIndex }) {
           {index + 1} / {photos.length}
         </div>
       )}
-      <button ref={closeBtn} onClick={onClose} aria-label="Fechar" className="absolute right-3 top-3 rounded-full p-3 text-cream/80 hover:bg-white/10 hover:text-white"><X className="h-6 w-6" /></button>
+      <button ref={closeBtn} onClick={onClose} aria-label="Fechar" className="absolute right-3 top-3 rounded-full p-3 text-cream/80 hover:bg-surface/10 hover:text-white"><X className="h-6 w-6" /></button>
       {photos.length > 1 && (
         <>
-          <button onClick={() => go(-1)} aria-label="Foto anterior" className="absolute left-2 top-1/2 hidden -translate-y-1/2 rounded-full p-3 text-cream/80 hover:bg-white/10 hover:text-white sm:block"><ChevronLeft className="h-7 w-7" /></button>
-          <button onClick={() => go(1)} aria-label="Próxima foto" className="absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-full p-3 text-cream/80 hover:bg-white/10 hover:text-white sm:block"><ChevronRight className="h-7 w-7" /></button>
+          <button onClick={() => go(-1)} aria-label="Foto anterior" className="absolute left-2 top-1/2 hidden -translate-y-1/2 rounded-full p-3 text-cream/80 hover:bg-surface/10 hover:text-white sm:block"><ChevronLeft className="h-7 w-7" /></button>
+          <button onClick={() => go(1)} aria-label="Próxima foto" className="absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-full p-3 text-cream/80 hover:bg-surface/10 hover:text-white sm:block"><ChevronRight className="h-7 w-7" /></button>
         </>
       )}
     </div>,

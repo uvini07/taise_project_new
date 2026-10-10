@@ -255,7 +255,7 @@ export default function Booking() {
                         <button key={s.time} disabled={!s.available} onClick={() => { setSlot(s); setStep(3); }}
                           className={`rounded-xl border px-3 py-3 text-sm tabular-nums transition ${
                             slot?.time === s.time ? "border-wine-900 bg-wine-900 text-cream"
-                              : s.available ? "border-ink/15 bg-white hover:border-wine-900" : "border-transparent bg-paper text-ink-muted/50 line-through"}`}
+                              : s.available ? "border-ink/15 bg-surface hover:border-wine-900" : "border-transparent bg-paper text-ink-muted/50 line-through"}`}
                           aria-label={`${s.time}${s.available ? "" : ` — ${s.reason}`}`}>
                           {s.time}
                         </button>

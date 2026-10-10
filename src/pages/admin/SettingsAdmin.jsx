@@ -66,7 +66,7 @@ export default function SettingsAdmin() {
     if (!wa) errs.push("WhatsApp inválido.");
     if (form.contact.email && !isValidEmail(form.contact.email)) errs.push("E-mail inválido.");
     if (!form.brandName.trim()) errs.push("Informe o nome comercial.");
-    if (!isHex(form.theme.primary) || !isHex(form.theme.background)) errs.push("Cores inválidas: use o formato #RRGGBB.");
+    if (["primary", "background", "surface", "text", "onPrimary"].some((k) => form.theme[k] && !isHex(form.theme[k]))) errs.push("Cores inválidas: use o formato #RRGGBB.");
     for (const [k, url] of Object.entries(form.social)) if (url && !/^https:\/\//.test(url)) errs.push(`Link do ${k} deve começar com https://`);
     if (errs.length) { toast.error(errs.join(" ")); return; }
     setSaving(true);
@@ -107,7 +107,7 @@ export default function SettingsAdmin() {
       <div className="scrollbar-none -mx-4 mb-6 flex gap-1 overflow-x-auto px-4" role="tablist">
         {TABS.map(([id, label]) => (
           <button key={id} role="tab" aria-selected={tab === id} onClick={() => setTab(id)}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm transition ${tab === id ? "bg-wine-900 text-cream" : "bg-white text-ink-soft hover:bg-ink/5"}`}>{label}</button>
+            className={`shrink-0 rounded-full px-4 py-2 text-sm transition ${tab === id ? "bg-wine-900 text-cream" : "bg-surface text-ink-soft hover:bg-ink/5"}`}>{label}</button>
         ))}
       </div>
 
@@ -281,7 +281,7 @@ function ColorField({ label, value, onChange }) {
       <p className="field-label">{label}</p>
       <div className="flex items-center gap-3">
         <input type="color" value={isHex(value) ? value : "#000000"} onChange={(e) => onChange(e.target.value.toUpperCase())}
-          className="h-12 w-16 cursor-pointer rounded-xl border border-ink/15 bg-white p-1" aria-label={label} />
+          className="h-12 w-16 cursor-pointer rounded-xl border border-ink/15 bg-surface p-1" aria-label={label} />
         <input className="field-input !w-36 font-mono uppercase" value={value} maxLength={7}
           onChange={(e) => onChange(e.target.value.startsWith("#") ? e.target.value : `#${e.target.value}`)} />
       </div>
@@ -291,16 +291,16 @@ function ColorField({ label, value, onChange }) {
 
 function ThemeSwatch({ t, active, onClick, onDelete }) {
   return (
-    <div className={`relative rounded-2xl border bg-white p-3 transition ${active ? "border-wine-900 ring-2 ring-wine-900/30" : "border-ink/10 hover:border-ink/30"}`}>
+    <div className={`relative rounded-2xl border bg-surface p-3 transition ${active ? "border-wine-900 ring-2 ring-wine-900/30" : "border-ink/10 hover:border-ink/30"}`}>
       <button type="button" onClick={onClick} className="block w-full text-left">
         <div className="flex h-16 overflow-hidden rounded-xl border border-ink/10">
-          <span className="flex-1" style={{ background: t.background }} />
-          <span className="w-1/3" style={{ background: t.primary }} />
+          <span className="flex flex-1 items-center justify-center font-display text-lg" style={{ background: t.background, color: t.text || "#221A16" }}>Aa</span>
+          <span className="flex w-1/3 items-center justify-center text-xs" style={{ background: t.primary, color: t.onPrimary || "#F0E6D7" }}>Aa</span>
         </div>
         <p className="mt-2 truncate text-sm font-medium">{t.name}</p>
       </button>
       {onDelete && (
-        <button type="button" onClick={onDelete} aria-label={`Excluir ${t.name}`} className="absolute right-2 top-2 rounded-full bg-white/90 p-1 text-danger shadow">
+        <button type="button" onClick={onDelete} aria-label={`Excluir ${t.name}`} className="absolute right-2 top-2 rounded-full bg-surface/90 p-1 text-danger shadow">
           <Trash2 className="h-3.5 w-3.5" />
         </button>
       )}
@@ -312,16 +312,23 @@ function ThemeEditor({ form, setForm }) {
   const [name, setName] = useState("");
   const theme = form.theme;
   const presets = form.themePresets || [];
-  const setTheme = (t) => { const next = { primary: t.primary, background: t.background }; applyTheme(next); setForm((f) => ({ ...f, theme: next })); };
-  const same = (t) => t.primary.toUpperCase() === theme.primary.toUpperCase() && t.background.toUpperCase() === theme.background.toUpperCase();
-  const valid = isHex(theme.primary) && isHex(theme.background);
+  const KEYS = ["primary", "background", "surface", "text", "onPrimary"];
+  const DEF = { surface: "#FFFFFF", text: "#221A16", onPrimary: "#F0E6D7" };
+  const full = (t) => Object.fromEntries(KEYS.map((k) => [k, t[k] || DEF[k]]));
+  const setTheme = (t) => { const next = full(t); applyTheme(next); setForm((f) => ({ ...f, theme: next })); };
+  const same = (t) => KEYS.every((k) => (full(t)[k] || "").toUpperCase() === (full(theme)[k] || "").toUpperCase());
+  const valid = KEYS.every((k) => isHex(full(theme)[k]));
+  const setKey = (k) => (v) => { const next = { ...full(theme), [k]: v }; setForm((f) => ({ ...f, theme: next })); if (isHex(v)) applyTheme(next); };
   return (
     <>
       <Section title="Cores do site" text="A mudança aparece aqui na hora como prévia. Clique em Salvar alterações para publicar no site.">
         <div className="grid gap-6 md:grid-cols-[auto_1fr]">
           <div className="space-y-5">
-            <ColorField label="Cor principal (botões, rodapé, destaques)" value={theme.primary} onChange={(v) => { setForm((f) => ({ ...f, theme: { ...f.theme, primary: v } })); if (isHex(v)) applyTheme({ ...theme, primary: v }); }} />
-            <ColorField label="Cor de fundo" value={theme.background} onChange={(v) => { setForm((f) => ({ ...f, theme: { ...f.theme, background: v } })); if (isHex(v)) applyTheme({ ...theme, background: v }); }} />
+            <ColorField label="Cor principal (botões, item selecionado, rodapé)" value={full(theme).primary} onChange={setKey("primary")} />
+            <ColorField label="Texto sobre a cor principal" value={full(theme).onPrimary} onChange={setKey("onPrimary")} />
+            <ColorField label="Fundo da página" value={full(theme).background} onChange={setKey("background")} />
+            <ColorField label="Fundo dos cartões e campos" value={full(theme).surface} onChange={setKey("surface")} />
+            <ColorField label="Cor do texto (menus e textos sem fundo)" value={full(theme).text} onChange={setKey("text")} />
             {!valid && <p className="field-error">Use o formato #RRGGBB.</p>}
           </div>
           <div className="overflow-hidden rounded-2xl border border-ink/10 bg-ivory">
@@ -346,7 +353,7 @@ function ThemeEditor({ form, setForm }) {
         <div className="mt-5 flex flex-wrap gap-2">
           <input className="field-input !w-64 !py-2" placeholder="Nome do modelo (ex.: Páscoa)" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} />
           <button type="button" className="btn-outline btn-sm" disabled={!name.trim() || !valid}
-            onClick={() => { setForm((f) => ({ ...f, themePresets: [...presets, { name: name.trim(), primary: theme.primary, background: theme.background }] })); setName(""); }}>
+            onClick={() => { setForm((f) => ({ ...f, themePresets: [...presets, { name: name.trim(), ...full(theme) }] })); setName(""); }}>
             <Plus className="h-4 w-4" /> Salvar cores atuais como modelo
           </button>
         </div>

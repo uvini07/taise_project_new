@@ -41,7 +41,7 @@ export default function MonthCalendar({ month, days, selected, onSelect, onMonth
               onClick={() => onSelect(d.day)}
               className={`relative flex aspect-square flex-col items-center justify-center rounded-xl text-sm transition ${
                 isSel ? "bg-wine-900 text-cream shadow-soft"
-                  : available ? "bg-white text-ink hover:bg-wine-50 hover:text-wine-900 border border-ink/10"
+                  : available ? "bg-surface text-ink hover:bg-wine-50 hover:text-wine-900 border border-ink/10"
                     : "text-ink-muted/40 line-through decoration-ink/20"}`}>
               {n}
               {available && d.label && <span className={`absolute bottom-1 h-1 w-1 rounded-full ${isSel ? "bg-gold-light" : "bg-gold"}`} aria-hidden />}
