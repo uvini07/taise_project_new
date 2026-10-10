@@ -13,9 +13,7 @@ service firebase.storage {
 
     function isAdmin() {
       return request.auth != null
-        && request.auth.token.email in ['tarufino@gmail.com', 'marcelinhojordao07@gmail.com']
-        && firestore.exists(/databases/(default)/documents/adminUsers/$(request.auth.uid))
-        && firestore.get(/databases/(default)/documents/adminUsers/$(request.auth.uid)).data.active == true;
+        && request.auth.token.email in ['tarufino@gmail.com', 'marcelinhojordao07@gmail.com'];
     }
 
     function validImage() {

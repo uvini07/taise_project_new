@@ -27,7 +27,7 @@ beforeAll(async () => {
 afterAll(async () => { await env?.cleanup(); });
 
 describe("storage", () => {
-  it.skipIf(!XSERVICE)("admin envia imagem e qualquer um consegue ver", async () => {
+  it("admin envia imagem e qualquer um consegue ver", async () => {
     const adminSt = env.authenticatedContext("admin1", { email: "tarufino@gmail.com" }).storage();
     await assertSucceeds(uploadBytes(ref(adminSt, "public/gallery/a/full.webp"), png, { contentType: "image/webp" }));
     await assertSucceeds(getBytes(ref(env.unauthenticatedContext().storage(), "public/gallery/a/full.webp")));

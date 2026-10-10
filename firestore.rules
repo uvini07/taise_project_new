@@ -34,12 +34,9 @@ service cloud.firestore {
       return request.auth.token.email in ['tarufino@gmail.com', 'marcelinhojordao07@gmail.com'];
     }
 
+    // Admin = login no Firebase Authentication com um dos e-mails autorizados.
     function isAdmin() {
-      return signedIn()
-        && isOwnerEmail()
-        && exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid))
-        && adminDoc().data.active == true
-        && adminDoc().data.role in ['owner', 'admin'];
+      return signedIn() && isOwnerEmail();
     }
 
     function incoming() { return request.resource.data; }
