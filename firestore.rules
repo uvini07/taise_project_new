@@ -29,8 +29,14 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/adminUsers/$(request.auth.uid));
     }
 
+    // Única conta autorizada a administrar o site.
+    function isOwnerEmail() {
+      return request.auth.token.email == 'tarufino@gmail.com';
+    }
+
     function isAdmin() {
       return signedIn()
+        && isOwnerEmail()
         && exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid))
         && adminDoc().data.active == true
         && adminDoc().data.role in ['owner', 'admin'];

@@ -48,7 +48,7 @@ beforeEach(async () => {
 });
 
 const anon = () => env.unauthenticatedContext().firestore();
-const admin = () => env.authenticatedContext("admin1").firestore();
+const admin = () => env.authenticatedContext("admin1", { email: "tarufino@gmail.com" }).firestore();
 const stranger = () => env.authenticatedContext("someone").firestore();
 
 function booking(db, overrides = {}, lockOverride) {
@@ -253,6 +253,15 @@ describe("configurações e financeiro", () => {
     await assertSucceeds(getDoc(doc(admin(), "financialTransactions/t0")));
     await assertFails(deleteDoc(doc(admin(), "financialTransactions/t0")));
     await assertSucceeds(updateDoc(doc(admin(), "financialTransactions/t0"), { archived: true }));
+  });
+
+  it("só tarufino@gmail.com é admin, mesmo com registro em adminUsers", async () => {
+    await env.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "adminUsers/other"), { active: true, role: "owner" });
+    });
+    const other = env.authenticatedContext("other", { email: "outra@gmail.com" }).firestore();
+    await assertFails(getDoc(doc(other, "financialTransactions/t0")));
+    await assertFails(setDoc(doc(other, "siteSettings/public"), { brandName: "x" }));
   });
 
   it("ninguém se promove a admin pelo site", async () => {

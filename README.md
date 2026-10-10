@@ -29,7 +29,7 @@ npm run seed:emulator                   # terminal 2: dados de demonstração [D
 VITE_USE_EMULATORS=true npm run dev     # terminal 2: site apontando para os emuladores
 ```
 
-Login de teste no emulador: `admin@demo.local` / `demo-123456`. Ele existe **só no emulador**.
+Login de teste no emulador: `tarufino@gmail.com` / `demo-123456`. Ele existe **só no emulador**.
 
 ## Variáveis de ambiente
 

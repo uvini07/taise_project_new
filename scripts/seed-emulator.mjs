@@ -7,7 +7,7 @@ import { Timestamp, doc, setDoc } from "firebase/firestore";
 
 const PROJECT = "demo-taisefoto";
 const AUTH = "http://127.0.0.1:9099";
-const EMAIL = process.env.DEMO_ADMIN_EMAIL || "admin@demo.local";
+const EMAIL = process.env.DEMO_ADMIN_EMAIL || "tarufino@gmail.com";
 const PASSWORD = process.env.DEMO_ADMIN_PASSWORD || "demo-123456";
 
 if (!PROJECT.startsWith("demo-")) throw new Error("Este script só roda contra o emulador (projeto demo-*).");

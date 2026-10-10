@@ -28,7 +28,7 @@ afterAll(async () => { await env?.cleanup(); });
 
 describe("storage", () => {
   it.skipIf(!XSERVICE)("admin envia imagem e qualquer um consegue ver", async () => {
-    const adminSt = env.authenticatedContext("admin1").storage();
+    const adminSt = env.authenticatedContext("admin1", { email: "tarufino@gmail.com" }).storage();
     await assertSucceeds(uploadBytes(ref(adminSt, "public/gallery/a/full.webp"), png, { contentType: "image/webp" }));
     await assertSucceeds(getBytes(ref(env.unauthenticatedContext().storage(), "public/gallery/a/full.webp")));
   });
@@ -39,13 +39,13 @@ describe("storage", () => {
   });
 
   it("recusa arquivo que não é imagem e arquivo grande demais", async () => {
-    const adminSt = env.authenticatedContext("admin1").storage();
+    const adminSt = env.authenticatedContext("admin1", { email: "tarufino@gmail.com" }).storage();
     await assertFails(uploadBytes(ref(adminSt, "public/x.html"), png, { contentType: "text/html" }));
     const big = new Uint8Array(13 * 1024 * 1024);
     await assertFails(uploadBytes(ref(adminSt, "public/big.jpg"), big, { contentType: "image/jpeg" }));
   });
 
   it("nada fora de public/", async () => {
-    await assertFails(uploadBytes(ref(env.authenticatedContext("admin1").storage(), "private/a.webp"), png, { contentType: "image/webp" }));
+    await assertFails(uploadBytes(ref(env.authenticatedContext("admin1", { email: "tarufino@gmail.com" }).storage(), "private/a.webp"), png, { contentType: "image/webp" }));
   });
 });

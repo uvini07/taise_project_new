@@ -5,6 +5,9 @@ import { doc, getDoc } from "firebase/firestore";
 import { auth } from "./firebaseAuth.js";
 import { db } from "./firebase.js";
 
+// Única conta com acesso ao painel (as regras do Firestore/Storage exigem o mesmo).
+export const ADMIN_EMAIL = "tarufino@gmail.com";
+
 /**
  * Observa a sessão e diz se a pessoa logada é administradora (documento
  * adminUsers/{uid} ativo). A checagem aqui só decide o que mostrar: quem
@@ -13,6 +16,7 @@ import { db } from "./firebase.js";
 export function watchAdminSession(cb) {
   return onAuthStateChanged(auth, async (user) => {
     if (!user) return cb({ user: null, admin: null, status: "signedOut" });
+    if ((user.email || "").toLowerCase() !== ADMIN_EMAIL) return cb({ user, admin: null, status: "notAdmin" });
     try {
       const snap = await getDoc(doc(db, "adminUsers", user.uid));
       const data = snap.exists() ? snap.data() : null;
