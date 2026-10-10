@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
-  BarChart3, CalendarDays, Crown, ExternalLink, Images, LayoutDashboard, LogOut, Menu, Package, Settings, Wallet, X,
+  BarChart3, CalendarDays, Crown, ExternalLink, Images, LayoutDashboard, LogOut, Menu, Package, Settings, Sparkles, Wallet, X,
 } from "lucide-react";
 import Logo from "../common/Logo.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
@@ -13,6 +13,7 @@ export const ADMIN_NAV = [
   { to: "/adm/agenda", label: "Agenda", icon: CalendarDays },
   { to: "/adm/pacotes", label: "Pacotes", icon: Package },
   { to: "/adm/galeria", label: "Galeria", icon: Images },
+  { to: "/adm/evento", label: "Evento promocional", icon: Sparkles },
   { to: "/adm/vip", label: "VIP", icon: Crown },
   { to: "/adm/financeiro", label: "Financeiro", icon: Wallet },
   { to: "/adm/analytics", label: "Analytics", icon: BarChart3 },

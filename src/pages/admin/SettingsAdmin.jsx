@@ -71,7 +71,8 @@ export default function SettingsAdmin() {
     if (errs.length) { toast.error(errs.join(" ")); return; }
     setSaving(true);
     try {
-      await saveSettings({ ...form, contact: { ...form.contact, whatsapp: wa } });
+      const { promoEvent, promoTemplates, ...rest } = form; // editados na página Evento promocional
+      await saveSettings({ ...rest, contact: { ...form.contact, whatsapp: wa } });
       if (toDelete.length) { await deleteStoragePaths(toDelete); setToDelete([]); }
       setForm((f) => ({ ...f, isDefault: false, contact: { ...f.contact, whatsapp: wa } }));
       toast.success("Configurações salvas. O site já foi atualizado.");

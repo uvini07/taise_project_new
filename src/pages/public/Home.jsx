@@ -9,6 +9,7 @@ import WhatsAppLink from "../../components/common/WhatsAppLink.jsx";
 import { WhatsAppIcon } from "../../components/common/Icons.jsx";
 import { Skeleton } from "../../components/common/PageLoader.jsx";
 import PackageCard from "../../components/packages/PackageCard.jsx";
+import PromoEvent from "../../components/packages/PromoEvent.jsx";
 import MasonryGrid from "../../components/gallery/MasonryGrid.jsx";
 import Lightbox from "../../components/gallery/Lightbox.jsx";
 import Countdown from "../../components/vip/Countdown.jsx";
@@ -293,6 +294,7 @@ export default function Home() {
   return (
     <>
       <Hero />
+      <PromoEvent />
       <AboutTeaser />
       <Categories />
       <FeaturedPackages />

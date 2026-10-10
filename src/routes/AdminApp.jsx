@@ -13,6 +13,7 @@ const AgendaAdmin = lazy(() => import("../pages/admin/AgendaAdmin.jsx"));
 const AnalyticsAdmin = lazy(() => import("../pages/admin/AnalyticsAdmin.jsx"));
 const FinanceAdmin = lazy(() => import("../pages/admin/FinanceAdmin.jsx"));
 const VIPAdmin = lazy(() => import("../pages/admin/VIPAdmin.jsx"));
+const EventAdmin = lazy(() => import("../pages/admin/EventAdmin.jsx"));
 const SettingsAdmin = lazy(() => import("../pages/admin/SettingsAdmin.jsx"));
 
 export default function AdminApp() {
@@ -29,6 +30,7 @@ export default function AdminApp() {
           <Route path="analytics" element={<Suspense fallback={<PageLoader />}><AnalyticsAdmin /></Suspense>} />
           <Route path="financeiro" element={<Suspense fallback={<PageLoader />}><FinanceAdmin /></Suspense>} />
           <Route path="vip" element={<Suspense fallback={<PageLoader />}><VIPAdmin /></Suspense>} />
+          <Route path="evento" element={<Suspense fallback={<PageLoader />}><EventAdmin /></Suspense>} />
           <Route path="configuracoes" element={<Suspense fallback={<PageLoader />}><SettingsAdmin /></Suspense>} />
           <Route path="*" element={<Navigate to="dashboard" replace />} />
         </Route>
