@@ -264,6 +264,15 @@ describe("configurações e financeiro", () => {
     await assertFails(setDoc(doc(other, "siteSettings/public"), { brandName: "x" }));
   });
 
+  it("tarufino@gmail.com verificada ativa o próprio acesso; outros não", async () => {
+    const ok = env.authenticatedContext("tr", { email: "tarufino@gmail.com", email_verified: true }).firestore();
+    await assertSucceeds(setDoc(doc(ok, "adminUsers/tr"), { active: true, role: "owner", email: "tarufino@gmail.com" }));
+    const unverified = env.authenticatedContext("tr2", { email: "tarufino@gmail.com", email_verified: false }).firestore();
+    await assertFails(setDoc(doc(unverified, "adminUsers/tr2"), { active: true, role: "owner" }));
+    const other = env.authenticatedContext("x2", { email: "x@gmail.com", email_verified: true }).firestore();
+    await assertFails(setDoc(doc(other, "adminUsers/x2"), { active: true, role: "owner" }));
+  });
+
   it("ninguém se promove a admin pelo site", async () => {
     await assertFails(setDoc(doc(stranger(), "adminUsers/someone"), { active: true, role: "owner" }));
     await assertFails(setDoc(doc(admin(), "adminUsers/someone"), { active: true, role: "owner" }));

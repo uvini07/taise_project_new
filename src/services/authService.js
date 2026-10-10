@@ -1,7 +1,7 @@
 import {
-  onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut,
+  onAuthStateChanged, reload, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, signOut,
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth } from "./firebaseAuth.js";
 import { db } from "./firebase.js";
 
@@ -46,3 +46,20 @@ export const login = (email, password) => signInWithEmailAndPassword(auth, email
 export const logout = () => signOut(auth);
 export const resetPassword = (email) => sendPasswordResetEmail(auth, email.trim());
 export const currentUser = () => auth.currentUser;
+
+/**
+ * Ativa o acesso da conta autorizada sem precisar mexer no console:
+ * exige e-mail verificado (as regras conferem o mesmo).
+ */
+export async function activateOwnerAccess() {
+  const u = auth.currentUser;
+  if (!u || (u.email || "").toLowerCase() !== ADMIN_EMAIL) throw new Error("Conta não autorizada.");
+  await reload(u);
+  if (!u.emailVerified) {
+    await sendEmailVerification(u);
+    return "verification-sent";
+  }
+  await u.getIdToken(true);
+  await setDoc(doc(db, "adminUsers", u.uid), { active: true, role: "owner", email: u.email });
+  return "activated";
+}

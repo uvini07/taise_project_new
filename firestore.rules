@@ -66,8 +66,14 @@ service cloud.firestore {
       // Cada pessoa lê só o próprio registro; a lista completa é só para admins.
       allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
       allow list: if isAdmin();
-      // Criar ou promover admin é feito no console do Firebase.
-      allow write: if false;
+      // Primeira ativação: só a própria conta tarufino@gmail.com, com e-mail
+      // verificado, cria o próprio registro. Ninguém mais escreve aqui.
+      allow create: if signedIn() && request.auth.uid == uid
+        && isOwnerEmail() && request.auth.token.email_verified == true
+        && request.resource.data.keys().hasOnly(['active', 'role', 'email'])
+        && request.resource.data.active == true
+        && request.resource.data.role == 'owner';
+      allow update, delete: if false;
     }
 
     // Registro de operações administrativas: só se acrescenta, nunca se altera.
