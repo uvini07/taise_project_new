@@ -1,0 +1,323 @@
+rules_version = '2';
+
+// ============================================================================
+// REGRAS DE SEGURANÇA — Taíse Foto
+//
+// O navegador fala direto com o banco, então é AQUI que os dados ficam
+// protegidos — esconder botões no site não protege nada.
+//
+//  - Conteúdo público (configurações, pacotes publicados, galeria publicada,
+//    regras de agenda) pode ser lido por qualquer visitante.
+//  - Dados pessoais (agendamentos, inscritos VIP), financeiro, auditoria e
+//    tudo que é rascunho só podem ser lidos por administradores.
+//  - O visitante só consegue CRIAR documentos nos formatos previstos
+//    (pedido de agendamento, inscrição VIP, contadores de visita), com cada
+//    campo validado aqui.
+//
+// Administrador = usuário do Firebase Authentication que tem um documento em
+// adminUsers/{uid} com active == true. Esse documento é criado à mão no
+// console do Firebase (veja o README); ninguém se torna admin pelo site.
+// ============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ------------------------------------------------------------------ util
+    function signedIn() { return request.auth != null; }
+
+    function adminDoc() {
+      return get(/databases/$(database)/documents/adminUsers/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/adminUsers/$(request.auth.uid))
+        && adminDoc().data.active == true
+        && adminDoc().data.role in ['owner', 'admin'];
+    }
+
+    function incoming() { return request.resource.data; }
+
+    function str(v, min, max) { return v is string && v.size() >= min && v.size() <= max; }
+    function optStr(m, k, max) { return !(k in m) || m[k] == null || (m[k] is string && m[k].size() <= max); }
+    function isDay(v) { return v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'); }
+    function isHour(v) { return v is string && v.matches('^[0-9]{2}:[0-9]{2}$'); }
+    function cents(v) { return v is int && v >= 0 && v <= 100000000; }
+    function digits(v) { return v is string && v.matches('^[0-9]{10,13}$'); }
+
+    function pkgPath(id) { return /databases/$(database)/documents/packages/$(id); }
+    function lotPath(id) { return /databases/$(database)/documents/packageLots/$(id); }
+    function lockPath(id) { return /databases/$(database)/documents/slotLocks/$(id); }
+    function apptPath(id) { return /databases/$(database)/documents/appointments/$(id); }
+    function campPath(id) { return /databases/$(database)/documents/vipCampaigns/$(id); }
+    function vipRegPath(id) { return /databases/$(database)/documents/vipRegistrations/$(id); }
+    function vipMemberPath(id) { return /databases/$(database)/documents/vipMembers/$(id); }
+    function vipStatsPath(id) { return /databases/$(database)/documents/vipCampaignStats/$(id); }
+    function metaPackagesPath() { return /databases/$(database)/documents/meta/packages; }
+
+    // ---------------------------------------------------------- administração
+    match /adminUsers/{uid} {
+      // Cada pessoa lê só o próprio registro; a lista completa é só para admins.
+      allow get: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow list: if isAdmin();
+      // Criar ou promover admin é feito no console do Firebase.
+      allow write: if false;
+    }
+
+    // Registro de operações administrativas: só se acrescenta, nunca se altera.
+    match /auditLogs/{id} {
+      allow read: if isAdmin();
+      allow create: if isAdmin()
+        && incoming().uid == request.auth.uid
+        && incoming().at == request.time
+        && str(incoming().action, 1, 80);
+      allow update, delete: if false;
+    }
+
+    // ------------------------------------------------------------ site público
+    match /siteSettings/{id} {
+      allow read: if true;
+      allow write: if isAdmin() && id == 'public';
+    }
+
+    // ----------------------------------------------------------------- pacotes
+    // Visível ao público = publicado ou esgotado. O limite de cinco é garantido
+    // pelo documento meta/packages: a lista publishedIds tem no máximo 5 itens
+    // e todo pacote visível precisa estar nela (checado com getAfter, então a
+    // mudança de status e a da lista têm de ir juntas no mesmo lote).
+    function isPublicStatus(s) { return s in ['published', 'soldout']; }
+
+    match /meta/packages {
+      allow read: if true;
+      allow write: if isAdmin()
+        && incoming().publishedIds is list
+        && incoming().publishedIds.size() <= 5;
+    }
+
+    match /packages/{id} {
+      allow read: if isAdmin() || isPublicStatus(resource.data.status);
+      allow create, update: if isAdmin()
+        && incoming().status in ['draft', 'published', 'soldout', 'closed']
+        && str(incoming().name, 1, 120)
+        && (isPublicStatus(incoming().status)
+            == (id in getAfter(metaPackagesPath()).data.publishedIds));
+      allow delete: if isAdmin()
+        && !(id in getAfter(metaPackagesPath()).data.publishedIds);
+    }
+
+    // Lotes: o campo "public" acompanha o status do pacote. confirmedCount é
+    // mantido pelas operações administrativas de confirmar/cancelar.
+    match /packageLots/{id} {
+      allow read: if isAdmin() || resource.data.public == true;
+      allow write: if isAdmin();
+    }
+
+    // -------------------------------------------------------------- galeria
+    match /galleryCategories/{id} {
+      allow read: if isAdmin() || resource.data.visible == true;
+      allow write: if isAdmin();
+    }
+
+    match /galleryPhotos/{id} {
+      allow read: if isAdmin() || resource.data.published == true;
+      allow write: if isAdmin();
+    }
+
+    // ------------------------------------------------------------------ agenda
+    match /availability/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Trava de horário: um documento por horário ocupado (data_HHMM_vaga).
+    // Como só pode ser criado se ainda não existir, dois pedidos para o mesmo
+    // horário nunca passam juntos — o segundo recebe "permissão negada".
+    // Não contém dado pessoal, então qualquer visitante pode ler para saber
+    // quais horários estão ocupados.
+    match /slotLocks/{lockId} {
+      allow read: if true;
+      allow create: if lockId.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{4}_[0-9]{1,2}$')
+        && incoming().keys().hasOnly(['appointmentId', 'date', 'createdAt'])
+        && incoming().date == lockId.split('_')[0]
+        && incoming().createdAt == request.time
+        && (isAdmin()
+            || (existsAfter(apptPath(incoming().appointmentId))
+                && lockId in getAfter(apptPath(incoming().appointmentId)).data.slotLockIds
+                && !exists(apptPath(incoming().appointmentId))));
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    function apptKeys() {
+      return ['name', 'phone', 'email', 'notes', 'packageId', 'packageName', 'lotId',
+              'lotName', 'priceCents', 'date', 'time', 'startAt', 'durationMin',
+              'slotLockIds', 'status', 'source', 'consent', 'vipCampaignId', 'vipKey',
+              'createdAt', 'updatedAt', 'history'];
+    }
+
+    function lotOk(d) {
+      let lot = get(lotPath(d.lotId)).data;
+      return lot.packageId == d.packageId
+        && lot.public == true
+        && lot.status == 'active'
+        && (lot.salesStart == null || lot.salesStart <= request.time)
+        && (lot.salesEnd == null || lot.salesEnd >= request.time)
+        && (lot.capacity == null || lot.confirmedCount < lot.capacity);
+    }
+
+    function vipPriceOk(d) {
+      let camp = get(campPath(d.vipCampaignId)).data;
+      return d.vipKey == d.vipCampaignId + '_' + d.phone
+        && exists(vipMemberPath(d.vipKey))
+        && camp.status == 'published'
+        && camp.vipAccessStartsAt != null && camp.vipAccessStartsAt <= request.time
+        && camp.countdownEndsAt != null && camp.countdownEndsAt >= request.time
+        && d.priceCents == camp.vipPricing.get(d.packageId, get(lotPath(d.lotId)).data.priceCents);
+    }
+
+    function locksOk(d, apptId) {
+      let ids = d.slotLockIds;
+      return ids is list && ids.size() >= 1 && ids.size() <= 3
+        && ids[0].matches('^' + d.date + '_' + d.time.replace(':', '') + '_[0-9]{1,2}$')
+        && getAfter(lockPath(ids[0])).data.appointmentId == apptId
+        && (ids.size() < 2 || getAfter(lockPath(ids[1])).data.appointmentId == apptId)
+        && (ids.size() < 3 || getAfter(lockPath(ids[2])).data.appointmentId == apptId);
+    }
+
+    // Pedido de agendamento. Qualquer visitante cria (é o formulário do site),
+    // mas só no estado "requested", com o preço exato do lote (ou da campanha
+    // VIP) e com as travas de horário criadas no mesmo lote de escrita.
+    match /appointments/{id} {
+      allow read, update: if isAdmin();
+      allow delete: if false; // cancelamento é lógico: status "cancelled"
+      allow create: if isAdmin() || (
+        incoming().keys().hasOnly(apptKeys())
+        && incoming().status == 'requested'
+        && incoming().source == 'site'
+        && incoming().consent == true
+        && incoming().createdAt == request.time
+        && incoming().history == []
+        && str(incoming().name, 2, 120)
+        && digits(incoming().phone)
+        && optStr(incoming(), 'email', 160)
+        && optStr(incoming(), 'notes', 1000)
+        && isDay(incoming().date) && isHour(incoming().time)
+        && incoming().startAt is timestamp
+        && incoming().startAt > request.time
+        && incoming().durationMin is int && incoming().durationMin > 0 && incoming().durationMin <= 600
+        && isPublicStatus(get(pkgPath(incoming().packageId)).data.status)
+        && get(pkgPath(incoming().packageId)).data.status == 'published'
+        && lotOk(incoming())
+        && (
+          (!('vipCampaignId' in incoming()) || incoming().vipCampaignId == null)
+            ? incoming().priceCents == get(lotPath(incoming().lotId)).data.priceCents
+            : vipPriceOk(incoming())
+        )
+        && locksOk(incoming(), id)
+      );
+    }
+
+    // -------------------------------------------------------------------- VIP
+    match /vipCampaigns/{id} {
+      allow read: if isAdmin() || resource.data.status in ['published', 'closed'];
+      allow write: if isAdmin();
+    }
+
+    // Contador público de inscrições por campanha. Só sobe de 1 em 1, e só
+    // junto com a criação da inscrição correspondente (lastRegId).
+    match /vipCampaignStats/{campaignId} {
+      allow read: if true;
+      allow create: if isAdmin() || (
+        incoming().keys().hasOnly(['count', 'lastRegId'])
+        && incoming().count == 1
+        && !exists(vipRegPath(incoming().lastRegId))
+        && getAfter(vipRegPath(incoming().lastRegId)).data.campaignId == campaignId
+      );
+      allow update: if isAdmin() || (
+        incoming().keys().hasOnly(['count', 'lastRegId'])
+        && incoming().count == resource.data.count + 1
+        && !exists(vipRegPath(incoming().lastRegId))
+        && getAfter(vipRegPath(incoming().lastRegId)).data.campaignId == campaignId
+      );
+      allow delete: if isAdmin();
+    }
+
+    // Marca "este WhatsApp está inscrito nesta campanha" (id = campanha_telefone).
+    // Responde a uma consulta pontual (get) para liberar o acesso VIP, mas nunca
+    // deixa listar — é o que impede alguém de baixar a lista de contatos.
+    match /vipMembers/{key} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if isAdmin() || (
+        incoming().keys().hasOnly(['campaignId', 'registrationId', 'createdAt'])
+        && incoming().createdAt == request.time
+        && key == incoming().campaignId + '_' + getAfter(vipRegPath(incoming().registrationId)).data.phone
+        && !exists(vipRegPath(incoming().registrationId))
+      );
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    function vipRegKeys() {
+      return ['campaignId', 'campaignName', 'name', 'phone', 'email', 'preferences',
+              'consent', 'consentText', 'status', 'createdAt', 'updatedAt'];
+    }
+
+    match /vipRegistrations/{id} {
+      allow read, update, delete: if isAdmin();
+      allow create: if isAdmin() || (
+        incoming().keys().hasOnly(vipRegKeys())
+        && incoming().status == 'new'
+        && incoming().consent == true
+        && str(incoming().consentText, 10, 1000)
+        && incoming().createdAt == request.time
+        && str(incoming().name, 2, 120)
+        && digits(incoming().phone)
+        && optStr(incoming(), 'email', 160)
+        && optStr(incoming(), 'preferences', 1000)
+        && get(campPath(incoming().campaignId)).data.status == 'published'
+        && (get(campPath(incoming().campaignId)).data.registrationEnd == null
+            || get(campPath(incoming().campaignId)).data.registrationEnd >= request.time)
+        && existsAfter(vipMemberPath(incoming().campaignId + '_' + incoming().phone))
+        && getAfter(vipStatsPath(incoming().campaignId)).data.lastRegId == id
+        && (get(campPath(incoming().campaignId)).data.maxRegistrations == null
+            || getAfter(vipStatsPath(incoming().campaignId)).data.count
+               <= get(campPath(incoming().campaignId)).data.maxRegistrations)
+      );
+    }
+
+    // -------------------------------------------------------------- financeiro
+    match /financialTransactions/{id} {
+      allow read: if isAdmin();
+      allow create, update: if isAdmin()
+        && incoming().type in ['income', 'expense']
+        && cents(incoming().amountCents)
+        && incoming().payments is list;
+      allow delete: if false; // arquivamento lógico (archived = true)
+    }
+
+    // --------------------------------------------------------------- analytics
+    // Contadores diários anônimos (sem dado pessoal). Cada escrita só pode
+    // somar 1 a um único contador, cujo nome vai no campo _k.
+    function counterName(k) {
+      return k is string && k.matches('^(pv|visit|uv|wa|cta|vip_signup|booking|pkg__[A-Za-z0-9_-]{1,40}|gcat__[A-Za-z0-9_-]{1,40}|page__[a-z0-9_-]{1,40}|src__[a-z0-9_-]{1,40}|camp__[A-Za-z0-9_-]{1,40})$');
+    }
+
+    match /analyticsDaily/{day} {
+      allow read: if isAdmin();
+      allow create: if day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && counterName(incoming()._k)
+        && incoming().keys().hasOnly(['_k', incoming()._k])
+        && incoming()[incoming()._k] == 1;
+      allow update: if counterName(incoming()._k)
+        && incoming().diff(resource.data).affectedKeys().hasOnly(['_k', incoming()._k])
+        && incoming()[incoming()._k] == resource.data.get(incoming()._k, 0) + 1;
+      allow delete: if isAdmin();
+    }
+
+    // Qualquer outro caminho: fechado.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
