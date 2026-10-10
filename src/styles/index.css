@@ -8,6 +8,7 @@
     --wine-950: 42 4 7; --wine-900: 62 6 10; --wine-800: 86 10 16; --wine-700: 110 16 22;
     --wine-600: 138 26 32; --wine-100: 243 228 226; --wine-50: 250 242 241;
     --ivory: 250 247 242; --paper: 243 237 227; --sand: 231 221 205; --cream: 240 230 215;
+    --gold: 161 129 94; --gold-light: 201 174 138; --gold-dark: 125 99 70;
     --surface: 255 255 255; --ink: 34 26 22; --ink-soft: 74 63 56; --ink-muted: 111 98 90;
   }
   html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }

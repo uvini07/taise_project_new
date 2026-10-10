@@ -18,7 +18,7 @@ export default {
         paper: "rgb(var(--paper) / <alpha-value>)",
         sand: "rgb(var(--sand) / <alpha-value>)",
         cream: "rgb(var(--cream) / <alpha-value>)",
-        gold: { DEFAULT: "#A1815E", light: "#C9AE8A", dark: "#7D6346" },
+        gold: { DEFAULT: "rgb(var(--gold) / <alpha-value>)", light: "rgb(var(--gold-light) / <alpha-value>)", dark: "rgb(var(--gold-dark) / <alpha-value>)" },
         ink: { DEFAULT: "rgb(var(--ink) / <alpha-value>)", soft: "rgb(var(--ink-soft) / <alpha-value>)", muted: "rgb(var(--ink-muted) / <alpha-value>)" },
         surface: "rgb(var(--surface) / <alpha-value>)",
         success: "#2E6B4A",

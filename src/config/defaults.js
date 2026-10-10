@@ -86,7 +86,7 @@ export function mergeSettings(saved) {
   }
   out.faq = Array.isArray(s.faq) ? s.faq : [];
   out.testimonials = Array.isArray(s.testimonials) ? s.testimonials : [];
-  out.theme = { primary: "#3E060A", background: "#FAF7F2", surface: "#FFFFFF", text: "#221A16", onPrimary: "#F0E6D7", ...(s.theme || {}) };
+  out.theme = { primary: "#3E060A", background: "#FAF7F2", surface: "#FFFFFF", text: "#221A16", onPrimary: "#F0E6D7", accent: "#A1815E", ...(s.theme || {}) };
   out.themePresets = Array.isArray(s.themePresets) ? s.themePresets : [];
   out.isDefault = !saved;
   return out;

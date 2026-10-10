@@ -66,7 +66,7 @@ export default function SettingsAdmin() {
     if (!wa) errs.push("WhatsApp inválido.");
     if (form.contact.email && !isValidEmail(form.contact.email)) errs.push("E-mail inválido.");
     if (!form.brandName.trim()) errs.push("Informe o nome comercial.");
-    if (["primary", "background", "surface", "text", "onPrimary"].some((k) => form.theme[k] && !isHex(form.theme[k]))) errs.push("Cores inválidas: use o formato #RRGGBB.");
+    if (["primary", "background", "surface", "text", "onPrimary", "accent"].some((k) => form.theme[k] && !isHex(form.theme[k]))) errs.push("Cores inválidas: use o formato #RRGGBB.");
     for (const [k, url] of Object.entries(form.social)) if (url && !/^https:\/\//.test(url)) errs.push(`Link do ${k} deve começar com https://`);
     if (errs.length) { toast.error(errs.join(" ")); return; }
     setSaving(true);
@@ -312,8 +312,8 @@ function ThemeEditor({ form, setForm }) {
   const [name, setName] = useState("");
   const theme = form.theme;
   const presets = form.themePresets || [];
-  const KEYS = ["primary", "background", "surface", "text", "onPrimary"];
-  const DEF = { surface: "#FFFFFF", text: "#221A16", onPrimary: "#F0E6D7" };
+  const KEYS = ["primary", "background", "surface", "text", "onPrimary", "accent"];
+  const DEF = { surface: "#FFFFFF", text: "#221A16", onPrimary: "#F0E6D7", accent: "#A1815E" };
   const full = (t) => Object.fromEntries(KEYS.map((k) => [k, t[k] || DEF[k]]));
   const setTheme = (t) => { const next = full(t); applyTheme(next); setForm((f) => ({ ...f, theme: next })); };
   const same = (t) => KEYS.every((k) => (full(t)[k] || "").toUpperCase() === (full(theme)[k] || "").toUpperCase());
@@ -326,6 +326,7 @@ function ThemeEditor({ form, setForm }) {
           <div className="space-y-5">
             <ColorField label="Cor principal (botões, item selecionado, rodapé)" value={full(theme).primary} onChange={setKey("primary")} />
             <ColorField label="Texto sobre a cor principal" value={full(theme).onPrimary} onChange={setKey("onPrimary")} />
+            <ColorField label="Cor de destaque (botão dourado, títulos do rodapé, ícones)" value={full(theme).accent} onChange={setKey("accent")} />
             <ColorField label="Fundo da página" value={full(theme).background} onChange={setKey("background")} />
             <ColorField label="Fundo dos cartões e campos" value={full(theme).surface} onChange={setKey("surface")} />
             <ColorField label="Cor do texto (menus e textos sem fundo)" value={full(theme).text} onChange={setKey("text")} />
