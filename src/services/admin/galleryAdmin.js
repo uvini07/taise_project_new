@@ -17,7 +17,8 @@ export async function listAllPhotos() {
   return s.docs.map(withId).sort(byOrder);
 }
 
-export async function saveCategory(id, data) {
+export async function saveCategory(id, input) {
+  const { id: _ignore, createdAt: _c, updatedAt: _u, ...data } = input;
   const ref = id ? doc(db, "galleryCategories", id) : doc(collection(db, "galleryCategories"));
   await setDoc(ref, {
     ...data,
@@ -123,9 +124,14 @@ export async function reorderPhotos(ids) {
 }
 
 export async function deletePhotos(photos) {
+  const ids = new Set(photos.map((p) => p.id));
   for (const p of photos) {
     await deleteDoc(doc(db, "galleryPhotos", p.id));
     await deleteStoragePaths([p.path, p.thumbPath]);
   }
+  // Categoria que usava uma dessas fotos como capa fica sem capa (não com link quebrado).
+  const cats = await getDocs(collection(db, "galleryCategories"));
+  await Promise.all(cats.docs.filter((d) => ids.has(d.data().coverFromPhoto)).map((d) =>
+    updateDoc(d.ref, { coverUrl: "", coverThumbUrl: "", coverPlaceholder: "", coverFromPhoto: null })));
   audit("photos.delete", "galleryPhotos", "", { count: photos.length });
 }
