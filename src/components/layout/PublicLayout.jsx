@@ -36,7 +36,7 @@ export default function PublicLayout() {
   const showBar = featured && featured.c.showBanner !== false && settings.display.showVipBanner && !pathname.startsWith("/vip");
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col" style={{ "--top-offset": overlay && !showBar ? "0px" : showBar ? "112px" : "72px" }}>
       {showBar && <VipBar campaign={featured.c} phase={featured.p} />}
       <Header overlay={overlay && !showBar} hasVip={hasVip} />
       <main id="conteudo" className="flex-1">

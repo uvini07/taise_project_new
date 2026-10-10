@@ -26,7 +26,7 @@ export function StatCard({ label, value, hint, icon: Icon, tone = "default", onC
   };
   const Tag = onClick ? "button" : "div";
   return (
-    <Tag onClick={onClick} className={`card card-pad flex flex-col text-left ${onClick ? "transition hover:shadow-lift" : ""}`}>
+    <Tag onClick={onClick} className={`card card-pad flex h-full flex-col text-left ${onClick ? "transition hover:shadow-lift" : ""}`}>
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-medium uppercase tracking-wider text-ink-muted">{label}</span>
         {Icon && <Icon className="h-4 w-4 text-gold" strokeWidth={1.6} aria-hidden />}

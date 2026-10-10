@@ -105,14 +105,14 @@ export default function Dashboard() {
           )}
 
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Link to="/adm/agenda"><StatCard label="Aguardando confirmação" value={data.pending.length} icon={Inbox} tone={data.pending.length ? "warning" : "muted"} hint="Pedidos do site" /></Link>
-            <Link to="/adm/agenda"><StatCard label="Próximos 7 dias" value={view.next7.length} icon={CalendarDays} hint="Agendamentos ativos" /></Link>
-            <Link to="/adm/pacotes"><StatCard label="Pacotes publicados" value={`${view.published.length}/${MAX_PUBLISHED_PACKAGES}`} icon={Package} tone={view.published.length >= MAX_PUBLISHED_PACKAGES ? "warning" : "default"} /></Link>
+            <Link className="block" to="/adm/agenda"><StatCard label="Aguardando confirmação" value={data.pending.length} icon={Inbox} tone={data.pending.length ? "warning" : "muted"} hint="Pedidos do site" /></Link>
+            <Link className="block" to="/adm/agenda"><StatCard label="Próximos 7 dias" value={view.next7.length} icon={CalendarDays} hint="Agendamentos ativos" /></Link>
+            <Link className="block" to="/adm/pacotes"><StatCard label="Pacotes publicados" value={`${view.published.length}/${MAX_PUBLISHED_PACKAGES}`} icon={Package} tone={view.published.length >= MAX_PUBLISHED_PACKAGES ? "warning" : "default"} /></Link>
             <StatCard label="Vagas disponíveis" value={view.unlimited ? `${view.seats}+` : view.seats} icon={Ticket} hint={view.unlimited ? "Há lotes sem limite de vagas" : "Somando lotes ativos publicados"} />
-            <Link to="/adm/vip"><StatCard label="Inscritos VIP" value={view.vipInPeriod.length} icon={Crown} hint="No período" /></Link>
-            <Link to="/adm/financeiro"><StatCard label="Recebido" value={formatBRL(view.fin.receivedCents)} icon={Wallet} tone="success" hint="No período" /></Link>
-            <Link to="/adm/financeiro"><StatCard label="A receber" value={formatBRL(view.fin.pendingCents + view.fin.overdueCents)} tone={view.fin.overdueCents ? "danger" : "warning"} hint={view.fin.overdueCents ? `${formatBRL(view.fin.overdueCents)} vencido` : "Período + vencidos"} /></Link>
-            <Link to="/adm/financeiro"><StatCard label="Despesas" value={formatBRL(view.fin.expensesCents)} hint="No período" /></Link>
+            <Link className="block" to="/adm/vip"><StatCard label="Inscritos VIP" value={view.vipInPeriod.length} icon={Crown} hint="No período" /></Link>
+            <Link className="block" to="/adm/financeiro"><StatCard label="Recebido" value={formatBRL(view.fin.receivedCents)} icon={Wallet} tone="success" hint="No período" /></Link>
+            <Link className="block" to="/adm/financeiro"><StatCard label="A receber" value={formatBRL(view.fin.pendingCents + view.fin.overdueCents)} tone={view.fin.overdueCents ? "danger" : "warning"} hint={view.fin.overdueCents ? `${formatBRL(view.fin.overdueCents)} vencido` : "Período + vencidos"} /></Link>
+            <Link className="block" to="/adm/financeiro"><StatCard label="Despesas" value={formatBRL(view.fin.expensesCents)} hint="No período" /></Link>
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">

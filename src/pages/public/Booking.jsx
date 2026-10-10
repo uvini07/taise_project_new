@@ -16,7 +16,7 @@ import { usePublicPackages } from "../../hooks/usePublicData.js";
 import { useCampaigns } from "../../hooks/useCampaigns.js";
 import { useDocumentMeta } from "../../hooks/useDocumentMeta.js";
 import { createBookingRequest, fetchTakenLocks, getAvailability, SlotTakenError } from "../../services/agendaService.js";
-import { campaignPhase, isVipMember } from "../../services/vipService.js";
+import { campaignPhase } from "../../services/vipService.js";
 import { track } from "../../services/analyticsService.js";
 import { addDays, formatBRL, formatDayLong, todayKey } from "../../utils/format.js";
 import { generateSlots, monthDays } from "../../utils/slots.js";

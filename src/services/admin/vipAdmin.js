@@ -1,6 +1,6 @@
 import {
   collection, deleteDoc, doc, getDoc, getDocs, limit, orderBy, query, runTransaction, serverTimestamp,
-  setDoc, updateDoc, where, writeBatch,
+  setDoc, updateDoc, where,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { audit } from "../auditService.js";

@@ -20,7 +20,7 @@ import { listAllPackages } from "../../services/admin/packagesAdmin.js";
 import { campaignPhase } from "../../services/vipService.js";
 import { uploadImage, deleteStoragePaths } from "../../services/imageService.js";
 import { AFTER_END_ACTIONS, CAMPAIGN_STATUS, CONSENT_TEXT_DEFAULT, VIP_STATUS } from "../../config/constants.js";
-import { centsToInput, formatBRL, formatDateTime, fromDateTimeInput, parseBRLToCents, toDate, toDateTimeInput, toDayKey } from "../../utils/format.js";
+import { centsToInput, formatDateTime, fromDateTimeInput, parseBRLToCents, toDate, toDateTimeInput, toDayKey } from "../../utils/format.js";
 import { downloadCSV } from "../../utils/csv.js";
 import { slugify } from "../../utils/text.js";
 import { formatPhoneBR } from "../../utils/validation.js";

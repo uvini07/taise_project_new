@@ -33,7 +33,7 @@ function Hero() {
   }, [images.length]);
 
   return (
-    <section className="relative flex min-h-[100svh] items-end overflow-hidden bg-wine-950 text-cream" aria-label="Apresentação">
+    <section className="relative flex min-h-[calc(100svh-var(--top-offset,0px))] items-end overflow-hidden bg-wine-950 text-cream" aria-label="Apresentação">
       {images.map((img, i) => (
         <div key={img.url} className={`absolute inset-0 transition-opacity duration-[1600ms] ${i === active ? "opacity-100" : "opacity-0"}`} aria-hidden={i !== active}>
           <img
@@ -51,7 +51,7 @@ function Hero() {
       ))}
       <div className="absolute inset-0 bg-gradient-to-t from-[#1d0306]/90 via-[#1d0306]/35 to-[#1d0306]/30" aria-hidden />
 
-      <div className="container-x relative z-10 pb-20 pt-40 sm:pb-24">
+      <div className="container-x relative z-10 pb-16 pt-32 sm:pb-20">
         <div className="max-w-3xl">
           {hero.eyebrow && (
             <p className="eyebrow flex animate-fade-up items-center gap-2 !text-gold-light">
@@ -169,7 +169,7 @@ function FeaturedPackages() {
     <section className="container-x py-24 sm:py-32">
       <SectionHeading eyebrow="Pacotes" title="Escolha a experiência ideal" align="center"
         text="Valores, o que está incluso e as condições de cada ensaio, sem letras miúdas." />
-      <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className={`mx-auto mt-14 grid gap-6 md:grid-cols-2 ${list.length === 1 ? "max-w-md md:grid-cols-1" : list.length === 2 ? "max-w-4xl" : "lg:grid-cols-3"}`}>
         {loading && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-[520px] rounded-[28px]" />)}
         {list.map((p, i) => (
           <Reveal key={p.id} delay={i * 80}><PackageCard pkg={p} categoryName={catName[p.categoryId]} featured={p.featured} /></Reveal>

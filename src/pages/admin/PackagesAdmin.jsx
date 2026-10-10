@@ -16,10 +16,9 @@ import {
 import { listAllCategories } from "../../services/admin/galleryAdmin.js";
 import { recountLotCounters } from "../../services/admin/agendaAdmin.js";
 import { deleteStoragePaths, uploadImage } from "../../services/imageService.js";
-import { centsToInput, formatBRL, fromDateTimeInput, toDate, toDateTimeInput } from "../../utils/format.js";
+import { centsToInput, formatBRL, fromDateTimeInput, parseBRLToCents, toDateTimeInput } from "../../utils/format.js";
 import { MAX_PUBLISHED_PACKAGES, PACKAGE_STATUS, isPublicStatus, lotRemaining, packageAvailability, validateLots } from "../../utils/lots.js";
 import { slugify } from "../../utils/text.js";
-import { parseBRLToCents } from "../../utils/format.js";
 
 const EMPTY = {
   name: "", slug: "", categoryId: "", description: "", highlights: [], coverUrl: "", coverThumbUrl: "", coverPath: "", coverThumbPath: "",

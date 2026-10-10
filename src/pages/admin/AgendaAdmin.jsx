@@ -12,6 +12,7 @@ import { EmptyState, ErrorState } from "../../components/common/States.jsx";
 import { useConfirm } from "../../components/common/useConfirm.jsx";
 import { WhatsAppIcon } from "../../components/common/Icons.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
+import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
 import { APPOINTMENT_STATUS } from "../../config/constants.js";
 import {
@@ -69,6 +70,7 @@ function useStatusActions(onDone) {
 }
 
 function AppointmentActions({ a, change, busy, onOpen }) {
+  const { settings } = useSettings();
   if (busy === a.id) return <Spinner />;
   return (
     <div className="flex flex-wrap gap-1.5">
@@ -77,7 +79,7 @@ function AppointmentActions({ a, change, busy, onOpen }) {
       )}
       {a.status === "requested" && <button className="btn-ghost btn-sm" onClick={() => change(a, "awaiting")}>Aguardando</button>}
       {a.status === "confirmed" && <button className="btn-ghost btn-sm" onClick={() => change(a, "done")}>Realizado</button>}
-      <a className="btn-ghost btn-sm" href={whatsappLink(a.phone, `Olá, ${a.name.split(" ")[0]}! Aqui é da Taíse Foto, sobre o seu ensaio em ${formatDayBR(a.date)} às ${a.time}.`)}
+      <a className="btn-ghost btn-sm" href={whatsappLink(a.phone, `Olá, ${a.name.split(" ")[0]}! Aqui é da ${settings.brandName}, sobre o seu ensaio em ${formatDayBR(a.date)} às ${a.time}.`)}
         target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp de ${a.name}`}><WhatsAppIcon className="h-4 w-4" /></a>
       <button className="btn-ghost btn-sm" onClick={() => onOpen(a)}>Detalhes</button>
     </div>
