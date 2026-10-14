@@ -2,7 +2,7 @@ import {
   collection, deleteDoc, doc, getDocs, limit, query, serverTimestamp, setDoc, updateDoc, where, writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
-import { audit } from "../auditService.js";
+import { audit, bumpContentVersion } from "../auditService.js";
 import { deleteStoragePaths, uploadImage } from "../imageService.js";
 import { byOrder, withId } from "./common.js";
 import { slugify } from "../../utils/text.js";
@@ -104,6 +104,7 @@ export async function uploadPhotos(files, { categoryId, publish, startOrder }, o
 
 export async function updatePhoto(id, patch) {
   await updateDoc(doc(db, "galleryPhotos", id), { ...patch, updatedAt: serverTimestamp() });
+  bumpContentVersion();
 }
 
 export async function bulkUpdatePhotos(ids, patch) {
@@ -116,6 +117,7 @@ export async function bulkUpdatePhotos(ids, patch) {
 }
 
 export async function reorderPhotos(ids) {
+  bumpContentVersion();
   for (let i = 0; i < ids.length; i += 400) {
     const batch = writeBatch(db);
     ids.slice(i, i + 400).forEach((id, j) => batch.update(doc(db, "galleryPhotos", id), { order: i + j + 1 }));

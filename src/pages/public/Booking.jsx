@@ -12,6 +12,7 @@ import { WhatsAppIcon } from "../../components/common/Icons.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
+import { cached } from "../../services/cache.js";
 import { usePublicPackages } from "../../hooks/usePublicData.js";
 import { useCampaigns } from "../../hooks/useCampaigns.js";
 import { useDocumentMeta } from "../../hooks/useDocumentMeta.js";
@@ -36,7 +37,7 @@ export default function Booking() {
   const toast = useToast();
   const [params, setParams] = useSearchParams();
   const { data: pkgs, loading: pkgLoading, error: pkgError, reload } = usePublicPackages();
-  const { data: cfg, loading: cfgLoading, error: cfgError } = useAsync(getAvailability, []);
+  const { data: cfg, loading: cfgLoading, error: cfgError } = useAsync(() => cached("availability", getAvailability), []);
   const { campaigns } = useCampaigns();
 
   const [step, setStep] = useState(0);

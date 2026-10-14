@@ -13,6 +13,7 @@ import { useCategories } from "../../hooks/usePublicData.js";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { useDocumentMeta } from "../../hooks/useDocumentMeta.js";
 import { listPublishedPhotos } from "../../services/galleryService.js";
+import { cached } from "../../services/cache.js";
 import { track } from "../../services/analyticsService.js";
 import { waMessages } from "../../utils/whatsapp.js";
 
@@ -39,7 +40,9 @@ export default function Gallery() {
     const id = ++reqId.current;
     setState((s) => ({ ...s, loading: reset, more: !reset, error: null, ...(reset ? { items: [], cursor: null } : {}) }));
     try {
-      const res = await listPublishedPhotos({ categoryId: category?.id || null, pageSize: PAGE, cursor: reset ? null : state.cursor });
+      const cur = reset ? null : state.cursor;
+      const res = await cached(`photos-${category?.id || "all"}-${cur ?? "start"}`,
+        () => listPublishedPhotos({ categoryId: category?.id || null, pageSize: PAGE, cursor: cur }));
       if (id !== reqId.current) return;
       setState((s) => ({ items: reset ? res.items : [...s.items, ...res.items], cursor: res.cursor, loading: false, more: false, error: null }));
     } catch (error) {

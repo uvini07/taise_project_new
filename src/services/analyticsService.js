@@ -58,7 +58,7 @@ function once(storage, key) {
 
 /** Chamado a cada troca de página. */
 export function trackPageView(path) {
-  bump("pv");
+  // "pv" não é gravado: o total de páginas é a soma dos contadores page__ (1 escrita a menos por página).
   const slug = clean(path.split("/")[1] || "inicio") || "inicio";
   bump(`page__${slug}`);
   gaEvent("page_view", { page_path: path });

@@ -36,5 +36,6 @@ export function aggregateCounters(daily) {
       else totals[k] = (totals[k] || 0) + n;
     }
   }
+  totals.pv = (totals.pv || 0) + Object.values(groups.page).reduce((a, b) => a + b, 0);
   return { totals, groups };
 }

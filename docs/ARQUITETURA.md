@@ -95,3 +95,11 @@ O upload passa por validação (tipo e tamanho) e é **reduzido e convertido no 
 - placeholder de cerca de 20 px, guardado no documento para o carregamento suave.
 
 As grades usam `srcset`, `loading="lazy"` e proporção fixa (sem saltos de layout). A galeria pública é paginada (24 por vez). As regras do Storage aceitam só imagens de até 12 MB enviadas por admin.
+
+## Economia de leituras do Firestore
+- **Cache por versão de conteúdo.** Pacotes, categorias, fotos, campanhas e regras da agenda ficam na memória e no `localStorage` do visitante. A chave inclui `siteSettings.contentVersion`, que o painel incrementa a cada alteração. Visitante que volta ao site gasta **1 leitura** (as configurações) enquanto nada muda; quando algo muda, o cache é descartado na hora.
+- **Configurações sem conexão em tempo real no site.** O site faz uma leitura por visita e mostra a última versão salva no aparelho enquanto carrega. O tempo real só é usado no painel.
+- **Galeria paginada** (24 por vez), com cada página em cache.
+- **Imagens** em WebP reduzido no envio, servidas por `/api/img/{id}` com `Cache-Control: immutable` de 1 ano. A CDN da Vercel e o navegador guardam a imagem, e o banco só é lido na primeira vez em cada região da CDN.
+- **Analytics** grava só os contadores necessários: o total de páginas é somado dos contadores por página, sem escrita extra.
+- **Contagem de inscritos VIP** em cache de 10 minutos.

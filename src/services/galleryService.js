@@ -19,12 +19,11 @@ export async function listPublishedPhotos({ categoryId = null, pageSize = 24, cu
   const parts = [collection(db, "galleryPhotos"), where("published", "==", true)];
   if (categoryId) parts.push(where("categoryId", "==", categoryId));
   parts.push(orderBy("order", "asc"), limit(pageSize));
-  if (cursor) parts.push(startAfter(cursor));
+  if (cursor != null) parts.push(startAfter(cursor));
   const snap = await getDocs(query(...parts));
-  return {
-    items: snap.docs.map(withId),
-    cursor: snap.docs.length === pageSize ? snap.docs[snap.docs.length - 1] : null,
-  };
+  const items = snap.docs.map(withId);
+  // Cursor = "order" da última foto (número simples: dá para guardar em cache).
+  return { items, cursor: items.length === pageSize ? items[items.length - 1].order ?? null : null };
 }
 
 export async function listFeaturedPhotos(max = 12) {

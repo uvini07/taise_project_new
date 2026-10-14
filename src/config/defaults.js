@@ -90,6 +90,7 @@ export function mergeSettings(saved) {
   out.themePresets = Array.isArray(s.themePresets) ? s.themePresets : [];
   out.promoEvent = { enabled: false, title: "", subtitle: "", images: [], packageIds: [], ...(s.promoEvent || {}) };
   out.promoTemplates = Array.isArray(s.promoTemplates) ? s.promoTemplates : [];
+  out.contentVersion = s.contentVersion ?? 0;
   out.isDefault = !saved;
   return out;
 }

@@ -51,7 +51,7 @@ export default function AnalyticsAdmin() {
 
   const agg = useMemo(() => aggregateCounters(data.data?.daily || {}), [data.data]);
   const chart = useMemo(() => eachDay(range.from, range.to).map((d) => ({
-    label: `${d.slice(8)}/${d.slice(5, 7)}`, visitas: data.data?.daily[d]?.visit || 0, paginas: data.data?.daily[d]?.pv || 0,
+    label: `${d.slice(8)}/${d.slice(5, 7)}`, visitas: data.data?.daily[d]?.visit || 0, paginas: Object.entries(data.data?.daily[d] || {}).reduce((a, [k, v]) => a + (k === "pv" || k.startsWith("page__") ? Number(v) || 0 : 0), 0),
   })), [data.data, range.from, range.to]);
 
   const t = agg.totals;

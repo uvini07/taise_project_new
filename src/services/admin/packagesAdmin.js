@@ -5,7 +5,7 @@ import {
   collection, doc, getDocs, limit, query, runTransaction, serverTimestamp, updateDoc, where, writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebase.js";
-import { audit } from "../auditService.js";
+import { audit, bumpContentVersion } from "../auditService.js";
 import { byOrder, withId } from "./common.js";
 import { MAX_PUBLISHED_PACKAGES, isPublicStatus } from "../../utils/lots.js";
 import { deleteStoragePaths } from "../imageService.js";
@@ -116,6 +116,7 @@ export async function setPackageStatus(id, status) {
 
 /** Salva a ordem de exibição. */
 export async function reorderPackages(ids) {
+  bumpContentVersion();
   const batch = writeBatch(db);
   ids.forEach((id, i) => batch.update(doc(db, "packages", id), { order: i + 1 }));
   await batch.commit();
