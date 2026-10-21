@@ -72,7 +72,9 @@ export default function SettingsAdmin() {
     setSaving(true);
     try {
       const { promoEvent, promoTemplates, ...rest } = form; // editados na página Evento promocional
-      await saveSettings({ ...rest, contact: { ...form.contact, whatsapp: wa } });
+      const bw = form.contact.bookingWhatsapp ? normalizePhoneBR(form.contact.bookingWhatsapp) : "";
+      if (form.contact.bookingWhatsapp && !bw) { toast.error("WhatsApp das reservas inválido."); setSaving(false); return; }
+      await saveSettings({ ...rest, contact: { ...form.contact, whatsapp: wa, bookingWhatsapp: bw } });
       if (toDelete.length) { await deleteStoragePaths(toDelete); setToDelete([]); }
       setForm((f) => ({ ...f, isDefault: false, contact: { ...f.contact, whatsapp: wa } }));
       toast.success("Configurações salvas. O site já foi atualizado.");
@@ -193,7 +195,9 @@ export default function SettingsAdmin() {
             <div className="grid gap-5 sm:grid-cols-2">
               <TextField label="Telefone (como aparece no site)" value={v("contact.phone")} onChange={upd("contact.phone")} />
               <TextField label="WhatsApp (com DDD)" value={formatPhoneBR(v("contact.whatsapp")) || v("contact.whatsapp")} onChange={upd("contact.whatsapp")}
-                hint="Usado em todos os botões de WhatsApp (link wa.me)." />
+                hint="Dúvidas, orçamentos e todos os botões de WhatsApp do site." />
+              <TextField label="WhatsApp das reservas" value={formatPhoneBR(v("contact.bookingWhatsapp")) || v("contact.bookingWhatsapp")} onChange={upd("contact.bookingWhatsapp")}
+                hint="Recebe a mensagem da cliente depois que ela envia o pedido de agendamento." />
               <TextField label="E-mail" type="email" value={v("contact.email")} onChange={upd("contact.email")} />
               <TextField label="Cidade / bairro" value={v("contact.city")} onChange={upd("contact.city")} />
               <TextField label="Endereço" value={v("contact.address")} onChange={upd("contact.address")} />

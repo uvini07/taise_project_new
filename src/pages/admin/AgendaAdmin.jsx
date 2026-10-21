@@ -17,7 +17,7 @@ import { useAsync } from "../../hooks/useAsync.js";
 import { APPOINTMENT_STATUS } from "../../config/constants.js";
 import {
   addAppointmentNote, changeAppointmentStatus, createManualAppointment, freeSlotsForAdmin, listAppointments,
-  listOpenRequests, rescheduleAppointment, saveAvailability, updateAppointmentDetails,
+  deleteAppointment, listOpenRequests, rescheduleAppointment, saveAvailability, updateAppointmentDetails,
 } from "../../services/admin/agendaAdmin.js";
 import { fetchTakenLocks, getAvailability } from "../../services/agendaService.js";
 import { listAllPackages } from "../../services/admin/packagesAdmin.js";
@@ -88,6 +88,7 @@ function AppointmentActions({ a, change, busy, onOpen }) {
 
 function AppointmentModal({ a, cfg, onClose, onChanged, change }) {
   const toast = useToast();
+  const [confirmDelUI, confirmDel] = useConfirm();
   const [tab, setTab] = useState("info");
   const [note, setNote] = useState("");
   const [edit, setEdit] = useState({ name: a.name, phone: formatPhoneBR(a.phone), email: a.email || "", notes: a.notes || "", price: centsToInput(a.priceCents) });
@@ -113,6 +114,7 @@ function AppointmentModal({ a, cfg, onClose, onChanged, change }) {
   const history = [...(a.history || [])].reverse();
   return (
     <Modal open onClose={onClose} title={a.name} size="lg">
+      {confirmDelUI}
       <div className="mb-5 flex flex-wrap items-center gap-2">
         <StatusBadge status={a.status} />
         {a.vipCampaignId && <Badge tone="gold">VIP</Badge>}
@@ -149,6 +151,11 @@ function AppointmentModal({ a, cfg, onClose, onChanged, change }) {
             <button className="btn-outline btn-sm" disabled={saving} onClick={() => run(() => createIncomeFromAppointment(a), "Receita lançada no financeiro como pendente.")}>
               <Receipt className="h-4 w-4" /> Lançar receita
             </button>
+            <button className="btn-ghost btn-sm text-danger" disabled={saving} onClick={async () => {
+              if (!(await confirmDel({ title: "Excluir agendamento?", danger: true, confirmLabel: "Excluir definitivamente",
+                text: "Remove o agendamento e libera a data/horário na agenda. Não dá para desfazer. Para manter o histórico, use Cancelar." }))) return;
+              run(() => deleteAppointment(a.id), "Agendamento excluído e horário liberado.");
+            }}><Trash2 className="h-4 w-4" /> Excluir</button>
             {a.status !== "cancelled" ? (
               <button className="btn-ghost btn-sm text-danger" onClick={() => change(a, "cancelled")}><X className="h-4 w-4" /> Cancelar agendamento</button>
             ) : (

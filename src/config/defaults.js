@@ -22,8 +22,11 @@ export const DEFAULT_SETTINGS = {
     signature: "Taise Rufino",
   },
   contact: {
-    phone: "(11) 96038-2670",
-    whatsapp: "5511960382670",
+    // Atendimento geral (dúvidas, orçamentos, botões do site).
+    phone: "(11) 91456-4549",
+    whatsapp: "5511914564549",
+    // Número das clientes com reserva: mensagem enviada depois do agendamento.
+    bookingWhatsapp: "5511960382670",
     email: "tarufino@gmail.com",
     address: "Rua Presidente Castelo Branco, 45 — 5º andar",
     addressLine2: "Edifício Comercial In Offices",
@@ -90,6 +93,10 @@ export function mergeSettings(saved) {
   out.themePresets = Array.isArray(s.themePresets) ? s.themePresets : [];
   out.promoEvent = { enabled: false, title: "", subtitle: "", images: [], packageIds: [], ...(s.promoEvent || {}) };
   out.promoTemplates = Array.isArray(s.promoTemplates) ? s.promoTemplates : [];
+  // Migração: o número antigo passou a ser só das reservas.
+  if (!s.contact?.bookingWhatsapp && out.contact.whatsapp === "5511960382670") {
+    out.contact = { ...out.contact, bookingWhatsapp: "5511960382670", whatsapp: "5511914564549", phone: "(11) 91456-4549" };
+  }
   out.contentVersion = s.contentVersion ?? 0;
   out.isDefault = !saved;
   return out;

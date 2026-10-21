@@ -258,3 +258,26 @@ export async function recountLotCounters() {
   audit("lots.recount", "packageLots", "", { changed });
   return changed;
 }
+
+/**
+ * Exclui o agendamento de vez: libera as travas de horário e devolve a vaga do
+ * lote se ele estava confirmado/realizado. (Cancelar mantém o histórico.)
+ */
+export async function deleteAppointment(id) {
+  const apptRef = doc(db, "appointments", id);
+  await runTransaction(db, async (tx) => {
+    const snap = await tx.get(apptRef);
+    if (!snap.exists()) return;
+    const a = snap.data();
+    const lotRef = a.lotId ? doc(db, "packageLots", a.lotId) : null;
+    const lotSnap = lotRef ? await tx.get(lotRef) : null;
+    const lockRefs = (a.slotLockIds || []).map((x) => doc(db, "slotLocks", x));
+    const lockSnaps = await Promise.all(lockRefs.map((r) => tx.get(r)));
+    lockSnaps.forEach((s, i) => { if (s.exists() && s.data().appointmentId === id) tx.delete(lockRefs[i]); });
+    if (lotSnap?.exists() && COUNTED_STATUSES.includes(a.status)) {
+      tx.update(lotRef, { confirmedCount: Math.max(0, (lotSnap.data().confirmedCount || 0) - 1) });
+    }
+    tx.delete(apptRef);
+  });
+  audit("appointment.delete", "appointments", id);
+}

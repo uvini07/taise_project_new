@@ -198,7 +198,7 @@ service cloud.firestore {
     // VIP) e com as travas de horário criadas no mesmo lote de escrita.
     match /appointments/{id} {
       allow read, update: if isAdmin();
-      allow delete: if false; // cancelamento é lógico: status "cancelled"
+      allow delete: if isAdmin(); // exclusão definitiva pelo painel ("Excluir agendamento")
       allow create: if isAdmin() || (
         incoming().keys().hasOnly(apptKeys())
         && incoming().status == 'requested'

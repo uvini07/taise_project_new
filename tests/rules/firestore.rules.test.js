@@ -145,6 +145,8 @@ describe("pedido de agendamento", () => {
     const b = booking(anon());
     await b.commit();
     await assertFails(deleteDoc(doc(anon(), "slotLocks", b.lock)));
+    await assertFails(deleteDoc(doc(anon(), "appointments", b.ref.id)));
+    await assertSucceeds(deleteDoc(doc(admin(), "appointments", b.ref.id)));
     await assertFails(updateDoc(doc(anon(), "appointments", b.ref.id), { status: "confirmed" }));
     await assertFails(setDoc(doc(anon(), "slotLocks/2030-01-01_1000_0"), { appointmentId: "x", date: "2030-01-01", createdAt: serverTimestamp() }));
   });
