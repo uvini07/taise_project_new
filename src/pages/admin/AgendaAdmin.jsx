@@ -306,6 +306,7 @@ function AvailabilityForm({ initial, packages, onSaved }) {
     for (let d = 0; d < 7; d++) { const w = c.weekly[d]; if (w.enabled && w.start >= w.end) errs.push(`${WEEKDAYS[d]}: o fim deve ser depois do início.`); }
     if (!(Number(c.sessionMinutes) >= 5)) errs.push("Duração da sessão inválida.");
     c.specialDates.forEach((s) => { if (!s.date || s.start >= s.end) errs.push(`Data especial ${s.date || "sem data"}: horário inválido.`); });
+    (c.blockedSlots || []).forEach((b) => { if (!b.date || !b.start || !b.end || b.start >= b.end) errs.push(`Horário bloqueado ${b.date || "sem data"}: confira data e horas.`); });
     c.blockedRanges.forEach((r) => { if (!r.start || !r.end || r.start > r.end) errs.push("Período bloqueado com datas inválidas."); });
     if (errs.length) return toast.error(errs.join(" "));
     setSaving(true);
@@ -387,6 +388,26 @@ function AvailabilityForm({ initial, packages, onSaved }) {
             </div>
           ))}
         </div>
+      </Section>
+
+      <div id="bloquear" className="scroll-mt-6" />
+      <Section title="Horários bloqueados" text="Fecha só um horário (ou uma faixa de horas) num dia específico, sem bloquear o dia todo."
+        actions={<button className="btn-primary btn-sm" onClick={() => set("blockedSlots", [...(c.blockedSlots || []), { date: "", start: "14:00", end: "15:00", reason: "" }])}><Plus className="h-4 w-4" /> Bloquear horário</button>}>
+        <div className="space-y-2">
+          {!(c.blockedSlots || []).length && <p className="text-sm text-ink-muted">Nenhum horário bloqueado.</p>}
+          {(c.blockedSlots || []).map((b, i) => (
+            <div key={i} className="flex flex-wrap items-center gap-2">
+              <input type="date" className="field-input !w-auto !py-2" value={b.date} onChange={(e) => listSet("blockedSlots", i, "date", e.target.value)} aria-label="Data" />
+              <span className="text-sm">das</span>
+              <input type="time" className="field-input !w-auto !py-2" value={b.start} onChange={(e) => listSet("blockedSlots", i, "start", e.target.value)} aria-label="Início" />
+              <span className="text-sm">às</span>
+              <input type="time" className="field-input !w-auto !py-2" value={b.end} onChange={(e) => listSet("blockedSlots", i, "end", e.target.value)} aria-label="Fim" />
+              <input className="field-input !py-2 sm:flex-1" placeholder="Motivo (opcional)" value={b.reason} onChange={(e) => listSet("blockedSlots", i, "reason", e.target.value)} />
+              <button className="rounded-full p-2 text-danger hover:bg-danger/10" onClick={() => set("blockedSlots", c.blockedSlots.filter((_, j) => j !== i))} aria-label="Desbloquear"><Trash2 className="h-4 w-4" /></button>
+            </div>
+          ))}
+        </div>
+        <div className="mt-4"><button className="btn-primary btn-sm" onClick={save} disabled={saving}>{saving ? <Spinner className="h-4 w-4" /> : <Save className="h-4 w-4" />} Salvar</button></div>
       </Section>
 
       <Section title="Datas especiais e eventos" text="Abrem um horário próprio numa data (mesmo em dia sem atendimento) e podem ser exclusivas de alguns pacotes."
@@ -495,7 +516,10 @@ export default function AgendaAdmin() {
     <>
       {confirmUI}
       <AdminHeader title="Agenda" text="Pedidos, confirmações e regras de disponibilidade."
-        actions={tab === "appointments" && <button className="btn-primary" onClick={() => setCreating(true)}><CalendarPlus className="h-4 w-4" /> Novo agendamento</button>} />
+        actions={tab === "appointments" && <>
+          <button className="btn-outline" onClick={() => { setTab("availability"); setTimeout(() => document.getElementById("bloquear")?.scrollIntoView({ behavior: "smooth" }), 300); }}>Bloquear horário</button>
+          <button className="btn-primary" onClick={() => setCreating(true)}><CalendarPlus className="h-4 w-4" /> Novo agendamento</button>
+        </>} />
 
       <div className="mb-6 flex gap-1" role="tablist">
         {[["appointments", "Agendamentos"], ["availability", "Disponibilidade"]].map(([k, l]) => (

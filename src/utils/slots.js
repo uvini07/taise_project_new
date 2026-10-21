@@ -29,6 +29,7 @@ export const DEFAULT_AVAILABILITY = {
   openUntil: null,
   blockedDates: [],
   blockedRanges: [],
+  blockedSlots: [], // [{ date, start, end, reason }] horários fechados num dia
   specialDates: [],
   location: "",
   publicNote: "",
@@ -119,7 +120,10 @@ export function generateSlots(rawCfg, dayKey, opts = {}) {
     const time = minutesToTime(t);
     const startAt = dayTimeToDate(dayKey, time);
     let reason = null;
-    if (startAt.getTime() < earliest) reason = "Antecedência mínima";
+    const blockedSlot = (cfg.blockedSlots || []).find((b) => b.date === dayKey && b.start && b.end
+      && t < timeToMinutes(b.end) && t + duration > timeToMinutes(b.start));
+    if (blockedSlot) reason = blockedSlot.reason || "Horário bloqueado";
+    else if (startAt.getTime() < earliest) reason = "Antecedência mínima";
     else if (dayFull) reason = "Dia lotado";
 
     const lockIds = [];

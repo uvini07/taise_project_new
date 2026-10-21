@@ -71,6 +71,15 @@ describe("generateSlots", () => {
     expect(free.at(-1).time).toBe("10:00"); // 10:00 + 90min = 11:30 <= 12:00
   });
 
+  it("horário bloqueado fecha só aquela faixa", () => {
+    const c = { ...cfg, blockedSlots: [{ date: "2026-10-14", start: "10:00", end: "11:00", reason: "Consulta" }] };
+    const slots = generateSlots(c, "2026-10-14", { now });
+    expect(slots.find((s) => s.time === "10:00").available).toBe(false);
+    expect(slots.find((s) => s.time === "10:00").reason).toBe("Consulta");
+    expect(slots.find((s) => s.time === "09:00").available).toBe(true);
+    expect(slots.find((s) => s.time === "11:00").available).toBe(true);
+  });
+
   it("capacidade por horário usa travas numeradas", () => {
     const c2 = { ...cfg, capacityPerSlot: 2 };
     const taken = new Set([lockId("2026-10-14", "09:00", 0)]);
