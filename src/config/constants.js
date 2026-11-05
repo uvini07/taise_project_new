@@ -32,3 +32,28 @@ export const AFTER_END_ACTIONS = {
 
 export const CONSENT_TEXT_DEFAULT =
   "Autorizo o uso dos meus dados (nome, WhatsApp e e-mail) para receber comunicações sobre esta campanha e futuros ensaios. Posso pedir a exclusão a qualquer momento.";
+
+/**
+ * Páginas dos clientes (seleção de fotos e entrega final). O prefixo vira o
+ * endereço público: /selecao/{codigo} e /entrega/{codigo}. Para trocar o nome
+ * do endereço (ex.: "mostruario"), basta mudar aqui.
+ */
+export const CLIENT_PATHS = { selection: "selecao", delivery: "entrega" };
+
+export const SELECTION_STATUS = {
+  draft: { label: "Preparando", tone: "neutral" },
+  sent: { label: "Aguardando cliente", tone: "info" },
+  selecting: { label: "Cliente escolhendo", tone: "warning" },
+  finished: { label: "Seleção finalizada", tone: "success" },
+  expired: { label: "Prazo vencido", tone: "muted" },
+};
+
+export const DELIVERY_STATUS = {
+  draft: { label: "Preparando", tone: "neutral" },
+  available: { label: "Disponível", tone: "info" },
+  downloaded: { label: "Baixada", tone: "success" },
+  expired: { label: "Expirada", tone: "muted" },
+};
+
+export const SELECTION_DEFAULTS = { photoLimit: 100, deadlineDays: 7, watermark: true, allowExtras: false, extraPriceCents: null };
+export const DELIVERY_DEFAULTS = { availableDays: 30 };

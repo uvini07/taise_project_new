@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
-  BarChart3, CalendarDays, Crown, ExternalLink, Images, LayoutDashboard, LogOut, Menu, Package, Settings, Sparkles, Wallet, X,
+  BarChart3, CalendarDays, Crown, Heart, PackageCheck, ExternalLink, Images, LayoutDashboard, LogOut, Menu, Package, Settings, Sparkles, Wallet, X,
 } from "lucide-react";
 import Logo from "../common/Logo.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
@@ -11,6 +11,8 @@ import { useBodyLock } from "../../hooks/useBodyLock.js";
 export const ADMIN_NAV = [
   { to: "/adm/dashboard", label: "Visão geral", icon: LayoutDashboard },
   { to: "/adm/agenda", label: "Agenda", icon: CalendarDays },
+  { to: "/adm/selecao", label: "Seleção de fotos", icon: Heart },
+  { to: "/adm/entrega", label: "Entrega final", icon: PackageCheck },
   { to: "/adm/pacotes", label: "Pacotes", icon: Package },
   { to: "/adm/galeria", label: "Galeria", icon: Images },
   { to: "/adm/evento", label: "Evento promocional", icon: Sparkles },

@@ -80,6 +80,50 @@ export async function processImage(file, { maxEdge = 1800, thumbEdge = 720, qual
 }
 
 
+function stampWatermark(canvas, text) {
+  const ctx = canvas.getContext("2d");
+  const size = Math.max(14, Math.round(Math.min(canvas.width, canvas.height) / 18));
+  ctx.save();
+  ctx.font = `600 ${size}px Georgia, serif`;
+  ctx.fillStyle = "rgba(255,255,255,0.32)";
+  ctx.strokeStyle = "rgba(0,0,0,0.12)";
+  ctx.lineWidth = Math.max(1, size / 24);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate(-Math.PI / 7);
+  const stepX = ctx.measureText(text).width + size * 3;
+  const stepY = size * 5;
+  const reach = Math.hypot(canvas.width, canvas.height);
+  for (let y = -reach; y <= reach; y += stepY) {
+    for (let x = -reach + ((y / stepY) % 2 ? stepX / 2 : 0); x <= reach; x += stepX) {
+      ctx.strokeText(text, x, y);
+      ctx.fillText(text, x, y);
+    }
+  }
+  ctx.restore();
+}
+
+/**
+ * Versão leve para o cliente escolher (seleção de fotos): prévia WebP com
+ * marca d'água opcional + miniatura para a grade. O original não sai do
+ * computador da fotógrafa.
+ */
+export async function makeSelectionPreview(file, { maxEdge = 1600, thumbEdge = 480, quality = 0.72, watermark = "" } = {}) {
+  const err = validateImageFile(file);
+  if (err) throw new Error(err);
+  const bmp = await loadBitmap(file);
+  const width = bmp.width, height = bmp.height;
+  const big = draw(bmp, maxEdge);
+  if (watermark) stampWatermark(big, watermark);
+  const preview = await toBlob(big, quality);
+  const small = draw(bmp, thumbEdge);
+  if (watermark) stampWatermark(small, watermark);
+  const thumb = await toBlob(small, 0.7);
+  if (bmp.close) bmp.close();
+  return { preview, thumb, width: big.width, height: big.height, originalWidth: width, originalHeight: height };
+}
+
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
     const r = new FileReader();

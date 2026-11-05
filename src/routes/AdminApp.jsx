@@ -15,6 +15,10 @@ const FinanceAdmin = lazy(() => import("../pages/admin/FinanceAdmin.jsx"));
 const VIPAdmin = lazy(() => import("../pages/admin/VIPAdmin.jsx"));
 const EventAdmin = lazy(() => import("../pages/admin/EventAdmin.jsx"));
 const SettingsAdmin = lazy(() => import("../pages/admin/SettingsAdmin.jsx"));
+const SelectionAdmin = lazy(() => import("../pages/admin/SelectionAdmin.jsx"));
+const SelectionDetail = lazy(() => import("../pages/admin/SelectionDetail.jsx"));
+const DeliveryAdmin = lazy(() => import("../pages/admin/DeliveryAdmin.jsx"));
+const DeliveryDetail = lazy(() => import("../pages/admin/DeliveryDetail.jsx"));
 
 export default function AdminApp() {
   return (
@@ -26,6 +30,10 @@ export default function AdminApp() {
           <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
           <Route path="pacotes" element={<Suspense fallback={<PageLoader />}><PackagesAdmin /></Suspense>} />
           <Route path="galeria" element={<Suspense fallback={<PageLoader />}><GalleryAdmin /></Suspense>} />
+          <Route path="selecao" element={<Suspense fallback={<PageLoader />}><SelectionAdmin /></Suspense>} />
+          <Route path="selecao/:id" element={<Suspense fallback={<PageLoader />}><SelectionDetail /></Suspense>} />
+          <Route path="entrega" element={<Suspense fallback={<PageLoader />}><DeliveryAdmin /></Suspense>} />
+          <Route path="entrega/:id" element={<Suspense fallback={<PageLoader />}><DeliveryDetail /></Suspense>} />
           <Route path="agenda" element={<Suspense fallback={<PageLoader />}><AgendaAdmin /></Suspense>} />
           <Route path="analytics" element={<Suspense fallback={<PageLoader />}><AnalyticsAdmin /></Suspense>} />
           <Route path="financeiro" element={<Suspense fallback={<PageLoader />}><FinanceAdmin /></Suspense>} />
