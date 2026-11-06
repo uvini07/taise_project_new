@@ -77,7 +77,7 @@ function BookingNotice({ f }) {
   const { settings } = useSettings();
   if (f.ctaMode !== "booking") return null;
   const lots = f.lots.map((l, i) => ({ ...draftLot(l), order: i }));
-  const pkg = { status: f.status, salesStart: fromDateTimeInput(f.salesStartText), salesEnd: fromDateTimeInput(f.salesEndText) };
+  const pkg = lots.length ? { status: f.status } : { status: f.status, salesStart: fromDateTimeInput(f.salesStartText), salesEnd: fromDateTimeInput(f.salesEndText) };
   const av = packageAvailability(pkg, lots);
   let why = null;
   if (!settings?.display?.showAgenda) why = "a agenda on-line está desligada em Configurações → Exibição.";
@@ -121,8 +121,9 @@ function PackageEditor({ initial, categories, onClose, onSaved }) {
     if (isPublicStatus(f.status) && priceCents == null && !lots.length) errs.push("Para publicar, informe um preço ou cadastre lotes.");
     if (f.ctaMode === "booking" && isPublicStatus(f.status) && !lots.length) errs.push("A agenda on-line precisa de pelo menos um lote (com preço e vagas).");
     if (f.sessionStart && f.sessionEnd && f.sessionStart > f.sessionEnd) errs.push("O período dos ensaios termina antes de começar.");
-    const salesStart = fromDateTimeInput(f.salesStartText);
-    const salesEnd = fromDateTimeInput(f.salesEndText);
+    // Com lotes, as datas de venda ficam só nos lotes (a data geral é apagada).
+    const salesStart = lots.length ? null : fromDateTimeInput(f.salesStartText);
+    const salesEnd = lots.length ? null : fromDateTimeInput(f.salesEndText);
     if (salesStart && salesEnd && salesStart > salesEnd) errs.push("O fim das vendas é antes do início.");
     setErrors(errs);
     if (errs.length) return;
@@ -210,6 +211,14 @@ function PackageEditor({ initial, categories, onClose, onSaved }) {
               <Toggle label="Mostrar vagas restantes" checked={f.showRemaining} onChange={up("showRemaining")} />
             </div>
           </div>
+          {f.lots.length ? (
+            <p className="mt-4 text-xs text-ink-muted">As datas de início e fim das vendas ficam em cada lote, abaixo. Em branco, o lote vende assim que o pacote for publicado.</p>
+          ) : (
+            <div className="mt-5 grid gap-5 sm:grid-cols-2">
+              <TextField label="Início das vendas (opcional)" type="datetime-local" value={f.salesStartText} onChange={up("salesStartText")} hint="Em branco: vende assim que publicar." />
+              <TextField label="Fim das vendas (opcional)" type="datetime-local" value={f.salesEndText} onChange={up("salesEndText")} hint="Em branco: sem data para acabar." />
+            </div>
+          )}
 
           <div className="mt-6 space-y-3">
             {f.lots.map((l, i) => {
@@ -220,8 +229,8 @@ function PackageEditor({ initial, categories, onClose, onSaved }) {
                     <TextField className="sm:col-span-4" label="Nome do lote" value={l.name} onChange={(e) => setLot(i, "name", e.target.value)} />
                     <TextField className="sm:col-span-3" label="Preço (R$)" inputMode="decimal" value={l.priceText} onChange={(e) => setLot(i, "priceText", e.target.value)} />
                     <TextField className="sm:col-span-3" label="Vagas" type="number" min="0" placeholder="Sem limite" value={l.capacityText} onChange={(e) => setLot(i, "capacityText", e.target.value)} />
-                    <TextField className="sm:col-span-6" label="Vendas de" type="datetime-local" value={l.salesStart} onChange={(e) => setLot(i, "salesStart", e.target.value)} />
-                    <TextField className="sm:col-span-6" label="até" type="datetime-local" value={l.salesEnd} onChange={(e) => setLot(i, "salesEnd", e.target.value)} />
+                    <TextField className="sm:col-span-6" label="Início das vendas" type="datetime-local" value={l.salesStart} onChange={(e) => setLot(i, "salesStart", e.target.value)} />
+                    <TextField className="sm:col-span-6" label="Fim das vendas" type="datetime-local" value={l.salesEnd} onChange={(e) => setLot(i, "salesEnd", e.target.value)} />
                     <SelectField className="sm:col-span-2" label="Status" value={l.status} onChange={(e) => setLot(i, "status", e.target.value)}>
                       <option value="active">Ativo</option>
                       <option value="closed">Fechado</option>
@@ -258,8 +267,6 @@ function PackageEditor({ initial, categories, onClose, onSaved }) {
             <TextField label="Ensaios a partir de" type="date" value={f.sessionStart || ""} onChange={up("sessionStart")} hint="Opcional: limita as datas da agenda." />
             <TextField label="Ensaios até" type="date" value={f.sessionEnd || ""} onChange={up("sessionEnd")} />
             <TextField label="Entrega e edição" value={f.deliveryInfo} onChange={up("deliveryInfo")} placeholder="Ex.: galeria on-line em até 15 dias" />
-            <TextField label="Abertura das vendas" type="datetime-local" value={f.salesStartText} onChange={up("salesStartText")} />
-            <TextField label="Encerramento das vendas" type="datetime-local" value={f.salesEndText} onChange={up("salesEndText")} />
           </div>
           <div className="mt-5 grid gap-5 md:grid-cols-2">
             <ListEditor label="O que está incluso" items={f.highlights} onChange={up("highlights")} placeholder="Ex.: 1 troca de look" />
