@@ -73,7 +73,11 @@ export default function PackageDetail() {
             </div>
             <h1 className="display-lg mt-3">{pkg.name}</h1>
             <div className="mt-5"><PriceTag pkg={pkg} av={av} size="lg" /></div>
-            {av.state === "upcoming" && av.opensAt && <p className="mt-2 text-sm text-ink-muted">Vendas a partir de {formatDateTime(av.opensAt)}.</p>}
+            {av.state === "upcoming" && av.opensAt && (
+              <p className="mt-2 text-sm text-ink-muted">
+                {pkg.ctaMode !== "whatsapp" && settings.display.showAgenda ? "O agendamento on-line abre em " : "Vendas a partir de "}{formatDateTime(av.opensAt)}.
+              </p>
+            )}
             {av.nextLot && <p className="mt-2 text-sm text-ink-muted">Próximo lote: {formatBRL(av.nextLot.priceCents)}.</p>}
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">

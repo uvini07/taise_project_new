@@ -16,8 +16,9 @@ import {
 import { listAllCategories } from "../../services/admin/galleryAdmin.js";
 import { recountLotCounters } from "../../services/admin/agendaAdmin.js";
 import { deleteStoragePaths, uploadImage } from "../../services/imageService.js";
-import { centsToInput, formatBRL, fromDateTimeInput, parseBRLToCents, toDateTimeInput } from "../../utils/format.js";
-import { MAX_PUBLISHED_PACKAGES, PACKAGE_STATUS, isPublicStatus, lotRemaining, packageAvailability, validateLots } from "../../utils/lots.js";
+import { centsToInput, formatBRL, formatDateTime, fromDateTimeInput, parseBRLToCents, toDateTimeInput } from "../../utils/format.js";
+import { MAX_PUBLISHED_PACKAGES, PACKAGE_STATUS, isPublicStatus, lotRemaining, lotState, packageAvailability, validateLots } from "../../utils/lots.js";
+import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { slugify } from "../../utils/text.js";
 
 const EMPTY = {
@@ -45,6 +46,48 @@ function toForm(pkg) {
       salesEnd: toDateTimeInput(l.salesEnd),
     })),
   };
+}
+
+/** Lote do formulário (textos) -> lote com datas, para calcular a situação. */
+function draftLot(l) {
+  return {
+    salesStart: fromDateTimeInput(l.salesStart), salesEnd: fromDateTimeInput(l.salesEnd), status: l.status,
+    capacity: l.capacityText === "" ? null : Number(l.capacityText), confirmedCount: l.confirmedCount || 0,
+    priceCents: parseBRLToCents(l.priceText), order: l.order,
+  };
+}
+
+const LOT_STATE_UI = {
+  open: ["Aberto agora", "success"],
+  upcoming: ["Ainda não abriu", "warning"],
+  ended: ["Vendas encerradas", "muted"],
+  soldout: ["Esgotado", "danger"],
+  closed: ["Fechado", "muted"],
+};
+
+function LotStateBadge({ lot }) {
+  const d = draftLot(lot);
+  const st = lotState(d);
+  const [label, tone] = LOT_STATE_UI[st];
+  return <Badge tone={tone}>{st === "upcoming" ? `Abre em ${formatDateTime(d.salesStart)}` : label}</Badge>;
+}
+
+/** Explica por que o botão de agenda on-line não aparece no site agora. */
+function BookingNotice({ f }) {
+  const { settings } = useSettings();
+  if (f.ctaMode !== "booking") return null;
+  const lots = f.lots.map((l, i) => ({ ...draftLot(l), order: i }));
+  const pkg = { status: f.status, salesStart: fromDateTimeInput(f.salesStartText), salesEnd: fromDateTimeInput(f.salesEndText) };
+  const av = packageAvailability(pkg, lots);
+  let why = null;
+  if (!settings?.display?.showAgenda) why = "a agenda on-line está desligada em Configurações → Exibição.";
+  else if (!isPublicStatus(f.status)) why = "o pacote não está publicado.";
+  else if (!lots.length) why = "o pacote não tem lotes.";
+  else if (av.state === "upcoming") why = `nenhum lote está aberto ainda. As vendas abrem em ${formatDateTime(av.opensAt)}; até lá o site mostra “Em breve” e só o botão do WhatsApp.`;
+  else if (av.state === "soldout") why = "as vagas dos lotes acabaram.";
+  else if (av.state === "closed") why = "o período de vendas terminou ou os lotes estão fechados.";
+  if (!why) return <p className="mt-4 rounded-2xl bg-success/5 p-3 text-sm text-success">O botão “Escolher data e horário” aparece no site agora.</p>;
+  return <p className="mt-4 rounded-2xl border border-warning/25 bg-warning/5 p-3 text-sm text-ink-soft"><strong className="text-warning">O botão de agenda não aparece agora:</strong> {why}</p>;
 }
 
 function PackageEditor({ initial, categories, onClose, onSaved }) {
@@ -162,7 +205,7 @@ function PackageEditor({ initial, categories, onClose, onSaved }) {
           <h3 className="mb-4 font-display text-2xl">Valores e lotes</h3>
           <div className="grid gap-5 sm:grid-cols-3">
             <TextField label="Preço base (R$)" inputMode="decimal" placeholder="0,00" value={f.priceText} onChange={up("priceText")} hint="Usado quando não há lotes." />
-            <TextField label="Preço promocional (opcional)" inputMode="decimal" placeholder="0,00" value={f.promoText} onChange={up("promoText")} />
+            <TextField label="Preço promocional (opcional)" inputMode="decimal" placeholder="0,00" value={f.promoText} onChange={up("promoText")} hint="Também só vale sem lotes; com lotes, vale o preço do lote." />
             <div className="space-y-3 pt-6">
               <Toggle label="Mostrar vagas restantes" checked={f.showRemaining} onChange={up("showRemaining")} />
             </div>
@@ -174,18 +217,19 @@ function PackageEditor({ initial, categories, onClose, onSaved }) {
               return (
                 <div key={l.id || `new-${i}`} className="rounded-2xl border border-ink/10 bg-paper/40 p-4">
                   <div className="grid gap-3 sm:grid-cols-12">
-                    <TextField className="sm:col-span-3" label="Nome do lote" value={l.name} onChange={(e) => setLot(i, "name", e.target.value)} />
-                    <TextField className="sm:col-span-2" label="Preço (R$)" inputMode="decimal" value={l.priceText} onChange={(e) => setLot(i, "priceText", e.target.value)} />
-                    <TextField className="sm:col-span-2" label="Vagas" type="number" min="0" placeholder="Sem limite" value={l.capacityText} onChange={(e) => setLot(i, "capacityText", e.target.value)} />
-                    <TextField className="sm:col-span-5 lg:col-span-2" label="Vendas de" type="datetime-local" value={l.salesStart} onChange={(e) => setLot(i, "salesStart", e.target.value)} />
-                    <TextField className="sm:col-span-6 lg:col-span-2" label="até" type="datetime-local" value={l.salesEnd} onChange={(e) => setLot(i, "salesEnd", e.target.value)} />
-                    <SelectField className="sm:col-span-4 lg:col-span-1" label="Status" value={l.status} onChange={(e) => setLot(i, "status", e.target.value)}>
+                    <TextField className="sm:col-span-4" label="Nome do lote" value={l.name} onChange={(e) => setLot(i, "name", e.target.value)} />
+                    <TextField className="sm:col-span-3" label="Preço (R$)" inputMode="decimal" value={l.priceText} onChange={(e) => setLot(i, "priceText", e.target.value)} />
+                    <TextField className="sm:col-span-3" label="Vagas" type="number" min="0" placeholder="Sem limite" value={l.capacityText} onChange={(e) => setLot(i, "capacityText", e.target.value)} />
+                    <TextField className="sm:col-span-6" label="Vendas de" type="datetime-local" value={l.salesStart} onChange={(e) => setLot(i, "salesStart", e.target.value)} />
+                    <TextField className="sm:col-span-6" label="até" type="datetime-local" value={l.salesEnd} onChange={(e) => setLot(i, "salesEnd", e.target.value)} />
+                    <SelectField className="sm:col-span-2" label="Status" value={l.status} onChange={(e) => setLot(i, "status", e.target.value)}>
                       <option value="active">Ativo</option>
                       <option value="closed">Fechado</option>
                     </SelectField>
                   </div>
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-ink-muted">
-                    <span>
+                    <span className="flex flex-wrap items-center gap-2">
+                      <LotStateBadge lot={l} />
                       {l.confirmedCount || 0} confirmado(s){remaining != null && ` · ${remaining} vaga(s) restante(s)`}
                     </span>
                     <button type="button" className="inline-flex items-center gap-1 text-danger hover:underline"
@@ -232,6 +276,7 @@ function PackageEditor({ initial, categories, onClose, onSaved }) {
             </SelectField>
             <TextField label="Texto do botão (opcional)" value={f.ctaLabel} onChange={up("ctaLabel")} maxLength={40} />
           </div>
+          <BookingNotice f={f} />
           <div className="mt-4"><Checkbox label="Destacar como “Mais escolhido”" checked={f.featured} onChange={up("featured")} /></div>
         </section>
       </div>
