@@ -56,6 +56,6 @@ export const DELIVERY_STATUS = {
 };
 
 export const SELECTION_DEFAULTS = {
-  photoLimit: 100, deadlineDays: 7, watermark: true, watermarkClientName: true, copyProtection: true, allowExtras: false, extraPriceCents: null,
+  photoLimit: 100, deadlineDays: 7, watermark: true, watermarkStrong: true, watermarkClientName: true, copyProtection: true, allowExtras: false, extraPriceCents: null,
 };
 export const DELIVERY_DEFAULTS = { availableDays: 30 };

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { ChevronLeft, ChevronRight, Heart, ShieldCheck, X } from "lucide-react";
-import { ProtectedImg, ProtectionShield } from "./Protected.jsx";
+import { ProtectedImg, ProtectionShield, useLiveWatermark } from "./Protected.jsx";
 import { useCopyProtection } from "../../hooks/useCopyProtection.js";
 import { useBodyLock } from "../../hooks/useBodyLock.js";
 
@@ -11,7 +11,9 @@ import { useBodyLock } from "../../hooks/useBodyLock.js";
  */
 export default function ClientPreview({ selection, brand, onClose }) {
   const protect = selection.copyProtection !== false;
-  const shielded = useCopyProtection(protect);
+  const { shielded, reason } = useCopyProtection(protect);
+  const [stamp] = useState(() => new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }));
+  const overlay = useLiveWatermark(protect ? `${selection.clientName} · ${stamp}` : null);
   const [picked, setPicked] = useState(() => new Set(selection.selectedIds || []));
   const [view, setView] = useState(null);
   useBodyLock(true);
@@ -37,7 +39,7 @@ export default function ClientPreview({ selection, brand, onClose }) {
     <div className="fixed inset-0 z-[90] flex flex-col bg-paper" role="dialog" aria-modal="true" aria-label="Visualização do cliente">
       <div className="flex items-center gap-3 border-b border-ink/10 bg-wine-900 px-4 py-2 text-xs text-cream sm:px-6">
         <ShieldCheck className="h-4 w-4 shrink-0" />
-        <p className="flex-1">Pré-visualização: é assim que o cliente vê. {protect ? "Proteção contra cópia ativa — teste clique direito, toque longo e atalhos de print." : "Proteção contra cópia desligada neste ensaio."} Escolhas feitas aqui não são salvas.</p>
+        <p className="flex-1">Pré-visualização: é assim que o cliente vê. {protect ? "Proteção ativa — teste clique direito, toque longo, atalhos de print e o Inspecionar." : "Proteção contra cópia desligada neste ensaio."} Escolhas feitas aqui não são salvas.</p>
         <button onClick={onClose} className="rounded-full p-1.5 hover:bg-cream/10" aria-label="Fechar pré-visualização"><X className="h-5 w-5" /></button>
       </div>
 
@@ -46,6 +48,7 @@ export default function ClientPreview({ selection, brand, onClose }) {
           <p className="text-xs uppercase tracking-[.25em] text-ink-muted">{brand}</p>
           <h1 className="font-display text-4xl">{selection.clientName}</h1>
           {selection.title && <p className="text-sm text-ink-muted">{selection.title}</p>}
+          {protect && <p className="mt-1 text-xs text-ink-muted">Visualização exclusiva de {selection.clientName}. Cópias e prints são identificados pela marca d'água.</p>}
         </div>
         <div className={`rounded-full px-4 py-2 text-sm font-medium ${over ? "bg-warning/15 text-warning" : "bg-wine-900 text-cream"}`}>
           <Heart className="mr-1.5 inline h-4 w-4 fill-current align-[-3px]" /> {counter} escolhidas
@@ -60,7 +63,7 @@ export default function ClientPreview({ selection, brand, onClose }) {
             return (
               <li key={p.id} className={`relative overflow-hidden rounded-xl bg-surface ${on ? "ring-2 ring-wine-900" : ""}`}>
                 <button type="button" className="block aspect-[4/5] w-full" onClick={() => setView(i)} aria-label={`Ampliar foto ${i + 1}`}>
-                  <ProtectedImg src={p.thumbUrl} className="h-full w-full" />
+                  <ProtectedImg src={p.thumbUrl} scramble={p.thumbScramble} overlay={overlay} className="h-full w-full" />
                 </button>
                 <button type="button" onClick={() => toggle(p.id)} aria-pressed={on} aria-label={on ? "Desmarcar" : "Escolher"}
                   className={`absolute bottom-2 right-2 grid h-10 w-10 place-items-center rounded-full shadow-lift transition ${on ? "bg-wine-900 text-cream" : "bg-surface/90 text-wine-900"}`}>
@@ -74,7 +77,7 @@ export default function ClientPreview({ selection, brand, onClose }) {
 
       {current && (
         <div className="protect-area fixed inset-0 z-[100] flex items-center justify-center bg-[#120607]/95" onClick={(e) => { if (e.target === e.currentTarget) setView(null); }}>
-          <ProtectedImg key={current.id} src={current.previewUrl} loading="eager" className="max-h-[86vh] max-w-[94vw]" imgClassName="max-h-[86vh] max-w-[94vw] object-contain" />
+          <ProtectedImg key={current.id} src={current.previewUrl} scramble={current.previewScramble} overlay={overlay} fit="contain" className="max-h-[86vh] max-w-[94vw]" imgClassName="block max-h-[86vh] max-w-[94vw]" />
           <button onClick={() => setView(null)} className="absolute right-3 top-3 rounded-full p-3 text-cream/80 hover:text-white" aria-label="Fechar"><X className="h-6 w-6" /></button>
           <button onClick={() => setView((v) => (v - 1 + photos.length) % photos.length)} className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full p-3 text-cream/80 hover:text-white" aria-label="Anterior"><ChevronLeft className="h-8 w-8" /></button>
           <button onClick={() => setView((v) => (v + 1) % photos.length)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-3 text-cream/80 hover:text-white" aria-label="Próxima"><ChevronRight className="h-8 w-8" /></button>
@@ -84,7 +87,7 @@ export default function ClientPreview({ selection, brand, onClose }) {
         </div>
       )}
 
-      <ProtectionShield show={shielded} brand={brand} />
+      <ProtectionShield show={shielded} reason={reason} brand={brand} />
     </div>,
     document.body,
   );

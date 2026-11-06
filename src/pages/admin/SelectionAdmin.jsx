@@ -4,6 +4,7 @@ import { Clock, Heart, Images, ListChecks, Plus, Trash2 } from "lucide-react";
 import { AdminHeader, StatCard } from "../../components/admin/AdminUI.jsx";
 import { ClientEditor, ClientLink, DemoBanner } from "../../components/admin/ClientPagesUI.jsx";
 import Badge from "../../components/common/Badge.jsx";
+import { ScrambledImage } from "../../components/selection/Protected.jsx";
 import PageLoader from "../../components/common/PageLoader.jsx";
 import { EmptyState, ErrorState } from "../../components/common/States.jsx";
 import { useConfirm } from "../../components/common/useConfirm.jsx";
@@ -58,7 +59,7 @@ export default function SelectionAdmin() {
               <div key={s.id} className="card card-pad flex flex-col">
                 <div className="flex items-start gap-3">
                   <div className="grid h-14 w-14 shrink-0 grid-cols-2 gap-0.5 overflow-hidden rounded-xl bg-paper">
-                    {s.photos.slice(0, 4).map((p) => <img key={p.id} src={p.thumbUrl} alt="" className="h-full w-full object-cover" />)}
+                    {s.photos.slice(0, 4).map((p) => <ScrambledImage key={p.id} src={p.thumbUrl} scramble={p.thumbScramble} className="h-full w-full" />)}
                   </div>
                   <div className="min-w-0 flex-1">
                     <Link to={`/adm/selecao/${s.id}`} className="font-display text-2xl hover:text-wine-900">{s.clientName}</Link>

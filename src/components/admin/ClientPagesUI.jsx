@@ -149,7 +149,7 @@ export function ClientEditor({ kind, initial, taken, selections = [], onClose, o
     try {
       const base = { clientName: f.clientName.trim(), phone: f.phone.trim(), title: f.title.trim(), message: f.message.trim(), slug };
       await onSave(isSelection
-        ? { ...base, photoLimit: Number(f.photoLimit), deadlineDays: Number(f.deadlineDays), watermark: !!f.watermark, watermarkClientName: !!f.watermarkClientName, copyProtection: !!f.copyProtection, allowExtras: !!f.allowExtras, extraPriceCents: f.allowExtras ? extraPriceCents : null }
+        ? { ...base, photoLimit: Number(f.photoLimit), deadlineDays: Number(f.deadlineDays), watermark: !!f.watermark, watermarkStrong: !!f.watermarkStrong, watermarkClientName: !!f.watermarkClientName, copyProtection: !!f.copyProtection, allowExtras: !!f.allowExtras, extraPriceCents: f.allowExtras ? extraPriceCents : null }
         : { ...base, availableDays: Number(f.availableDays), selectionId: f.selectionId || null });
     } catch (e) {
       setErrors([e.message || "Não foi possível salvar."]);
@@ -204,10 +204,14 @@ export function ClientEditor({ kind, initial, taken, selections = [], onClose, o
             <div className="space-y-4 sm:col-span-2">
               <Toggle label="Marca d'água nas prévias" hint="Protege as fotos enquanto o cliente ainda não pagou." checked={f.watermark} onChange={(v) => setF((x) => ({ ...x, watermark: v }))} />
               {f.watermark && (
+                <Toggle label="Marca d'água reforçada (anti-IA)" hint="Cobre a foto inteira com padrão denso, marca grande no centro e posição diferente em cada foto. Bem mais difícil de apagar com inteligência artificial."
+                  checked={f.watermarkStrong} onChange={(v) => setF((x) => ({ ...x, watermarkStrong: v }))} />
+              )}
+              {f.watermark && (
                 <Toggle label="Nome do cliente na marca d'água" hint={`Ex.: “Taíse Foto · ${f.clientName.trim() || "Ana Souza"}”. Se a foto vazar, dá para saber de quem veio — é o que mais desestimula prints.`}
                   checked={f.watermarkClientName} onChange={(v) => setF((x) => ({ ...x, watermarkClientName: v }))} />
               )}
-              <Toggle label="Proteção contra cópia e prints" hint="Bloqueia clique direito, salvar imagem e arrastar; esconde as fotos em atalhos de print e quando a janela perde o foco. Dificulta, mas nenhum site impede prints 100% (no celular, nada bloqueia o print do aparelho)."
+              <Toggle label="Proteção contra cópia e prints" hint="Bloqueia clique direito, salvar imagem, arrastar e copiar; esconde as fotos em atalhos de print, ao abrir o Inspecionar e quando a janela perde o foco; põe nome, data e hora por cima das fotos. Dificulta muito, mas nenhum site impede prints 100% (no celular, nada bloqueia o print do aparelho)."
                 checked={f.copyProtection} onChange={(v) => setF((x) => ({ ...x, copyProtection: v }))} />
               <Toggle label="Permitir fotos extras" hint="O cliente pode marcar mais fotos que o limite, pagando à parte." checked={f.allowExtras} onChange={(v) => setF((x) => ({ ...x, allowExtras: v }))} />
               {f.allowExtras && <TextField label="Valor por foto extra" inputMode="decimal" placeholder="R$ 0,00" value={f.extraPriceText} onChange={up("extraPriceText")} className="sm:max-w-xs" />}

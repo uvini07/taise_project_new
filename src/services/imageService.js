@@ -6,6 +6,7 @@
 // (≈20px) guardado no próprio documento para o efeito de carregamento suave.
 import { collection, deleteDoc, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "./firebase.js";
+import { scrambleMoves, scramblePlan } from "../utils/imageScramble.js";
 
 export const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 export const MAX_INPUT_BYTES = 40 * 1024 * 1024;
@@ -105,23 +106,116 @@ function stampWatermark(canvas, text) {
 }
 
 /**
- * Versão leve para o cliente escolher (seleção de fotos): prévia WebP com
- * marca d'água opcional + miniatura para a grade. O original não sai do
+ * Marca d'água reforçada, feita para resistir a "removedores" com IA:
+ * trama de linhas finas na foto inteira, texto denso com posição, ângulo e
+ * opacidade variando em cada foto, e uma marca grande no centro (onde
+ * normalmente está o rosto/assunto). Quanto mais área coberta e menos
+ * previsível o padrão, pior a IA consegue reconstruir o que está por baixo.
+ */
+function stampStrongWatermark(canvas, text, brand) {
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height, min = Math.min(W, H);
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const angle = (Math.random() < 0.5 ? -1 : 1) * rnd(Math.PI / 9, Math.PI / 5);
+  const reach = Math.hypot(W, H);
+  ctx.save();
+  ctx.translate(W / 2, H / 2);
+  ctx.rotate(angle);
+
+  // 1) Trama de linhas finas (claras e escuras alternadas).
+  const gap = Math.max(6, Math.round(min / 70));
+  ctx.lineWidth = Math.max(1, min / 900);
+  for (let x = -reach, i = 0; x <= reach; x += gap, i++) {
+    ctx.strokeStyle = i % 2 ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.07)";
+    ctx.beginPath(); ctx.moveTo(x, -reach); ctx.lineTo(x, reach); ctx.stroke();
+  }
+
+  // 2) Texto denso com variação em cada repetição.
+  const size = Math.max(12, Math.round(min / 24));
+  ctx.font = `600 ${size}px Georgia, serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.lineWidth = Math.max(1, size / 10);
+  const stepX = ctx.measureText(text).width + size * 1.4;
+  const stepY = size * 2.6;
+  const offX = rnd(0, stepX), offY = rnd(0, stepY);
+  for (let y = -reach + offY, row = 0; y <= reach; y += stepY, row++) {
+    for (let x = -reach + offX + (row % 2 ? stepX / 2 : 0); x <= reach; x += stepX) {
+      const a = rnd(0.26, 0.42);
+      ctx.strokeStyle = `rgba(0,0,0,${(a * 0.55).toFixed(3)})`;
+      ctx.fillStyle = `rgba(255,255,255,${a.toFixed(3)})`;
+      const jx = rnd(-size * 0.35, size * 0.35), jy = rnd(-size * 0.25, size * 0.25);
+      ctx.strokeText(text, x + jx, y + jy);
+      ctx.fillText(text, x + jx, y + jy);
+    }
+  }
+  ctx.restore();
+
+  // 3) Marca grande no centro, por cima do assunto principal.
+  ctx.save();
+  ctx.translate(W / 2 + rnd(-W * 0.05, W * 0.05), H / 2 + rnd(-H * 0.05, H * 0.05));
+  ctx.rotate(angle * 0.6);
+  const big = Math.round(min / 7);
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = `600 ${big}px Georgia, serif`;
+  ctx.lineWidth = Math.max(2, big / 14);
+  ctx.strokeStyle = "rgba(0,0,0,0.22)";
+  ctx.fillStyle = "rgba(255,255,255,0.48)";
+  const label = (brand || text).toUpperCase();
+  ctx.strokeText(label, 0, 0);
+  ctx.fillText(label, 0, 0);
+  if (text !== brand) {
+    ctx.font = `600 ${Math.round(big / 2.6)}px Georgia, serif`;
+    ctx.lineWidth = Math.max(1, big / 30);
+    ctx.strokeText(text, 0, big * 0.85);
+    ctx.fillText(text, 0, big * 0.85);
+  }
+  ctx.restore();
+}
+
+/** Corta o canvas em blocos e devolve outro canvas com os blocos embaralhados. */
+function scrambleCanvas(src, cols, rows) {
+  const plan = scramblePlan(src.width, src.height, cols, rows);
+  const out = document.createElement("canvas");
+  out.width = plan.fileWidth;
+  out.height = plan.fileHeight;
+  const ctx = out.getContext("2d");
+  for (const { from: f, to: t } of scrambleMoves(plan, "scramble")) ctx.drawImage(src, f.x, f.y, f.w, f.h, t.x, t.y, f.w, f.h);
+  const { perm, tileW, tileH, pad, width, height } = plan;
+  return { canvas: out, meta: { cols, rows, tileW, tileH, pad, width, height, perm } };
+}
+
+/**
+ * Versão leve para o cliente escolher (seleção de fotos): prévia WebP pequena
+ * com marca d'água + miniatura para a grade. Com `scramble`, os arquivos são
+ * gravados embaralhados (só a página monta a foto). O original não sai do
  * computador da fotógrafa.
  */
-export async function makeSelectionPreview(file, { maxEdge = 1600, thumbEdge = 480, quality = 0.72, watermark = "" } = {}) {
+export async function makeSelectionPreview(file, {
+  maxEdge = 1200, thumbEdge = 400, quality = 0.72, watermark = "", brand = "", strong = true, scramble = true,
+} = {}) {
   const err = validateImageFile(file);
   if (err) throw new Error(err);
   const bmp = await loadBitmap(file);
   const width = bmp.width, height = bmp.height;
-  const big = draw(bmp, maxEdge);
-  if (watermark) stampWatermark(big, watermark);
-  const preview = await toBlob(big, quality);
-  const small = draw(bmp, thumbEdge);
-  if (watermark) stampWatermark(small, watermark);
-  const thumb = await toBlob(small, 0.7);
+  const mark = (c) => { if (!watermark) return; if (strong) stampStrongWatermark(c, watermark, brand); else stampWatermark(c, watermark); };
+  const finish = (c, grid) => (scramble ? scrambleCanvas(c, grid, grid) : { canvas: c, meta: null });
+
+  const bigSrc = draw(bmp, maxEdge);
+  mark(bigSrc);
+  const big = finish(bigSrc, 6);
+  const preview = await toBlob(big.canvas, quality);
+
+  const smallSrc = draw(bmp, thumbEdge);
+  mark(smallSrc);
+  const small = finish(smallSrc, 4);
+  const thumb = await toBlob(small.canvas, 0.7);
   if (bmp.close) bmp.close();
-  return { preview, thumb, width: big.width, height: big.height, originalWidth: width, originalHeight: height };
+  return {
+    preview, thumb, previewScramble: big.meta, thumbScramble: small.meta,
+    width: big.meta?.width || big.canvas.width, height: big.meta?.height || big.canvas.height, originalWidth: width, originalHeight: height,
+  };
 }
 
 function blobToBase64(blob) {

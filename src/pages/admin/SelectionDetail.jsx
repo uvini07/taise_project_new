@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft, CalendarPlus, Check, CheckCircle2, ClipboardList, Download, Eye, Heart, Lock, PackageCheck, Pencil, RotateCcw, Send, Shuffle, Trash2, Unlock,
+  ArrowLeft, CalendarPlus, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, Download, Eye, Heart, Lock, PackageCheck, Pencil, RotateCcw, Send, Shuffle, Trash2, Unlock, X,
 } from "lucide-react";
 import { StatCard } from "../../components/admin/AdminUI.jsx";
 import { ClientEditor, ClientLink, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
@@ -10,7 +10,8 @@ import PageLoader from "../../components/common/PageLoader.jsx";
 import Spinner from "../../components/common/Spinner.jsx";
 import { EmptyState, ErrorState } from "../../components/common/States.jsx";
 import { useConfirm } from "../../components/common/useConfirm.jsx";
-import Lightbox from "../../components/gallery/Lightbox.jsx";
+import { createPortal } from "react-dom";
+import { ScrambledImage } from "../../components/selection/Protected.jsx";
 import ClientPreview from "../../components/selection/ClientPreview.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
@@ -38,6 +39,7 @@ async function convertAll(files, opts, onEach) {
           photo: {
             name: file.name, originalSize: file.size, previewSize: r.preview.size, thumbSize: r.thumb.size,
             width: r.width, height: r.height, previewUrl: URL.createObjectURL(r.preview), thumbUrl: URL.createObjectURL(r.thumb),
+            previewScramble: r.previewScramble, thumbScramble: r.thumbScramble,
           },
         });
       } catch (e) {
@@ -46,6 +48,29 @@ async function convertAll(files, opts, onEach) {
     }
   };
   await Promise.all([worker(), worker()]);
+}
+
+/** Visualização ampliada no painel (monta a prévia embaralhada no canvas). */
+function AdminViewer({ photos, index, onIndex, onClose }) {
+  const p = photos[index];
+  const go = (d) => onIndex((index + d + photos.length) % photos.length);
+  return createPortal(
+    <div role="dialog" aria-modal="true" aria-label={p.name} className="fixed inset-0 z-[90] flex items-center justify-center bg-[#120607]/95"
+      tabIndex={-1} ref={(el) => el?.focus()}
+      onKeyDown={(e) => { if (e.key === "Escape") onClose(); if (e.key === "ArrowRight") go(1); if (e.key === "ArrowLeft") go(-1); }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <ScrambledImage key={p.id} src={p.previewUrl} scramble={p.previewScramble} fit="contain" label={p.name} className="block max-h-[88vh] max-w-[94vw]" />
+      <p className="pointer-events-none absolute bottom-4 left-0 right-0 text-center text-xs text-cream/70">{p.name} · {index + 1} / {photos.length}</p>
+      <button onClick={onClose} aria-label="Fechar" className="absolute right-3 top-3 rounded-full p-3 text-cream/80 hover:text-white"><X className="h-6 w-6" /></button>
+      {photos.length > 1 && (
+        <>
+          <button onClick={() => go(-1)} aria-label="Anterior" className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full p-3 text-cream/80 hover:text-white"><ChevronLeft className="h-8 w-8" /></button>
+          <button onClick={() => go(1)} aria-label="Próxima" className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-3 text-cream/80 hover:text-white"><ChevronRight className="h-8 w-8" /></button>
+        </>
+      )}
+    </div>,
+    document.body,
+  );
 }
 
 export default function SelectionDetail() {
@@ -95,7 +120,7 @@ export default function SelectionDetail() {
     const flush = async () => { if (batch.length) setData(await addSelectionPhotos(id, batch.splice(0))); };
     const brand = settings?.brandName || "Taíse Foto";
     const mark = !s.watermark ? "" : s.watermarkClientName !== false && s.clientName ? `${brand} · ${s.clientName}` : brand;
-    await convertAll(valid, { watermark: mark }, (r) => {
+    await convertAll(valid, { watermark: mark, brand, strong: s.watermarkStrong !== false }, (r) => {
       if (r.ok) batch.push(r.photo); else lastErrors.current = [...lastErrors.current, r.error];
       setQueue((q) => ({ ...q, done: q.done + 1, errors: lastErrors.current }));
       if (batch.length >= 6) flush();
@@ -188,7 +213,7 @@ export default function SelectionDetail() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <StatCard label="Fotos" value={s.photos.length} />
           <StatCard label="Escolhidas" value={`${chosen.length}/${s.photoLimit}`} tone={chosen.length ? "success" : "muted"} hint={extras ? `${extras} extra(s)${s.extraPriceCents ? ` · ${formatBRL(extras * s.extraPriceCents)}` : ""}` : undefined} />
-          <StatCard label="Peso no site" value={formatBytes(light)} hint={original ? `Originais: ${formatBytes(original)} (−${savingsPercent(original, light)}%)` : "Prévia WebP 1600px"} />
+          <StatCard label="Peso no site" value={formatBytes(light)} hint={original ? `Originais: ${formatBytes(original)} (−${savingsPercent(original, light)}%)` : "Prévia WebP 1200px"} />
         </div>
       </div>
 
@@ -196,7 +221,7 @@ export default function SelectionDetail() {
         <div className="mb-6 space-y-3">
           <DropZone onFiles={handleFiles} busy={queue && !queue.finished} disabled={queue && !queue.finished}
             title="Arraste as fotos do ensaio aqui"
-            hint="JPG, PNG, WebP ou AVIF até 40 MB. Cada foto vira uma prévia leve (WebP, 1600px) no seu navegador; o arquivo original não é enviado." />
+            hint="JPG, PNG, WebP ou AVIF até 40 MB. Cada foto vira, no seu navegador, uma prévia pequena (1200px) com marca d'água e arquivo embaralhado. O original não é enviado." />
           {queue && (
             <div className="card p-4">
               <ProgressBar value={queue.done / queue.total} label={queue.finished ? `Concluído: ${queue.done - queue.errors.length} de ${queue.total} convertidas` : `Convertendo ${queue.done} de ${queue.total}…`} />
@@ -257,7 +282,7 @@ export default function SelectionDetail() {
             return (
               <li key={p.id} className={`group relative overflow-hidden rounded-xl bg-surface shadow-soft ${isMarked ? "ring-2 ring-wine-900" : ""}`}>
                 <button type="button" className="block aspect-[4/5] w-full overflow-hidden bg-paper" onClick={() => setView(shown.indexOf(p))} aria-label={`Ampliar ${p.name}`}>
-                  <img src={p.thumbUrl} alt="" loading="lazy" className="h-full w-full object-cover transition group-hover:scale-[1.02]" />
+                  <ScrambledImage src={p.thumbUrl} scramble={p.thumbScramble} label={p.name} className="h-full w-full transition group-hover:scale-[1.02]" />
                 </button>
                 {isChosen && <span className="absolute left-2 top-2 rounded-full bg-wine-900 p-1.5 text-cream shadow" title="Escolhida pelo cliente"><Heart className="h-3.5 w-3.5 fill-current" /></span>}
                 {tab === "all" && st !== "finished" && (
@@ -278,7 +303,7 @@ export default function SelectionDetail() {
 
       {previewing && <ClientPreview selection={s} brand={settings?.brandName || "Taíse Foto"} onClose={() => setPreviewing(false)} />}
 
-      <Lightbox photos={shown.map((p) => ({ id: p.id, url: p.previewUrl, title: p.name }))} index={view} onClose={() => setView(null)} onIndex={setView} />
+      {view != null && shown[view] && <AdminViewer photos={shown} index={view} onIndex={setView} onClose={() => setView(null)} />}
 
       {editing && (
         <ClientEditor kind="selection" initial={s} taken={takenSlugs("selection", s.id)} onClose={() => setEditing(false)}
