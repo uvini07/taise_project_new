@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft, CalendarPlus, Check, CheckCircle2, ClipboardList, Download, Heart, Lock, PackageCheck, Pencil, RotateCcw, Send, Shuffle, Trash2, Unlock,
+  ArrowLeft, CalendarPlus, Check, CheckCircle2, ClipboardList, Download, Eye, Heart, Lock, PackageCheck, Pencil, RotateCcw, Send, Shuffle, Trash2, Unlock,
 } from "lucide-react";
 import { StatCard } from "../../components/admin/AdminUI.jsx";
 import { ClientEditor, ClientLink, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
@@ -11,6 +11,7 @@ import Spinner from "../../components/common/Spinner.jsx";
 import { EmptyState, ErrorState } from "../../components/common/States.jsx";
 import { useConfirm } from "../../components/common/useConfirm.jsx";
 import Lightbox from "../../components/gallery/Lightbox.jsx";
+import ClientPreview from "../../components/selection/ClientPreview.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
@@ -60,6 +61,7 @@ export default function SelectionDetail() {
   const [busy, setBusy] = useState(null);
   const [queue, setQueue] = useState(null); // { total, done, errors: [] }
   const [view, setView] = useState(null);
+  const [previewing, setPreviewing] = useState(false);
   const lastErrors = useRef([]);
 
   const chosenSet = useMemo(() => new Set(s?.selectedIds || []), [s]);
@@ -91,7 +93,9 @@ export default function SelectionDetail() {
     setQueue({ total: valid.length, done: 0, errors });
     const batch = [];
     const flush = async () => { if (batch.length) setData(await addSelectionPhotos(id, batch.splice(0))); };
-    await convertAll(valid, { watermark: s.watermark ? settings?.brandName || "Taíse Foto" : "" }, (r) => {
+    const brand = settings?.brandName || "Taíse Foto";
+    const mark = !s.watermark ? "" : s.watermarkClientName !== false && s.clientName ? `${brand} · ${s.clientName}` : brand;
+    await convertAll(valid, { watermark: mark }, (r) => {
       if (r.ok) batch.push(r.photo); else lastErrors.current = [...lastErrors.current, r.error];
       setQueue((q) => ({ ...q, done: q.done + 1, errors: lastErrors.current }));
       if (batch.length >= 6) flush();
@@ -134,12 +138,14 @@ export default function SelectionDetail() {
             <Badge tone={status.tone}>{status.label}</Badge>
           </div>
           <p className="mt-1 text-sm text-ink-muted">
-            {[s.title, `até ${s.photoLimit} fotos`, s.watermark ? "com marca d'água" : "sem marca d'água",
+            {[s.title, `até ${s.photoLimit} fotos`, s.watermark ? (s.watermarkClientName !== false ? "marca d'água com o nome do cliente" : "com marca d'água") : "sem marca d'água",
+              s.copyProtection !== false ? "proteção contra cópia" : null,
               s.allowExtras ? `extras ${s.extraPriceCents ? formatBRL(s.extraPriceCents) : "liberadas"}` : null].filter(Boolean).join(" · ")}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button className="btn-ghost btn-sm" onClick={() => setEditing(true)}><Pencil className="h-4 w-4" /> Editar</button>
+          <button className="btn-ghost btn-sm" disabled={!s.photos.length} onClick={() => setPreviewing(true)}><Eye className="h-4 w-4" /> Ver como o cliente</button>
           {st === "draft" && (
             <button className="btn-primary btn-sm" disabled={!canSend || busy}
               title={!s.photos.length ? "Suba as fotos antes de liberar o link" : undefined}
@@ -269,6 +275,8 @@ export default function SelectionDetail() {
           })}
         </ul>
       )}
+
+      {previewing && <ClientPreview selection={s} brand={settings?.brandName || "Taíse Foto"} onClose={() => setPreviewing(false)} />}
 
       <Lightbox photos={shown.map((p) => ({ id: p.id, url: p.previewUrl, title: p.name }))} index={view} onClose={() => setView(null)} onIndex={setView} />
 

@@ -55,5 +55,7 @@ export const DELIVERY_STATUS = {
   expired: { label: "Expirada", tone: "muted" },
 };
 
-export const SELECTION_DEFAULTS = { photoLimit: 100, deadlineDays: 7, watermark: true, allowExtras: false, extraPriceCents: null };
+export const SELECTION_DEFAULTS = {
+  photoLimit: 100, deadlineDays: 7, watermark: true, watermarkClientName: true, copyProtection: true, allowExtras: false, extraPriceCents: null,
+};
 export const DELIVERY_DEFAULTS = { availableDays: 30 };

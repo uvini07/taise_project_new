@@ -149,7 +149,7 @@ export function ClientEditor({ kind, initial, taken, selections = [], onClose, o
     try {
       const base = { clientName: f.clientName.trim(), phone: f.phone.trim(), title: f.title.trim(), message: f.message.trim(), slug };
       await onSave(isSelection
-        ? { ...base, photoLimit: Number(f.photoLimit), deadlineDays: Number(f.deadlineDays), watermark: !!f.watermark, allowExtras: !!f.allowExtras, extraPriceCents: f.allowExtras ? extraPriceCents : null }
+        ? { ...base, photoLimit: Number(f.photoLimit), deadlineDays: Number(f.deadlineDays), watermark: !!f.watermark, watermarkClientName: !!f.watermarkClientName, copyProtection: !!f.copyProtection, allowExtras: !!f.allowExtras, extraPriceCents: f.allowExtras ? extraPriceCents : null }
         : { ...base, availableDays: Number(f.availableDays), selectionId: f.selectionId || null });
     } catch (e) {
       setErrors([e.message || "Não foi possível salvar."]);
@@ -203,6 +203,12 @@ export function ClientEditor({ kind, initial, taken, selections = [], onClose, o
             <TextField label="Prazo para escolher (dias) *" type="number" min="1" value={f.deadlineDays} onChange={up("deadlineDays")} hint="Conta a partir do envio do link. Depois, as prévias são apagadas." />
             <div className="space-y-4 sm:col-span-2">
               <Toggle label="Marca d'água nas prévias" hint="Protege as fotos enquanto o cliente ainda não pagou." checked={f.watermark} onChange={(v) => setF((x) => ({ ...x, watermark: v }))} />
+              {f.watermark && (
+                <Toggle label="Nome do cliente na marca d'água" hint={`Ex.: “Taíse Foto · ${f.clientName.trim() || "Ana Souza"}”. Se a foto vazar, dá para saber de quem veio — é o que mais desestimula prints.`}
+                  checked={f.watermarkClientName} onChange={(v) => setF((x) => ({ ...x, watermarkClientName: v }))} />
+              )}
+              <Toggle label="Proteção contra cópia e prints" hint="Bloqueia clique direito, salvar imagem e arrastar; esconde as fotos em atalhos de print e quando a janela perde o foco. Dificulta, mas nenhum site impede prints 100% (no celular, nada bloqueia o print do aparelho)."
+                checked={f.copyProtection} onChange={(v) => setF((x) => ({ ...x, copyProtection: v }))} />
               <Toggle label="Permitir fotos extras" hint="O cliente pode marcar mais fotos que o limite, pagando à parte." checked={f.allowExtras} onChange={(v) => setF((x) => ({ ...x, allowExtras: v }))} />
               {f.allowExtras && <TextField label="Valor por foto extra" inputMode="decimal" placeholder="R$ 0,00" value={f.extraPriceText} onChange={up("extraPriceText")} className="sm:max-w-xs" />}
             </div>
