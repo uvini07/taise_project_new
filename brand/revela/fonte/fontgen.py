@@ -70,14 +70,13 @@ r_body,r_dot,r_right=spiral_r()
 
 # ---------- e ----------
 def glyph_e():
+    # E2: barra no meio e abertura cortada reta, rente à barra (sem degrau/rebarba)
     w=X*0.96; cx=w/2; cy=X/2
     rg=ring(cx,cy,w/2,X/2+O,S,TH)
-    bar_top=X*0.5+TH*0.75             # barra logo acima do meio (equilíbrio ótico)
-    bar=rect(S*0.5,bar_top-TH,w-S*0.5,bar_top)
+    bt=X*0.5+TH/2
+    bar=rect(S*0.4,bt-TH,w-S*0.4,bt)
     e=U(rg,bar)
-    # abertura: corta o quadrante inferior direito abaixo da barra
-    gap=TH*1.1
-    cut=poly([(cx+w*0.02,bar_top-TH-gap*0.4),(w+40,bar_top-TH-gap*0.4),(w+40,X*0.22),(cx+w*0.30,X*0.22)])
+    cut=rect(cx+w*0.12,X*0.30,w+40,bt-TH)
     return D(e,cut), w
 # ---------- v ----------
 def glyph_v():
