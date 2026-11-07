@@ -107,7 +107,7 @@ def to_svg_d(path, dx=0, base=0, scale=1.0):
     path.draw(TransformPen(pen,(scale,0,0,-scale,dx,base)))
     return pen.getCommands()
 
-def wordmark_svg(text="revela", scale=0.2, ink="#1C1917", light="#C8553D", track=0.0):
+def wordmark_svg(text="revela", scale=0.2, ink="#1C1917", light="#C8553D", track=-S*0.55):
     x=0; body=""
     for ch in text:
         lsb,rsb=SB[ch]
@@ -116,7 +116,7 @@ def wordmark_svg(text="revela", scale=0.2, ink="#1C1917", light="#C8553D", track
             body+=f'<path d="{to_svg_d(r_body,x,ASC*scale,scale)}" fill="{ink}"/><path d="{to_svg_d(r_dot,x,ASC*scale,scale)}" fill="{light}"/>'
         else:
             body+=f'<path d="{to_svg_d(G[ch][0],x,ASC*scale,scale)}" fill="{ink}"/>'
-        x+=G[ch][1]*scale+rsb*scale+track*scale
+        x+=G[ch][1]*scale+rsb*scale+track*scale+(S*0.45*scale if ch=="r" else 0)
     H=(ASC+O)*scale
     return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 {-O*scale:.1f} {x:.1f} {H+O*scale:.1f}" role="img" aria-label="revela"><title>revela</title>{body}</svg>', x, H
 
