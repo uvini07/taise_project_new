@@ -1,19 +1,24 @@
 import React from "react";
 import { AbsoluteFill, interpolate } from "remotion";
 import { C, EASE_ACCEL, EASE_IN, EASE_INOUT, EASE_LAND, FONT_BODY, FONT_TITLE, beatF } from "./brand";
-import { AppIcon, Card, FeatureText, Logo, Photo, mix, prog, useF } from "./kit";
+import { AppIcon, Card, FeatureText, Logo, Photo, mix, prog, useF, useV } from "./kit";
 
 function Shell({ dur, n, kicker, title, body, children, dark = false }: {
   dur: number; n: string; kicker: string; title: React.ReactNode; body: string; children: React.ReactNode; dark?: boolean;
 }) {
   const f = useF();
+  const v = useV();
   const out = prog(f, dur - 8, 8, EASE_ACCEL);
   return (
     <AbsoluteFill style={{ background: dark ? C.ameixa : C.nevoa, overflow: "hidden" }}>
-      <div style={{ position: "absolute", left: 140, top: 0, bottom: 0, display: "flex", alignItems: "center", opacity: 1 - out, transform: `translateX(${-out * 60}px)` }}>
-        <FeatureText n={n} kicker={kicker} title={title} body={body} f={f} dark={dark} />
+      <div style={v
+        ? { position: "absolute", left: 90, top: 250, opacity: 1 - out, transform: `translateY(${-out * 60}px)` }
+        : { position: "absolute", left: 140, top: 0, bottom: 0, display: "flex", alignItems: "center", opacity: 1 - out, transform: `translateX(${-out * 60}px)` }}>
+        <FeatureText n={n} kicker={kicker} title={title} body={body} f={f} dark={dark} vertical={v} />
       </div>
-      <div style={{ position: "absolute", left: 860, right: 0, top: 0, bottom: 0, perspective: 2200, opacity: 1 - out, transform: `translateX(${-out * 120}px)` }}>
+      <div style={v
+        ? { position: "absolute", left: 10, width: 1060, top: 760, height: 1080, perspective: 2200, opacity: 1 - out, transform: `translateY(${out * 120}px)` }
+        : { position: "absolute", left: 860, right: 0, top: 0, bottom: 0, perspective: 2200, opacity: 1 - out, transform: `translateX(${-out * 120}px)` }}>
         {children}
       </div>
     </AbsoluteFill>
@@ -152,22 +157,23 @@ export function Financeiro({ dur }: { dur: number }) {
 const FEATS = ["Site", "Agenda", "Pacotes", "Lista VIP", "Seleção", "Entrega", "Financeiro", "Relatórios", "Eventos", "Galeria"];
 export function Hub({ dur }: { dur: number }) {
   const f = useF();
+  const v = useV();
   const icon = prog(f, 2, 22, EASE_LAND);
   const out = prog(f, dur - 8, 8, EASE_ACCEL);
   const spin = interpolate(f, [0, dur], [-0.35, 0.15], { easing: EASE_INOUT });
   const t = prog(f, beatF(4), 22);
   return (
     <AbsoluteFill style={{ background: C.lavanda, alignItems: "center", justifyContent: "center", overflow: "hidden", opacity: 1 - out }}>
-      <div style={{ position: "absolute", top: 110, width: "100%", textAlign: "center", fontFamily: FONT_TITLE, fontSize: 78, color: C.ameixa, opacity: t, transform: `translateY(${(1 - t) * 30}px)` }}>
+      <div style={{ position: "absolute", top: v ? 280 : 110, left: v ? 80 : 0, right: v ? 80 : 0, textAlign: "center", fontFamily: FONT_TITLE, fontSize: v ? 88 : 78, color: C.ameixa, opacity: t, transform: `translateY(${(1 - t) * 30}px)` }}>
         Tudo unificado. <span style={{ color: C.rosa }}>Mais tempo para fotografar.</span>
       </div>
-      <div style={{ position: "relative", width: 0, height: 0, top: 70 }}>
+      <div style={{ position: "relative", width: 0, height: 0, top: v ? 200 : 70 }}>
         {FEATS.map((n, i) => {
           const a = prog(f, 6 + i * 2.5, 22, EASE_LAND);
           const ang = (i / FEATS.length) * Math.PI * 2 + spin;
           const R = mix(900, 330, a);
           return (
-            <div key={n} style={{ position: "absolute", transform: `translate(-50%,-50%) translate(${Math.cos(ang) * R * 1.35}px, ${Math.sin(ang) * R * 0.75}px)`, opacity: a, background: C.branco, color: C.ameixa, fontFamily: FONT_BODY, fontWeight: 500, fontSize: 30, padding: "16px 30px", borderRadius: 999, whiteSpace: "nowrap", boxShadow: "0 14px 30px rgba(43,37,64,.12)" }}>{n}</div>
+            <div key={n} style={{ position: "absolute", transform: `translate(-50%,-50%) translate(${Math.cos(ang) * R * (v ? 0.95 : 1.35)}px, ${Math.sin(ang) * R * (v ? 1.3 : 0.75)}px)`, opacity: a, background: C.branco, color: C.ameixa, fontFamily: FONT_BODY, fontWeight: 500, fontSize: 30, padding: "16px 30px", borderRadius: 999, whiteSpace: "nowrap", boxShadow: "0 14px 30px rgba(43,37,64,.12)" }}>{n}</div>
           );
         })}
         <div style={{ position: "absolute", transform: `translate(-50%,-50%) scale(${icon})` }}>
@@ -181,6 +187,7 @@ export function Hub({ dur }: { dur: number }) {
 // ===== Fechamento =====
 export function End({ dur }: { dur: number }) {
   const f = useF();
+  const v = useV();
   const slam = prog(f, 0, 14, EASE_LAND);
   const glow = interpolate(f, [0, 4, 40], [0, 1, 0], { extrapolateRight: "clamp" });
   const t = prog(f, 22, 22);
@@ -190,9 +197,9 @@ export function End({ dur }: { dur: number }) {
     <AbsoluteFill style={{ background: C.ameixa, alignItems: "center", justifyContent: "center" }}>
       <AbsoluteFill style={{ background: `radial-gradient(circle at 50% 46%, rgba(201,93,99,${0.3 * glow}), transparent 45%)` }} />
       <div style={{ transform: `scale(${mix(1.25, 1, slam)})`, opacity: Math.min(1, slam * 2), marginTop: -60 }}>
-        <Logo width={900} ink={C.lavanda} dot={C.rosa} dotScale={1 + glow * 0.3} />
+        <Logo width={v ? 820 : 900} ink={C.lavanda} dot={C.rosa} dotScale={1 + glow * 0.3} />
       </div>
-      <div style={{ fontFamily: FONT_TITLE, fontSize: 54, color: C.lavanda, marginTop: 50, opacity: t, transform: `translateY(${(1 - t) * 20}px)` }}>
+      <div style={{ fontFamily: FONT_TITLE, fontSize: v ? 66 : 54, color: C.lavanda, marginTop: 50, textAlign: "center", maxWidth: v ? 860 : 1800, lineHeight: 1.15, opacity: t, transform: `translateY(${(1 - t) * 20}px)` }}>
         Do agendamento à entrega, <span style={{ color: C.rosa }}>tudo em um só lugar.</span>
       </div>
       <div style={{ fontFamily: FONT_BODY, fontWeight: 500, fontSize: 26, letterSpacing: ".3em", color: C.lilas, marginTop: 26, opacity: u }}>REVELA.APP</div>

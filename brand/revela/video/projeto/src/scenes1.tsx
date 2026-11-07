@@ -1,13 +1,14 @@
 import React from "react";
 import { AbsoluteFill, interpolate } from "remotion";
 import { BEAT, C, EASE_ACCEL, EASE_IN, EASE_INOUT, EASE_LAND, FONT_BODY, FONT_TITLE, PALETTES, beatF, mulberry32 } from "./brand";
-import { AppIcon, Logo, mix, prog, useF } from "./kit";
+import { AppIcon, Logo, mix, prog, useF, useV } from "./kit";
 
 const BF = BEAT * 30; // frames por batida
 
 // ===== 1. Abertura: logo branco no preto → cores trocando → cores oficiais =====
 export function Intro({ dur }: { dur: number }) {
   const f = useF();
+  const v = useV();
   // letras sobem uma a uma a partir da batida 0,5; a luz acende na batida 2
   const order = [0, -1, 1, 2, 3, 4, 5]; // r, (luz), e, v, e, l, a
   const reveal = (i: number) => {
@@ -37,8 +38,8 @@ export function Intro({ dur }: { dur: number }) {
       {isOfficial && (
         <AbsoluteFill style={{ background: `radial-gradient(circle at 50% 50%, rgba(201,93,99,${0.25 * glow}), transparent 45%)` }} />
       )}
-      <div style={{ transform: `scale(${punch * mix(1, 0.92, settle) * mix(1, 0.6, out)}) translateY(${-out * 260}px)`, opacity: 1 - out * 0.0 }}>
-        <Logo width={1100} ink={pal.ink} dot={pal.dot} reveal={reveal} dotScale={1 + glow * 0.25} />
+      <div style={{ transform: `scale(${punch * mix(1, 0.92, settle) * mix(1, 0.6, out)}) translateY(${-out * (v ? 520 : 260)}px)`, opacity: 1 - out * 0.0 }}>
+        <Logo width={v ? 860 : 1100} ink={pal.ink} dot={pal.dot} reveal={reveal} dotScale={1 + glow * 0.25} />
       </div>
     </AbsoluteFill>
   );
@@ -47,6 +48,7 @@ export function Intro({ dur }: { dur: number }) {
 // ===== 2. Frase de posicionamento =====
 export function Tagline({ dur }: { dur: number }) {
   const f = useF();
+  const v = useV();
   const words1 = ["Do", "agendamento", "à", "entrega."];
   const words2 = ["Tudo", "em", "um", "só", "lugar."];
   const w = (i: number, start: number) => prog(f, start + i * 3, 18, EASE_IN);
@@ -55,18 +57,18 @@ export function Tagline({ dur }: { dur: number }) {
   const logoIn = prog(f, 0, 14);
   return (
     <AbsoluteFill style={{ background: C.lavanda, alignItems: "center", justifyContent: "center" }}>
-      <div style={{ position: "absolute", top: 80 - (1 - logoIn) * 20, opacity: logoIn }}>
+      <div style={{ position: "absolute", top: (v ? 220 : 80) - (1 - logoIn) * 20, opacity: logoIn }}>
         <Logo width={250} ink={C.ameixa} dot={C.rosa} />
       </div>
       <div style={{ textAlign: "center", transform: `translateY(${-out * 40}px)`, opacity: 1 - out }}>
-        <div style={{ fontFamily: FONT_TITLE, fontSize: 118, color: C.ameixa, display: "flex", gap: 30, justifyContent: "center" }}>
+        <div style={{ fontFamily: FONT_TITLE, fontSize: v ? 112 : 118, color: C.ameixa, display: "flex", flexWrap: "wrap", maxWidth: v ? 900 : 1800, margin: "0 auto", columnGap: 30, justifyContent: "center", lineHeight: 1.05 }}>
           {words1.map((t, i) => (
             <span key={i} style={{ display: "inline-block", overflow: "hidden", paddingBottom: 10 }}>
               <span style={{ display: "inline-block", transform: `translateY(${(1 - w(i, 2)) * 110}%)` }}>{t}</span>
             </span>
           ))}
         </div>
-        <div style={{ fontFamily: FONT_TITLE, fontSize: 118, display: "flex", gap: 30, justifyContent: "center", marginTop: 6 }}>
+        <div style={{ fontFamily: FONT_TITLE, fontSize: v ? 112 : 118, display: "flex", flexWrap: "wrap", maxWidth: v ? 900 : 1800, margin: "6px auto 0", columnGap: 30, justifyContent: "center", lineHeight: 1.05 }}>
           {words2.map((t, i) => (
             <span key={i} style={{ display: "inline-block", overflow: "hidden", paddingBottom: 10 }}>
               <span style={{ display: "inline-block", color: i >= 2 ? C.rosa : C.ameixa, transform: `translateY(${(1 - w(i, l2)) * 110}%)` }}>{t}</span>
@@ -82,6 +84,7 @@ export function Tagline({ dur }: { dur: number }) {
 const TOOLS = ["WhatsApp", "Planilha", "Google Drive", "Agenda de papel", "Pix", "Instagram", "WeTransfer", "Formulário", "E-mail"];
 export function Unify({ dur }: { dur: number }) {
   const f = useF();
+  const v = useV();
   const pull = beatF(6);       // ferramentas são puxadas para o centro
   const land = pull + 16;      // ícone aparece
   const textA = prog(f, 4, 20), textAout = prog(f, pull - 6, 10, EASE_ACCEL);
@@ -89,7 +92,7 @@ export function Unify({ dur }: { dur: number }) {
   const out = prog(f, dur - 8, 8, EASE_ACCEL);
   return (
     <AbsoluteFill style={{ background: C.ameixa, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-      <div style={{ position: "absolute", top: 120, width: "100%", textAlign: "center", fontFamily: FONT_TITLE, fontSize: 62, color: C.lavanda, opacity: textA * (1 - textAout), transform: `translateY(${(1 - textA) * 30}px)` }}>
+      <div style={{ position: "absolute", top: v ? 260 : 120, left: v ? 90 : 0, right: v ? 90 : 0, textAlign: "center", fontFamily: FONT_TITLE, fontSize: v ? 72 : 62, color: C.lavanda, opacity: textA * (1 - textAout), transform: `translateY(${(1 - textA) * 30}px)` }}>
         Agenda aqui, fotos ali, cliente no WhatsApp…
       </div>
       {TOOLS.map((t, i) => {
@@ -99,8 +102,8 @@ export function Unify({ dur }: { dur: number }) {
         const appear = prog(f, 6 + i * 4, 18, EASE_LAND);
         const drift = Math.sin((f + i * 20) / 22) * 12;
         const p = prog(f, pull + i * 0.8, 16, EASE_ACCEL);
-        const x = Math.cos(ang) * rad * 1.45 * (1 - p);
-        const y = (Math.sin(ang) * rad * 0.62 + 60) * (1 - p) + drift * (1 - p);
+        const x = Math.cos(ang) * rad * (v ? 0.78 : 1.45) * (1 - p);
+        const y = (Math.sin(ang) * rad * (v ? 1.35 : 0.62) + 60) * (1 - p) + drift * (1 - p);
         const rot = (r() - 0.5) * 16 * (1 - p);
         return (
           <div key={t} style={{
@@ -115,7 +118,7 @@ export function Unify({ dur }: { dur: number }) {
       <div style={{ transform: `scale(${prog(f, land, 22, EASE_LAND) * (1 - out * 0.3)}) translateY(${-prog(f, land + 10, 24) * 60}px)` }}>
         <AppIcon size={230} bg={C.lavanda} ink={C.ameixa} dot={C.rosa} />
       </div>
-      <div style={{ position: "absolute", bottom: 170, width: "100%", textAlign: "center", fontFamily: FONT_TITLE, fontSize: 70, color: C.lavanda, opacity: textB * (1 - out), transform: `translateY(${(1 - textB) * 30}px)` }}>
+      <div style={{ position: "absolute", bottom: v ? 260 : 170, left: v ? 90 : 0, right: v ? 90 : 0, textAlign: "center", fontFamily: FONT_TITLE, fontSize: v ? 80 : 70, color: C.lavanda, opacity: textB * (1 - out), transform: `translateY(${(1 - textB) * 30}px)` }}>
         Com a Revela, <span style={{ color: C.rosa }}>tudo fica num lugar só.</span>
       </div>
       <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at 50% 50%, rgba(201,93,99,${0.3 * interpolate(f - land, [0, 5, 30], [0, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })}), transparent 40%)` }} />

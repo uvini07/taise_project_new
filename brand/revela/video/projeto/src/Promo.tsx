@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, Audio, Sequence, interpolate, staticFile } from "remotion";
 import { beatF } from "./brand";
-import { useFonts } from "./kit";
+import { VCtx, useFonts } from "./kit";
 import { Intro, Tagline, Unify } from "./scenes1";
 import { Agenda, Pacotes, Site, Vip } from "./scenes2";
 import { End, Entrega, Financeiro, Hub, Selecao } from "./scenes3";
@@ -55,9 +55,10 @@ export const SFX: { from: number; src: string; volume: number; dur?: number; not
   { from: S.end.from + 3, src: "sparkle", volume: 0.4, note: "brilho final" },
 ];
 
-export const Promo: React.FC<{ bgm: boolean }> = ({ bgm }) => {
+export const Promo: React.FC<{ bgm: boolean; vertical?: boolean }> = ({ bgm, vertical = false }) => {
   useFonts();
   return (
+    <VCtx.Provider value={vertical}>
     <AbsoluteFill style={{ background: "#000" }}>
       {(Object.keys(S) as K[]).map((k) => {
         const C2 = COMP[k];
@@ -77,5 +78,6 @@ export const Promo: React.FC<{ bgm: boolean }> = ({ bgm }) => {
         </Sequence>
       ))}
     </AbsoluteFill>
+    </VCtx.Provider>
   );
 };

@@ -112,9 +112,40 @@ w=C*0.72; g("Z",U(bar(0,w,C),bar(0,w,TH),clipv(diag(w-S*0.55,C-TH,S*0.55,TH,S*0.
 N=C*0.96
 w=N*0.66; g("zero",ring(w/2,N/2,w/2,N/2+O),w,"rd","rd")
 w=N*0.46; g("one",U(stem(w-S,0,N),clipv(diag(0,N*0.78,w-S*0.6,N,TH*1.1),N*0.7,N)),w,"op","st")
-w=N*0.62; r2=w/2
-two=U(D(I(ring(w/2,N-r2,w/2,r2+O),rect(-60,N-r2*1.05,w+60,N+60)),rect(-60,N-r2*1.05,w*0.18,N-r2*0.55)),
-      clipv(diag(w-S*0.55,N-r2,S*0.55,TH,S),TH-1,N-r2+1),bar(0,w,TH),I(ring(w/2,N-r2,w/2,r2+O),rect(w/2,N-r2*1.6,w+60,N-r2)))
+w=N*0.62; r2=w/2; cy2=N-r2
+def _two():
+    cx=w/2; ax=w/2; ay=r2+O; bx=ax-S; by=ay-TH
+    xe,ye=0.0,0.0            # pé da diagonal (canto de baixo à esquerda)
+    # ângulo t (lado de baixo/direita) em que a tangente da elipse externa passa pelo pé
+    best=None
+    for k in range(2000):
+        t=math.radians(-89+k*0.045)
+        px,py=cx+ax*math.cos(t),cy2+ay*math.sin(t)
+        dx,dy=-ax*math.sin(t),ay*math.cos(t)
+        cr=dx*(ye-py)-dy*(xe-px)
+        if best is None or abs(cr)<best[0]: best=(abs(cr),t,px,py)
+    _,t1,px,py=best
+    t0=math.radians(162)
+    L=math.hypot(px-xe,py-ye); ux,uy=(px-xe)/L,(py-ye)/L; nx,ny=-uy,ux   # normal para cima/esquerda (lado de dentro)
+    d=S*0.98
+    q1=(xe+nx*d,ye+ny*d)
+    # ponto onde a elipse interna encontra a borda interna do traço reto
+    def sd(t):
+        x,y=cx+bx*math.cos(t),cy2+by*math.sin(t)
+        return (x-q1[0])*nx+(y-q1[1])*ny
+    lo,hi=t1,math.radians(90)
+    for _ in range(60):
+        m=(lo+hi)/2
+        if (sd(lo)>0)==(sd(m)>0): lo=m
+        else: hi=m
+    t2=(lo+hi)/2
+    x2,y2=cx+bx*math.cos(t2),cy2+by*math.sin(t2)
+    out=[(cx+ax*math.cos(t0+(t1-t0)*i/160),cy2+ay*math.sin(t0+(t1-t0)*i/160)) for i in range(161)]
+    inn=[(cx+bx*math.cos(t2+(t0-t2)*i/160),cy2+by*math.sin(t2+(t0-t2)*i/160)) for i in range(161)]
+    body=poly(out+[(xe,ye),q1,(x2,y2)]+inn)
+    body=I(body,rect(0,0,w+60,N+60))
+    return U(body,bar(0,w,TH))
+two=_two()
 g("two",two,w,"rd","op")
 w=N*0.6; ru=N*0.24; rl=N*0.27
 three=U(D(I(ring(w-ru-S*0.0,N-ru,ru+w*0.08,ru),rect(w*0.28,-60,w+60,N+60)),rect(-60,N-ru*1.3,w*0.4,N-ru*0.6)),

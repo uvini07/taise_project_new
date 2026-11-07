@@ -1,19 +1,24 @@
 import React from "react";
 import { AbsoluteFill, interpolate } from "remotion";
 import { C, EASE_ACCEL, EASE_IN, EASE_INOUT, EASE_LAND, FONT_BODY, FONT_TITLE, beatF } from "./brand";
-import { AppIcon, Card, FeatureText, Logo, Photo, mix, prog, useF } from "./kit";
+import { AppIcon, Card, FeatureText, Logo, Photo, mix, prog, useF, useV } from "./kit";
 
 function Shell({ dur, n, kicker, title, body, children, dark = false }: {
   dur: number; n: string; kicker: string; title: React.ReactNode; body: string; children: React.ReactNode; dark?: boolean;
 }) {
   const f = useF();
+  const v = useV();
   const out = prog(f, dur - 8, 8, EASE_ACCEL);
   return (
     <AbsoluteFill style={{ background: dark ? C.ameixa : C.nevoa, overflow: "hidden" }}>
-      <div style={{ position: "absolute", left: 140, top: 0, bottom: 0, display: "flex", alignItems: "center", opacity: 1 - out, transform: `translateX(${-out * 60}px)` }}>
-        <FeatureText n={n} kicker={kicker} title={title} body={body} f={f} dark={dark} />
+      <div style={v
+        ? { position: "absolute", left: 90, top: 250, opacity: 1 - out, transform: `translateY(${-out * 60}px)` }
+        : { position: "absolute", left: 140, top: 0, bottom: 0, display: "flex", alignItems: "center", opacity: 1 - out, transform: `translateX(${-out * 60}px)` }}>
+        <FeatureText n={n} kicker={kicker} title={title} body={body} f={f} dark={dark} vertical={v} />
       </div>
-      <div style={{ position: "absolute", left: 860, right: 0, top: 0, bottom: 0, perspective: 2200, opacity: 1 - out, transform: `translateX(${-out * 120}px)` }}>
+      <div style={v
+        ? { position: "absolute", left: 10, width: 1060, top: 760, height: 1080, perspective: 2200, opacity: 1 - out, transform: `translateY(${out * 120}px)` }
+        : { position: "absolute", left: 860, right: 0, top: 0, bottom: 0, perspective: 2200, opacity: 1 - out, transform: `translateX(${-out * 120}px)` }}>
         {children}
       </div>
     </AbsoluteFill>

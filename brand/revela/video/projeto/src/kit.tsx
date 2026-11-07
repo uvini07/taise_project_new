@@ -83,18 +83,18 @@ export function Photo({ seed, style, w = "100%", h = "100%", radius = 8 }: { see
 }
 
 // ---------- bloco de texto das funções ----------
-export function FeatureText({ n, kicker, title, body, f, dark = false }: { n: string; kicker: string; title: React.ReactNode; body: string; f: number; dark?: boolean }) {
+export function FeatureText({ n, kicker, title, body, f, dark = false, vertical = false }: { n: string; kicker: string; title: React.ReactNode; body: string; f: number; dark?: boolean; vertical?: boolean }) {
   const k = prog(f, 2, 16), t = prog(f, 6, 20), b = prog(f, 12, 20);
   const ink = dark ? C.lavanda : C.ameixa;
   return (
-    <div style={{ width: 640 }}>
+    <div style={{ width: vertical ? 900 : 640 }}>
       <div style={{ opacity: k, transform: `translateY(${(1 - k) * 20}px)`, fontFamily: FONT_BODY, fontWeight: 500, fontSize: 20, letterSpacing: ".22em", textTransform: "uppercase", color: C.rosa, display: "flex", gap: 16 }}>
         <span>{n}</span><span style={{ color: dark ? C.lilas : C.lilas }}>{kicker}</span>
       </div>
       <div style={{ overflow: "hidden", marginTop: 18 }}>
-        <div style={{ transform: `translateY(${(1 - t) * 110}%)`, fontFamily: FONT_TITLE, fontSize: 76, lineHeight: 1.06, color: ink }}>{title}</div>
+        <div style={{ transform: `translateY(${(1 - t) * 110}%)`, fontFamily: FONT_TITLE, fontSize: vertical ? 84 : 76, lineHeight: 1.06, color: ink }}>{title}</div>
       </div>
-      <div style={{ opacity: b, transform: `translateY(${(1 - b) * 16}px)`, fontFamily: FONT_BODY, fontSize: 27, lineHeight: 1.5, color: dark ? "#C9C2DC" : "#4A4360", marginTop: 26, maxWidth: 580 }}>{body}</div>
+      <div style={{ opacity: b, transform: `translateY(${(1 - b) * 16}px)`, fontFamily: FONT_BODY, fontSize: 27, lineHeight: 1.5, color: dark ? "#C9C2DC" : "#4A4360", marginTop: 26, maxWidth: vertical ? 860 : 580 }}>{body}</div>
     </div>
   );
 }
@@ -104,3 +104,5 @@ export function Card({ children, style }: { children: React.ReactNode; style?: R
 }
 
 export const useF = useCurrentFrame;
+export const VCtx = React.createContext(false);
+export const useV = () => React.useContext(VCtx);
