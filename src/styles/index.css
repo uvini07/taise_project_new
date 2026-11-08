@@ -102,12 +102,6 @@
 .smart-img { transition: opacity .7s ease, filter .7s ease, transform 1.2s cubic-bezier(.22,.61,.36,1); }
 .smart-img[data-loaded="false"] { opacity: 0; filter: blur(12px); }
 
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  .reveal { opacity: 1; transform: none; }
-}
-
 /* Páginas do cliente com proteção contra cópia (hook useCopyProtection). */
 .copy-protected .protect-area,
 .copy-protected .protect-area * {

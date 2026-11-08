@@ -17,7 +17,7 @@ export function Carousel({ images }) {
     setI(next);
   };
   useEffect(() => {
-    if (images.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    if (images.length < 2) return undefined;
     const id = setInterval(() => go(i + 1), 6000);
     return () => clearInterval(id);
   }); // eslint-disable-line react-hooks/exhaustive-deps

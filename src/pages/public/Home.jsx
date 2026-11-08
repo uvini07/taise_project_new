@@ -29,7 +29,7 @@ function Hero() {
   const [active, setActive] = useState(0);
 
   useEffect(() => {
-    if (images.length < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    if (images.length < 2) return undefined;
     const id = setInterval(() => setActive((i) => (i + 1) % images.length), 7000);
     return () => clearInterval(id);
   }, [images.length]);
