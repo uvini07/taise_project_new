@@ -6,7 +6,7 @@ const IMG = (n) => `/revela/img/${n}.webp`;
 
 /* Os loops são CSS (só transform/opacity, e cor em pontos pequenos).
    Passar o ponteiro reinicia o loop do cartão; fora da tela, pausa. */
-const LOOP_CSS = `
+export const LOOP_CSS = `
 @keyframes rvh0{0%,14%{background:rgba(255,255,255,.9);color:#8E86A6}16%,90%{background:#C95D63;color:#fff}92%,100%{background:rgba(255,255,255,.9);color:#8E86A6}}
 @keyframes rvh1{0%,31%{background:rgba(255,255,255,.9);color:#8E86A6}33%,90%{background:#C95D63;color:#fff}92%,100%{background:rgba(255,255,255,.9);color:#8E86A6}}
 @keyframes rvh2{0%,48%{background:rgba(255,255,255,.9);color:#8E86A6}50%,90%{background:#C95D63;color:#fff}92%,100%{background:rgba(255,255,255,.9);color:#8E86A6}}
@@ -45,7 +45,7 @@ function Card({ className = "", icon: Icon, title, children, visual, style, wide
 
 const loop = (dur, name, extra = "") => ({ animation: `${name} ${dur} ${extra || "cubic-bezier(.65,0,.35,1)"} infinite` });
 
-function SelectionVisual() {
+export function SelectionVisual() {
   const photos = ["gestante-vestido", "gestante-floral", "casal-ultrassom", "gestante-campo", "pezinho", "gestante-tijolo"];
   const picks = { 1: 0, 2: 1, 4: 2, 5: 3 };
   return (
@@ -82,7 +82,7 @@ function SelectionVisual() {
   );
 }
 
-function AgendaVisual() {
+export function AgendaVisual() {
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
   const busy = [3, 8, 12, 17, 22, 26];
   return (
@@ -106,7 +106,7 @@ function AgendaVisual() {
   );
 }
 
-function VipVisual() {
+export function VipVisual() {
   const faces = ["beijo-mae", "pai-filha", "mae-filha-livro", "fotografo", "familia-cachorro"];
   return (
     <div className="relative rounded-[20px] bg-white/60 p-4 ring-1 ring-white/70">
@@ -128,7 +128,7 @@ function VipVisual() {
   );
 }
 
-function SiteVisual() {
+export function SiteVisual() {
   return (
     <div className="overflow-hidden rounded-[20px] bg-white/70 ring-1 ring-white/70">
       <div className="flex items-center gap-1.5 border-b border-rv-linha/70 px-3 py-2">
@@ -150,7 +150,7 @@ function SiteVisual() {
   );
 }
 
-function PacotesVisual() {
+export function PacotesVisual() {
   return (
     <div className="flex items-center gap-4 rounded-[20px] bg-white/60 p-4 ring-1 ring-white/70" style={{ perspective: 600 }}>
       <img src={IMG("gestante-campo")} alt="" loading="lazy" decoding="async" className="h-24 w-20 rounded-xl object-cover" />
@@ -170,7 +170,7 @@ function PacotesVisual() {
   );
 }
 
-function EntregaVisual() {
+export function EntregaVisual() {
   return (
     <div className="rounded-[20px] bg-white/60 p-4 ring-1 ring-white/70">
       <div className="flex -space-x-6">
@@ -190,7 +190,7 @@ function EntregaVisual() {
   );
 }
 
-function FinanceVisual() {
+export function FinanceVisual() {
   const bars = [34, 48, 41, 60, 55, 74, 92];
   return (
     <div className="flex flex-col gap-4 rounded-[20px] bg-white/60 p-4 ring-1 ring-white/70 sm:flex-row sm:items-end">

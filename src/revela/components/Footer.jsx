@@ -19,7 +19,7 @@ export default function Footer() {
         <nav aria-label="Produto">
           <p className="mb-4 text-sm font-medium text-white">Produto</p>
           <ul className={col}>
-            <li><a href="/#recursos" onClick={(e) => goSection(e, "/#recursos")} className={a}>Recursos</a></li>
+            <li><Link to="/ferramentas" className={a}>Ferramentas</Link></li>
             <li><a href="/#como-funciona" onClick={(e) => goSection(e, "/#como-funciona")} className={a}>Como funciona</a></li>
             <li><Link to="/planos" className={a}>Planos e preços</Link></li>
           </ul>

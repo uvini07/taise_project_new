@@ -35,7 +35,7 @@ export function legacyRedirect(pathname = "/", search = "", hash = "") {
 
 // Endereços que nenhum estúdio pode usar (rotas da própria Revela).
 export const RESERVED_SLUGS = [
-  "adm", "api", "assets", "entrar", "cadastro", "planos", "login", "revela", "admin", "painel", "conta",
+  "adm", "api", "assets", "entrar", "cadastro", "planos", "ferramentas", "login", "revela", "admin", "painel", "conta",
   "ajuda", "suporte", "termos", "privacidade", "blog", "app", "www", "legacy", "brand", "img", "static",
   ...LEGACY_SITE_ROOTS,
 ];

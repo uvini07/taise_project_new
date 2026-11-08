@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import { Wordmark } from "./Logo.jsx";
 
 const LINKS = [
-  { to: "/#recursos", label: "Recursos" },
+  { to: "/ferramentas", label: "Ferramentas" },
   { to: "/#como-funciona", label: "Como funciona" },
   { to: "/planos", label: "Planos" },
 ];

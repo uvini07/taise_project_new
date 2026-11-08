@@ -9,6 +9,7 @@ import { SITE_BASE, legacyRedirect, sitePath } from "./config/tenant.js";
 // Revela (raiz do domínio): página inicial, planos, entrar e cadastro.
 const RevelaHome = lazy(() => import("./revela/pages/RevelaHome.jsx"));
 const RevelaPlans = lazy(() => import("./revela/pages/RevelaPlans.jsx"));
+const RevelaTools = lazy(() => import("./revela/pages/RevelaTools.jsx"));
 const RevelaLogin = lazy(() => import("./revela/pages/RevelaLogin.jsx"));
 const RevelaSignup = lazy(() => import("./revela/pages/RevelaSignup.jsx"));
 const RevelaNotFound = lazy(() => import("./revela/pages/RevelaNotFound.jsx"));
@@ -48,6 +49,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={revela(RevelaHome)} />
             <Route path="/planos" element={revela(RevelaPlans)} />
+            <Route path="/ferramentas" element={revela(RevelaTools)} />
             <Route path="/entrar" element={revela(RevelaLogin)} />
             <Route path="/cadastro" element={revela(RevelaSignup)} />
             <Route path="/adm/*" element={<AdminApp />} />
