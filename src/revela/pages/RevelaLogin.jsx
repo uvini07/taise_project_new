@@ -41,7 +41,7 @@ function LoginForm() {
 
   const isLogin = mode === "login";
   return (
-    <form onSubmit={submit} noValidate className="lg w-full max-w-[440px] p-7 sm:p-9" style={{ "--lg-r": "32px", "--lg-bg": "rgba(255,255,255,.55)" }}>
+    <form onSubmit={submit} noValidate className="lg w-full min-w-0 max-w-[440px] p-5 sm:p-9" style={{ "--lg-r": "32px", "--lg-bg": "rgba(255,255,255,.55)" }}>
       <h1 className="text-[2.6rem] leading-[1.05]">{isLogin ? "Entrar na Revela" : "Criar uma nova senha"}</h1>
       <p className="mt-3 text-[16px] leading-relaxed text-rv-ink2">
         {isLogin ? "Acesse o painel do seu estúdio: agenda, seleções, entregas e financeiro." : "Enviamos um link para o seu e-mail. A senha antiga deixa de valer."}

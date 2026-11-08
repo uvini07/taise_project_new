@@ -47,7 +47,7 @@ function GalleryWindow() {
             <p className="font-revela text-[22px] leading-tight text-rv-ameixa sm:text-[26px]">Família Souza</p>
             <p className="text-[13px] text-rv-ink2">Escolha até 20 fotos · faltam 5 dias</p>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-rv-ameixa px-3 py-1.5 text-[13px] font-medium text-rv-lavanda">
+          <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-rv-ameixa px-3 py-1.5 text-[13px] font-medium text-rv-lavanda">
             <Heart className="h-3.5 w-3.5 fill-rv-rosa text-rv-rosa" aria-hidden />
             <span className="tabular-nums">{count}</span> de 20
           </span>
@@ -168,12 +168,12 @@ export default function Hero() {
       </div>
 
       <div className="rv-wrap relative z-10 grid items-center gap-14 pb-20 lg:min-h-[100svh] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10 lg:pb-0 lg:pt-24">
-        <div className="max-w-[620px]">
-          <p className="lg lg-pill inline-flex items-center gap-2.5 py-2 pl-2.5 pr-4 text-[14px] text-rv-ink2" style={{ "--lg-bg": "rgba(255,255,255,.45)" }}>
+        <div className="min-w-0 max-w-[620px]">
+          <p className="lg lg-pill inline-flex max-w-full flex-wrap items-center gap-x-2.5 gap-y-0.5 py-2 pl-2.5 pr-4 text-[14px] text-rv-ink2" style={{ "--lg-bg": "rgba(255,255,255,.45)" }}>
             <span className="h-2 w-2 rounded-full bg-rv-rosa shadow-[0_0_0_4px_rgba(201,93,99,.18)]" aria-hidden />
             Planos a partir de <b className="font-medium text-rv-ameixa">R$ {FROM_PRICE} por mês</b>
           </p>
-          <h1 id="rv-h1" className="mt-6 text-[2.75rem] leading-[1.02] sm:text-6xl lg:text-[4.35rem]">
+          <h1 id="rv-h1" className="mt-6 text-[2.3rem] leading-[1.04] min-[400px]:text-[2.75rem] sm:text-6xl lg:text-[4.35rem]">
             Site, agenda e entrega de fotos para{" "}
             <span className="relative inline-block whitespace-nowrap">
               fotógrafas.
@@ -190,7 +190,7 @@ export default function Hero() {
         </div>
 
         {/* Cena: o "r" de vidro, a tela de seleção, os avisos e os objetos de fotografia. */}
-        <div className="relative mx-auto w-full max-w-[600px] lg:mx-0 lg:max-w-none" aria-hidden="true">
+        <div className="relative mx-auto w-full min-w-0 max-w-[600px] lg:mx-0 lg:max-w-none" aria-hidden="true">
           <div data-depth="0.5" className="relative z-10 mx-auto w-full max-w-[560px]">
             <div data-window><GalleryWindow /></div>
           </div>

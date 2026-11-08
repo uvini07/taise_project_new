@@ -73,7 +73,7 @@ export default function RevelaSignup() {
       <section className="relative isolate flex min-h-[100svh] items-center bg-rv-lavanda pb-16 pt-28">
         <AuthScene />
         <div className="rv-wrap relative z-10">
-          <div className="lg w-full max-w-[560px] p-7 sm:p-9" style={{ "--lg-r": "32px", "--lg-bg": "rgba(255,255,255,.58)" }}>
+          <div className="lg w-full min-w-0 max-w-[560px] p-5 sm:p-9" style={{ "--lg-r": "32px", "--lg-bg": "rgba(255,255,255,.58)" }}>
             <h1 className="text-[2.4rem] leading-[1.05] sm:text-[2.7rem]">Criar conta na Revela</h1>
             <p className="mb-8 mt-3 text-[16px] text-rv-ink2">Já tem conta? <Link to="/entrar" className="rv-link font-medium text-rv-ameixa">Entrar</Link></p>
             <Progress step={step} />
@@ -88,7 +88,7 @@ export default function RevelaSignup() {
                         <input type="radio" name="plano" value={p.id} checked={plan === p.id} onChange={() => setPlan(p.id)} className="sr-only" />
                         <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 ${plan === p.id ? "border-rv-rosa bg-rv-rosa text-white" : "border-rv-lilas/60"}`}>{plan === p.id && <Check className="h-3.5 w-3.5" />}</span>
                         <span className="min-w-0 flex-1">
-                          <span className="flex items-baseline justify-between gap-3">
+                          <span className="flex flex-wrap items-baseline justify-between gap-x-3">
                             <span className="font-revela text-2xl text-rv-ameixa">{p.name}</span>
                             <span className="whitespace-nowrap text-[15px] text-rv-ameixa"><b className="font-medium">R$ {p.price}</b> por mês</span>
                           </span>

@@ -124,7 +124,14 @@ w=C*0.72; g("Z",U(bar(0,w,C),bar(0,w,TH),clipv(diag(w-S*0.55,C-TH,S*0.55,TH,S*0.
 # ---------------- números (altura C*0.96) ----------------
 N=C*0.96
 w=N*0.66; g("zero",ring(w/2,N/2,w/2,N/2+O),w,"rd","rd")
-w=N*0.46; g("one",U(stem(w-S,0,N),clipv(diag(0,N*0.78,w-S*0.6,N,TH*1.1),N*0.7,N)),w,"op","st")
+def _stroke(ax,ay,bx,by,t):
+    """Traço reto de A a B com espessura t medida na perpendicular (pontas em ângulo reto)."""
+    dx,dy=bx-ax,by-ay; L=math.hypot(dx,dy); nx,ny=-dy/L*t, dx/L*t   # espessura para baixo/direita da borda A→B
+    return poly([(ax,ay),(bx,by),(bx+nx,by+ny),(ax+nx,ay+ny)])
+# 1 — haste reta + bandeira curta a ~40°, saindo do canto de cima da haste
+fl1=S*1.5; fh1=N*0.16; xs1=fl1+2
+one=U(stem(xs1,0,N),clipv(_stroke(xs1,N,xs1-fl1,N-fh1,TH*1.2),-10,N))
+g("one",one,xs1+S,"op","st")
 w=N*0.62; r2=w/2; cy2=N-r2
 def _two():
     cx=w/2; ax=w/2; ay=r2+O; bx=ax-S; by=ay-TH
@@ -164,7 +171,13 @@ w=N*0.6; ru=N*0.24; rl=N*0.27
 three=U(D(I(ring(w-ru-S*0.0,N-ru,ru+w*0.08,ru),rect(w*0.28,-60,w+60,N+60)),rect(-60,N-ru*1.3,w*0.4,N-ru*0.6)),
         D(I(ring(w-rl,rl,rl,rl),rect(w*0.2,-60,w+60,N)),rect(-60,rl*0.4,w*0.38,rl*1.2)),bar(w*0.3,w*0.62,N-2*ru+TH*0.5))
 g("three",three,w,"op","rd")
-w=N*0.66; g("four",U(stem(w*0.66,0,N),bar(0,w,N*0.3),clipv(diag(S*0.5,N*0.3-TH,w*0.66+S*0.5,N,TH*1.1),N*0.3-TH,N)),w,"dg","op")
+# 4 — diagonal mais encorpada até o topo da haste, barra sem sobra à esquerda, haste passando da barra
+w=N*0.7; sx4=w-S-w*0.15; yb4=N*0.3; td4=S*0.8
+x04=0.0
+for _ in range(4):
+    a4=math.atan2(N-(yb4-TH),(sx4+S*0.5)-x04); x04=(td4/math.sin(a4))/2
+four=U(stem(sx4,0,N),bar(0,w,yb4,TH*1.15),clipv(diag(x04,yb4-TH*1.15,sx4+S*0.5,N,td4),yb4-TH*1.15,N))
+g("four",four,w,"op","op")
 w=N*0.6; r5=N*0.3
 five=U(bar(w*0.12,w,N),stem(w*0.12,N*0.56,N),bar(w*0.12,w*0.55,N*0.58),D(I(ring(w-r5*1.02,r5,r5*1.02,r5+O),rect(w*0.42,-60,w+60,N*0.62)),rect(-60,r5*0.25,w*0.4,r5*1.0)))
 five=U(five,D(ring(w-r5*1.02,r5,r5*1.02,r5+O),rect(w*0.42,-60,w+60,N),rect(-60,r5*0.35,w*0.42,N)))
