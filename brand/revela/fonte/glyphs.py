@@ -39,7 +39,7 @@ jh=X*0.55
 j_=U(stem(jh-S,-DSC*0.45,X),I(ring(jh/2-S*0.1,-DSC*0.45,jh/2,DSC*0.55,S,TH),rect(-60,-DSC-60,jh+60,-DSC*0.45)))
 g("dotlessj",j_,jh,"op","st"); g("j",U(j_,dot(jh-S/2,X+S*1.5)),jh,"op","st")
 g("l",stem(0,0,ASC),S)
-tw=X*0.62; g("t",U(stem(tw*0.28,0,X*1.25),bar(0,tw,X)),tw,"op","op")
+tw=X*0.6; g("t",U(stem(tw*0.24,0,X*1.17),bar(0,tw,X)),tw,"op","op")   # haste curta (X·1,17), braço direito mais longo
 fw=X*0.62; fr=fw*0.5
 f_=U(stem(fw*0.28,0,ASC-fr),I(ring(fw*0.28+fr,ASC-fr,fr,fr,S,TH),rect(fw*0.28-10,ASC-fr,fw*0.28+fr*2,ASC+60)),bar(0,fw*0.85,X))
 f_=D(f_,rect(fw*0.28+fr*1.2,ASC-fr*0.9,fw+120,ASC-fr*0.1)); g("f",f_,fw,"op","op")
@@ -62,7 +62,20 @@ g("v",clipv(vshape(w,X),0,X),w,"dg","dg")
 ww=X*1.35
 g("w",clipv(U(vshape(ww*0.55,X),shift(vshape(ww*0.55,X),ww*0.45)),0,X),ww,"dg","dg")
 w=X*0.88; g("x",clipv(U(diag(S*0.5,X,w-S*0.5,0,S),diag(w-TH*0.5,X,TH*0.5,0,TH)),0,X),w,"dg","dg")
-w=X*0.92; y_=U(diag(S*0.5,X,w*0.52,0,S),diag(w-TH*0.5,X,w*0.18,-DSC,TH)); g("y",clipv(y_,-DSC,X),w,"dg","dg")
+w=X*0.92; jx=w*0.5; tx=w-TH*0.56
+ydx=jx-(tx-jx)*(DSC/X)                     # onde o braço fino chega na descendente, passando pela junção
+ythin=diag(tx,X,ydx,-DSC,TH*1.08)
+# o braço grosso termina na borda direita do braço fino (sem "pé" sobrando na junção)
+ang=math.atan2(X+DSC,tx-ydx); hw=TH*1.08/math.sin(ang)/2
+ex0,ex1=(tx+hw,X),(ydx+hw,-DSC); kx=(ex0[0]-ex1[0])/(ex0[1]-ex1[1])
+xr=lambda yy: ex1[0]+(yy-ex1[1])*kx
+yleft=poly([(-500,-DSC-50),(xr(-DSC-50),-DSC-50),(xr(X+50),X+50),(-500,X+50)])
+# a borda esquerda do braço grosso encontra a borda esquerda do fino exatamente na linha de base
+jx2=jx
+for _ in range(3):
+    a2=math.atan2(X,abs(jx2-S*0.5)); wt=S/math.sin(a2)
+    jx2=jx-hw+wt/2
+y_=U(I(diag(S*0.5,X,jx2,0,S),yleft),ythin); g("y",clipv(y_,-DSC,X),w,"dg","dg")
 w=X*0.82; g("z",U(bar(0,w,X),bar(0,w,TH),clipv(diag(w-S*0.55,X-TH,S*0.55,TH,S*0.95),TH-1,X-TH+1)),w,"op","op")
 w=X*0.86; g("k",U(stem(0,0,ASC),clipv(U(diag(w-TH*0.4,X,S*0.8,X*0.28,TH*1.1),diag(S*1.7,X*0.42,w-S*0.5,0,S)),0,X)),w,"st","dg")
 # g (um andar, com gancho)
@@ -204,11 +217,12 @@ P_=U(stem(0,0,C),bowl_right(cp_,C,mid,w),bar(0,cp_+1,C),bar(0,cp_+1,mid+TH))
 g("P",P_,w,"st","rd")
 w=C*0.7; cr=w*0.44
 g("R",U(stem(0,0,C),bowl_right(cr,C,mid,w*0.9),bar(0,cr+1,C),bar(0,cr+1,mid+TH),clipv(diag(cr,mid+TH*0.5,w-S*0.5,0,S),0,mid+TH)),w,"st","dg")
-# f
-fw=X*0.62; fr=fw*0.42; sx=fw*0.22
-hook=I(ring(sx+fr,ASC-fr,fr,fr),rect(sx-20,ASC-fr,sx+fr*2+20,ASC+60))
-hook=D(hook,rect(sx+fr*1.55,ASC-fr-10,sx+fr*2+60,ASC-fr*0.25))
-g("f",U(stem(sx,0,ASC-fr+1),hook,bar(0,fw*0.82,X)),fw,"op","op")
+# f — haste + quarto de anel (lado grosso S, topo fino TH) + braço fino com corte reto
+fR=X*0.29; sx=S*0.42; fcx=sx+fR; fcy=ASC-fR
+fq=I(ring(fcx,fcy,fR,fR+O*0.5),rect(sx-20,fcy,fcx,ASC+60))          # quarto superior esquerdo
+farm=rect(fcx-1,ASC+O*0.5-TH,fcx+fR*0.62,ASC+O*0.5)                 # braço que sai do topo para a direita
+fw=fcx+fR*0.62
+g("f",U(stem(sx,0,fcy+1),fq,farm,bar(0,sx+S+fR*0.55,X)),fw,"op","op")
 # J
 w=C*0.5; jr=w/2
 g("J",U(stem(w-S,jr,C),I(ring(w/2,jr,w/2,jr+O),rect(-60,-60,w+60,jr))),w,"op","st")
@@ -217,11 +231,13 @@ N=C*0.96; w=N*0.6; mid=N*0.55
 cu=w*0.45; cl=w*0.42
 three=U(bowl_right(cu,N,mid-TH*0.5,w*0.9),bowl_right(cl,mid+TH*0.5,0,w),bar(w*0.08,cu+1,N),bar(w*0.3,max(cu,cl)+1,mid+TH*0.5),bar(0,cl+1,TH))
 g("three",three,w,"op","rd")
-# ?
-w=X*0.66; r=w/2; cy=C-r; ye=cy-r*0.45
-qa=U(I(ring(w/2,cy,w/2,r),rect(-60,cy,w+60,C+60)),I(ring(w/2,cy,w/2,r),rect(w/2,ye,w+60,cy)))
-qa=D(qa,rect(-60,cy-1,S*0.9,cy+r*0.25))
-q_=U(qa,bar(w/2-S/2,w-S*0.5,ye+TH),stem(w/2-S/2,pd*2.9,ye+TH),dot(w/2,pd,pd))
+# ? — metade de cima do anel + quarto de baixo à direita (até o centro), haste e ponto
+w=X*0.64; r=w/2; qcx=w/2; qcy=C-r; pdq=S*0.6
+qring=ring(qcx,qcy,r,r+O)
+qa=U(I(qring,rect(-60,qcy,w+60,C+60)),I(qring,rect(qcx-S/2,qcy-r-60,w+60,qcy+1)))   # o arco termina sobre a haste
+qa=D(qa,rect(-60,qcy-1,qcx-r*0.28,qcy+r*0.3))                      # ponta esquerda cortada reta (corte passa do miolo)
+qstem=stem(qcx-S/2,pdq*2+TH*0.9,qcy-r+TH+1)
+q_=U(qa,qstem,dot(qcx,pdq,pdq))
 g("question",q_,w,"op","op")
 # @
 R_=X*0.66; cx=R_; cy=X*0.42
