@@ -16,6 +16,7 @@ import { listPublishedPhotos } from "../../services/galleryService.js";
 import { cached } from "../../services/cache.js";
 import { track } from "../../services/analyticsService.js";
 import { waMessages } from "../../utils/whatsapp.js";
+import { sitePath } from "../../config/tenant.js";
 
 const PAGE = 24;
 
@@ -79,7 +80,7 @@ export default function Gallery() {
           {tabs.map((c) => {
             const active = (c.id || null) === (category?.id || null) && !notFound;
             return (
-              <Link key={c.id || "all"} to={c.slug ? `/galeria/${c.slug}` : "/galeria"} aria-current={active ? "page" : undefined}
+              <Link key={c.id || "all"} to={sitePath(c.slug ? `/galeria/${c.slug}` : "/galeria")} aria-current={active ? "page" : undefined}
                 className={`shrink-0 rounded-full border px-4 py-2 text-sm transition ${active ? "border-wine-900 bg-wine-900 text-cream" : "border-ink/15 hover:border-ink/40"}`}>
                 {c.name}
               </Link>
@@ -99,7 +100,7 @@ export default function Gallery() {
             title={notFound ? "Categoria não encontrada" : "Fotos chegando em breve"}
             text={notFound ? "Ela pode ter sido renomeada ou removida." : "Esta galeria ainda está sendo montada. Enquanto isso, chame no WhatsApp para ver mais trabalhos."}
             action={notFound
-              ? <button className="btn-primary" onClick={() => navigate("/galeria")}>Ver todas as fotos</button>
+              ? <button className="btn-primary" onClick={() => navigate(sitePath("/galeria"))}>Ver todas as fotos</button>
               : <WhatsAppLink message={category ? waMessages.category(category.name) : waMessages.general(settings.brandName)} context="galeria-vazia" className="btn-primary"><WhatsAppIcon className="h-4 w-4" /> Falar no WhatsApp</WhatsAppLink>} />
         )}
         <div ref={sentinel} className="h-px" aria-hidden />

@@ -5,6 +5,24 @@ Plataforma da **Taíse Foto / Taise Rufino Fotografia**. Tem um site público (p
 - **Stack:** React 18 + Vite, Tailwind CSS, React Router, Firebase (Authentication, Cloud Firestore, Storage e Analytics), Lucide e Recharts.
 - **Sem servidor próprio:** o navegador fala direto com o Firebase. A segurança fica nas regras `firestore.rules`, que são testadas automaticamente (veja [Testes](#testes)).
 
+## Endereços (Revela + estúdio)
+
+A raiz do domínio agora é a **Revela**, a plataforma. O site da Taíse virou o primeiro estúdio dentro dela.
+
+| Endereço | O que abre |
+|---|---|
+| `/` | Página inicial da Revela (recursos, como funciona, planos) |
+| `/planos` | Planos em cartões, comparação e perguntas |
+| `/entrar` | Login (mesma conta do painel; leva para `/adm`) |
+| `/cadastro` | Cadastro de novos estúdios (telas prontas; ainda não cria a conta) |
+| `/tarufino/...` | Site da Taíse: `/tarufino/pacotes`, `/tarufino/vip/...`, `/tarufino/agenda` etc. |
+| `/adm/...` | Painel da Taíse (sem login, vai para `/entrar`) |
+
+- Links antigos continuam funcionando: `/pacotes`, `/vip/natal`, `/agenda` e os outros levam para o mesmo endereço dentro de `/tarufino`, com `?` e `#`.
+- O estúdio fica em `src/config/tenant.js` (`sitePath("/pacotes")` → `/tarufino/pacotes`). A página da Revela fica em `src/revela/`.
+- Há duas portas de entrada no build: `index.html` (Revela) e `tarufino.html` (Taíse), para o WhatsApp mostrar o título e a imagem certos de cada link. As regras de reescrita estão em `vercel.json` e `firebase.json`.
+- Fotos de exemplo da Revela: StockSnap (CC0), lista em `docs/REVELA-FOTOS.md`.
+
 > O projeto antigo (`uvini07/taise-project`, site de Natal) serviu só como referência. Dele vieram a logo original, o WhatsApp, o endereço e a paleta vinho/creme/dourado. O código, o Firebase e o banco de dados são novos.
 
 ---
@@ -68,7 +86,7 @@ No [console do Firebase](https://console.firebase.google.com/project/taisefoto):
 
 ### Recuperar acesso
 
-Na tela `/adm/login` use **"Esqueci minha senha"**: o Firebase envia um link de redefinição. Se o e-mail também se perder, um administrador do projeto Firebase pode criar um novo usuário (passos 2 e 4).
+Na tela `/entrar` use **"Esqueci minha senha"**: o Firebase envia um link de redefinição. Se o e-mail também se perder, um administrador do projeto Firebase pode criar um novo usuário (passos 2 e 4).
 
 ## Estrutura
 
@@ -81,7 +99,7 @@ src/
   hooks/ contexts/
   components/    common, layout, packages, gallery, forms, vip, admin
   pages/public/  Home, About, Packages, PackageDetail, Gallery, Booking, VIP, Contact, Policies
-  pages/admin/   AdminLogin, Dashboard, PackagesAdmin, GalleryAdmin, AgendaAdmin,
+  pages/admin/   Dashboard, PackagesAdmin, GalleryAdmin, AgendaAdmin,
                  AnalyticsAdmin, FinanceAdmin, VIPAdmin, SettingsAdmin
   routes/        AdminApp (rotas /adm), ProtectedRoute
 tests/unit/      lógica pura (vitest)

@@ -10,6 +10,7 @@ import { useDocumentMeta } from "../../hooks/useDocumentMeta.js";
 import { FALLBACK_IMAGES } from "../../config/defaults.js";
 import { paragraphs } from "../../utils/text.js";
 import { waMessages } from "../../utils/whatsapp.js";
+import { sitePath } from "../../config/tenant.js";
 
 export default function About() {
   const { settings } = useSettings();
@@ -30,7 +31,7 @@ export default function About() {
             </Reveal>
             {about.signature && <Reveal className="mt-8 font-display text-4xl italic text-wine-900">{about.signature}</Reveal>}
             <Reveal className="mt-12 flex flex-wrap gap-3">
-              <Link to="/pacotes" className="btn-primary">Ver pacotes <ArrowRight className="h-4 w-4" /></Link>
+              <Link to={sitePath("/pacotes")} className="btn-primary">Ver pacotes <ArrowRight className="h-4 w-4" /></Link>
               <WhatsAppLink message={waMessages.general(settings.brandName)} context="sobre" className="btn-outline">
                 <WhatsAppIcon className="h-4 w-4" /> Conversar
               </WhatsAppLink>

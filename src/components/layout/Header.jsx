@@ -7,17 +7,18 @@ import { WhatsAppIcon } from "../common/Icons.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { useBodyLock } from "../../hooks/useBodyLock.js";
 import { waMessages } from "../../utils/whatsapp.js";
+import { sitePath } from "../../config/tenant.js";
 
 export function useNavItems(hasVip) {
   const { settings } = useSettings();
   return [
-    { to: "/", label: "Início", end: true },
-    { to: "/sobre", label: "Sobre" },
-    { to: "/pacotes", label: "Pacotes" },
-    { to: "/galeria", label: "Galeria" },
-    settings.display.showAgenda && { to: "/agenda", label: "Agenda" },
-    hasVip && { to: "/vip", label: "VIP" },
-    { to: "/contato", label: "Contato" },
+    { to: sitePath("/"), label: "Início", end: true },
+    { to: sitePath("/sobre"), label: "Sobre" },
+    { to: sitePath("/pacotes"), label: "Pacotes" },
+    { to: sitePath("/galeria"), label: "Galeria" },
+    settings.display.showAgenda && { to: sitePath("/agenda"), label: "Agenda" },
+    hasVip && { to: sitePath("/vip"), label: "VIP" },
+    { to: sitePath("/contato"), label: "Contato" },
   ].filter(Boolean);
 }
 
@@ -42,7 +43,7 @@ export default function Header({ overlay = false, hasVip = false }) {
     <header className={`${overlay ? "fixed" : "sticky"} inset-x-0 top-0 z-50 transition-all duration-500 ${
       transparent ? "bg-gradient-to-b from-black/35 to-transparent" : "border-b border-ink/5 bg-ivory/90 shadow-[0_1px_0_rgba(0,0,0,.02)] backdrop-blur-md"}`}>
       <div className={`container-x flex items-center justify-between transition-all duration-500 ${transparent ? "h-24" : "h-[72px]"}`}>
-        <Link to="/" className="shrink-0" aria-label={`${settings.brandName} — página inicial`}>
+        <Link to={sitePath("/")} className="shrink-0" aria-label={`${settings.brandName} — página inicial`}>
           <Logo tone={transparent ? "light" : "dark"} eager className={`w-auto transition-all duration-500 ${transparent ? "h-14 sm:h-16" : "h-11"}`} />
         </Link>
 

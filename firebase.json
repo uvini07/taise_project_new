@@ -8,6 +8,22 @@
     ],
     "rewrites": [
       {
+        "source": "/tarufino",
+        "destination": "/tarufino.html"
+      },
+      {
+        "source": "/tarufino/**",
+        "destination": "/tarufino.html"
+      },
+      {
+        "source": "/adm/**",
+        "destination": "/tarufino.html"
+      },
+      {
+        "regex": "^/(sobre|pacotes|galeria|agenda|agendar|vip|contato|politicas|selecao|entrega)(/.*)?$",
+        "destination": "/tarufino.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

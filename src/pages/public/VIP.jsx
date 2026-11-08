@@ -23,6 +23,7 @@ import { formatDateTime } from "../../utils/format.js";
 import { paragraphs } from "../../utils/text.js";
 import { isValidEmail, normalizePhoneBR, validateName } from "../../utils/validation.js";
 import { waMessages } from "../../utils/whatsapp.js";
+import { sitePath } from "../../config/tenant.js";
 
 function SignupForm({ campaign, onDone }) {
   const toast = useToast();
@@ -81,7 +82,7 @@ function SignupForm({ campaign, onDone }) {
       )}
       <div>
         <Checkbox checked={form.consent} onChange={(e) => setForm({ ...form, consent: e.target.checked })}
-          label={<>{consentText} <Link to="/politicas#privacidade" target="_blank" className="text-wine-900 underline underline-offset-2">Política de privacidade</Link>.</>} />
+          label={<>{consentText} <Link to={sitePath("/politicas#privacidade")} target="_blank" className="text-wine-900 underline underline-offset-2">Política de privacidade</Link>.</>} />
         {errors.consent && <p className="field-error ml-7">{errors.consent}</p>}
       </div>
       <button type="submit" className="btn-primary w-full py-3.5" disabled={sending}>
@@ -107,7 +108,7 @@ function VipAccess({ campaign }) {
       if (await isVipMember(campaign.id, p)) {
         try { sessionStorage.setItem("tf-vip", JSON.stringify({ campaignId: campaign.id, phone: p })); } catch { /* aba privada */ }
         track.cta(`vip-acesso-${campaign.id}`);
-        navigate("/agenda");
+        navigate(sitePath("/agenda"));
       } else {
         setError("Não encontramos este número na lista VIP desta campanha.");
       }
@@ -141,7 +142,7 @@ function CampaignView({ campaign }) {
       <section className="container-x py-24">
         <EmptyState icon={Gift} title={`${campaign.name} foi encerrada`}
           text={campaign.afterEndAction === "message" && campaign.endMessage ? campaign.endMessage : "Fique de olho nas nossas redes para as próximas campanhas."}
-          action={<div className="flex flex-wrap justify-center gap-3"><Link to="/pacotes" className="btn-primary">Ver pacotes</Link>
+          action={<div className="flex flex-wrap justify-center gap-3"><Link to={sitePath("/pacotes")} className="btn-primary">Ver pacotes</Link>
             <WhatsAppLink message={waMessages.campaign(campaign.name)} context="vip-encerrada" className="btn-outline"><WhatsAppIcon className="h-4 w-4" /> WhatsApp</WhatsAppLink></div>} />
       </section>
     );

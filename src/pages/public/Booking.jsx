@@ -24,6 +24,7 @@ import { generateSlots, monthDays } from "../../utils/slots.js";
 import { packageAvailability } from "../../utils/lots.js";
 import { normalizePhoneBR, isValidEmail, validateName } from "../../utils/validation.js";
 import { waMessages } from "../../utils/whatsapp.js";
+import { sitePath } from "../../config/tenant.js";
 
 const STEPS = ["Pacote", "Data", "Horário", "Seus dados"];
 
@@ -175,7 +176,7 @@ export default function Booking() {
           <WhatsAppLink number={settings.contact.bookingWhatsapp || settings.contact.whatsapp} message={waMessages.booking(done)} context="agenda-enviado" className="btn-primary mt-8 w-full py-3.5">
             <WhatsAppIcon className="h-4 w-4" /> Avisar pelo WhatsApp
           </WhatsAppLink>
-          <Link to="/" className="btn-ghost mt-3">Voltar ao início</Link>
+          <Link to={sitePath("/")} className="btn-ghost mt-3">Voltar ao início</Link>
         </div>
       </section>
     );
@@ -285,7 +286,7 @@ export default function Booking() {
                     placeholder="Quem participa do ensaio, idade das crianças, ideias…" onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                   <div>
                     <Checkbox checked={form.consent} onChange={(e) => setForm({ ...form, consent: e.target.checked })}
-                      label={<>Concordo em ser contatado(a) pelo WhatsApp sobre este pedido e li a <Link to="/politicas" className="text-wine-900 underline underline-offset-2" target="_blank">política de privacidade</Link>.</>} />
+                      label={<>Concordo em ser contatado(a) pelo WhatsApp sobre este pedido e li a <Link to={sitePath("/politicas")} className="text-wine-900 underline underline-offset-2" target="_blank">política de privacidade</Link>.</>} />
                     {errors.consent && <p className="field-error ml-7">{errors.consent}</p>}
                   </div>
                   <button type="submit" className="btn-primary w-full py-3.5 sm:w-auto" disabled={sending}>
@@ -311,7 +312,7 @@ export default function Booking() {
                     <p className="font-display text-3xl text-wine-900">{formatBRL(price)}</p>
                     {vipPrice != null && <p className="text-xs text-gold-dark">Condição VIP aplicada</p>}
                   </div>
-                  <Link to={`/pacotes/${pkg.slug || pkg.id}`} className="link-underline mt-5 inline-block text-sm text-ink-muted">Ver detalhes do pacote</Link>
+                  <Link to={sitePath(`/pacotes/${pkg.slug || pkg.id}`)} className="link-underline mt-5 inline-block text-sm text-ink-muted">Ver detalhes do pacote</Link>
                 </div>
               </aside>
             )}

@@ -7,6 +7,7 @@ import { FacebookIcon, InstagramIcon, PinterestIcon, TikTokIcon, WhatsAppIcon, Y
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { waMessages } from "../../utils/whatsapp.js";
 import { useNavItems } from "./Header.jsx";
+import { sitePath } from "../../config/tenant.js";
 
 const SOCIAL = [
   ["instagram", "Instagram", InstagramIcon],
@@ -47,7 +48,7 @@ export default function Footer({ hasVip }) {
             <h2 className="eyebrow !text-gold-light">Navegação</h2>
             <ul className="mt-5 space-y-3 text-sm">
               {nav.map((n) => <li key={n.to}><Link className="link-underline hover:text-white" to={n.to}>{n.label}</Link></li>)}
-              <li><Link className="link-underline hover:text-white" to="/politicas">Políticas e privacidade</Link></li>
+              <li><Link className="link-underline hover:text-white" to={sitePath("/politicas")}>Políticas e privacidade</Link></li>
             </ul>
           </div>
 

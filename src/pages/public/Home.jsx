@@ -20,6 +20,7 @@ import { FALLBACK_IMAGES } from "../../config/defaults.js";
 import { paragraphs } from "../../utils/text.js";
 import { waMessages } from "../../utils/whatsapp.js";
 import { track } from "../../services/analyticsService.js";
+import { sitePath } from "../../config/tenant.js";
 
 function Hero() {
   const { settings } = useSettings();
@@ -66,10 +67,10 @@ function Hero() {
             </p>
           )}
           <div className="mt-9 flex animate-fade-up flex-wrap items-center gap-3 [animation-delay:800ms]">
-            <Link to="/pacotes" className="btn-gold px-7 py-3.5" onClick={() => track.cta("hero-pacotes")}>
+            <Link to={sitePath("/pacotes")} className="btn-gold px-7 py-3.5" onClick={() => track.cta("hero-pacotes")}>
               {hero.primaryLabel || "Conhecer os pacotes"} <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link to="/galeria" className="btn-light px-7 py-3.5" onClick={() => track.cta("hero-galeria")}>
+            <Link to={sitePath("/galeria")} className="btn-light px-7 py-3.5" onClick={() => track.cta("hero-galeria")}>
               {hero.secondaryLabel || "Ver a galeria"}
             </Link>
             <WhatsAppLink message={waMessages.quote(settings.brandName)} context="hero"
@@ -116,7 +117,7 @@ function AboutTeaser() {
           </Reveal>
           <Reveal delay={200} className="mt-8 flex flex-wrap items-center gap-6">
             {about.signature && <span className="font-display text-3xl italic text-wine-900">{about.signature}</span>}
-            <Link to="/sobre" className="link-underline inline-flex items-center gap-2 text-sm font-medium uppercase tracking-[0.18em] text-ink">
+            <Link to={sitePath("/sobre")} className="link-underline inline-flex items-center gap-2 text-sm font-medium uppercase tracking-[0.18em] text-ink">
               Conhecer minha história <ArrowRight className="h-4 w-4" />
             </Link>
           </Reveal>
@@ -135,13 +136,13 @@ function Categories() {
       <div className="container-x">
         <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
           <SectionHeading eyebrow="Ensaios" title="Para cada momento, um olhar" />
-          <Reveal><Link to="/galeria" className="link-underline text-sm font-medium uppercase tracking-[0.18em]">Ver toda a galeria</Link></Reveal>
+          <Reveal><Link to={sitePath("/galeria")} className="link-underline text-sm font-medium uppercase tracking-[0.18em]">Ver toda a galeria</Link></Reveal>
         </div>
         <div className="scrollbar-none -mx-5 mt-12 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-4">
           {loading && Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-[3/4] w-[70vw] shrink-0 sm:w-auto" />)}
           {list.map((c, i) => (
             <Reveal key={c.id} delay={i * 60} className="w-[70vw] shrink-0 snap-start sm:w-auto">
-              <Link to={`/galeria/${c.slug}`} className="group relative block overflow-hidden rounded-[24px]" onClick={() => track.galleryCategory(c.id)}>
+              <Link to={sitePath(`/galeria/${c.slug}`)} className="group relative block overflow-hidden rounded-[24px]" onClick={() => track.galleryCategory(c.id)}>
                 <SmartImage src={c.coverUrl} thumb={c.coverThumbUrl} placeholder={c.coverPlaceholder} alt="" sizes="(min-width:1024px) 25vw, 70vw"
                   className="aspect-[3/4]" imgClassName="transition-transform duration-[1.2s] ease-soft group-hover:scale-[1.05]" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent" aria-hidden />
@@ -177,7 +178,7 @@ function FeaturedPackages() {
         ))}
       </div>
       {(pkgs || []).length > 3 && (
-        <Reveal className="mt-12 text-center"><Link to="/pacotes" className="btn-outline">Ver todos os pacotes</Link></Reveal>
+        <Reveal className="mt-12 text-center"><Link to={sitePath("/pacotes")} className="btn-outline">Ver todos os pacotes</Link></Reveal>
       )}
     </section>
   );
@@ -193,7 +194,7 @@ function FeaturedGallery() {
       <div className="container-x">
         <SectionHeading eyebrow="Galeria" title="Histórias que já contamos" align="center" />
         <Reveal className="mt-12"><MasonryGrid photos={photos} onOpen={setOpen} columns="columns-2 md:columns-3" /></Reveal>
-        <Reveal className="mt-10 text-center"><Link to="/galeria" className="btn-outline">Abrir a galeria completa</Link></Reveal>
+        <Reveal className="mt-10 text-center"><Link to={sitePath("/galeria")} className="btn-outline">Abrir a galeria completa</Link></Reveal>
       </div>
       <Lightbox photos={photos} index={open} onClose={() => setOpen(null)} onIndex={setOpen} />
     </section>
@@ -212,7 +213,7 @@ function VipCallout({ featured }) {
             <h2 className="display-lg mt-4 !text-cream">{c.name}</h2>
             {c.description && <p className="mt-4 max-w-lg leading-relaxed text-cream/75">{c.description}</p>}
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to={`/vip/${c.slug}`} className="btn-gold" onClick={() => track.cta("home-vip")}>
+              <Link to={sitePath(`/vip/${c.slug}`)} className="btn-gold" onClick={() => track.cta("home-vip")}>
                 {p.vipAccess ? "Acessar como VIP" : p.phase === "open" ? "Entrar na lista VIP" : "Saiba mais"}
               </Link>
             </div>
@@ -266,7 +267,7 @@ function ContactStrip() {
             <WhatsAppLink message={waMessages.quote(settings.brandName)} context="home-contato" className="btn-primary">
               <WhatsAppIcon className="h-4 w-4" /> Chamar no WhatsApp
             </WhatsAppLink>
-            <Link to="/contato" className="btn-outline">Outras formas de contato</Link>
+            <Link to={sitePath("/contato")} className="btn-outline">Outras formas de contato</Link>
           </div>
         </div>
         {contact.address && (

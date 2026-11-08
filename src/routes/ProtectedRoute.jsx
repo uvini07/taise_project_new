@@ -13,7 +13,7 @@ export default function ProtectedRoute({ children }) {
   const { status, user } = useAuth();
   const location = useLocation();
   if (status === "loading") return <PageLoader full label="Verificando acesso…" />;
-  if (status === "signedOut") return <Navigate to="/adm/login" replace state={{ from: location.pathname }} />;
+  if (status === "signedOut") return <Navigate to="/entrar" replace state={{ from: location.pathname }} />;
   if (status === "notAdmin") {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">

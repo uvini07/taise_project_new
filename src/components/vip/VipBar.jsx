@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { X } from "lucide-react";
 import Countdown from "./Countdown.jsx";
 import { Sparkle } from "../common/SectionHeading.jsx";
+import { sitePath } from "../../config/tenant.js";
 
 /** Faixa fina no topo com a campanha VIP ativa e seu contador. */
 export default function VipBar({ campaign, phase }) {
@@ -22,7 +23,7 @@ export default function VipBar({ campaign, phase }) {
         <span className="font-medium">{text}: {campaign.name}</span>
         {phase.countdownEnd && <span className="hidden text-cream/60 sm:inline">termina em</span>}
         {phase.countdownEnd && <Countdown target={phase.countdownEnd} tone="light" compact />}
-        <Link to={`/vip/${campaign.slug}`} className="ml-1 underline decoration-gold-light underline-offset-4 hover:text-white">
+        <Link to={sitePath(`/vip/${campaign.slug}`)} className="ml-1 underline decoration-gold-light underline-offset-4 hover:text-white">
           {phase.vipAccess ? "Acessar" : "Quero participar"}
         </Link>
       </div>

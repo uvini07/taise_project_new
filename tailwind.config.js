@@ -21,6 +21,17 @@ export default {
         gold: { DEFAULT: "rgb(var(--gold) / <alpha-value>)", light: "rgb(var(--gold-light) / <alpha-value>)", dark: "rgb(var(--gold-dark) / <alpha-value>)" },
         ink: { DEFAULT: "rgb(var(--ink) / <alpha-value>)", soft: "rgb(var(--ink-soft) / <alpha-value>)", muted: "rgb(var(--ink-muted) / <alpha-value>)" },
         surface: "rgb(var(--surface) / <alpha-value>)",
+        // Revela (marca da plataforma, paleta Lavanda do guia de marca).
+        rv: {
+          ameixa: "#2B2540",
+          rosa: "#C95D63",
+          lavanda: "#E6E1F0",
+          lilas: "#8E86A6",
+          nevoa: "#F7F5FA",
+          ink2: "#4A4360",
+          linha: "#DDD8E8",
+          noite: "#1C1830",
+        },
         success: "#2E6B4A",
         warning: "#9A6B12",
         danger: "#A23A3A",
@@ -28,6 +39,7 @@ export default {
       fontFamily: {
         display: ['"Cormorant Garamond"', "Georgia", "serif"],
         sans: ['"Jost"', "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+        revela: ['"Revela"', '"Jost"', "system-ui", "sans-serif"],
       },
       letterSpacing: { brand: "0.32em" },
       borderRadius: { arch: "999px 999px 0 0" },

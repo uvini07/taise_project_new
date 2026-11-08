@@ -19,6 +19,7 @@ import { formatBRL, formatDateTime, formatDayBR } from "../../utils/format.js";
 import { lines, paragraphs } from "../../utils/text.js";
 import { lotRemaining, lotState, packageAvailability } from "../../utils/lots.js";
 import { waMessages } from "../../utils/whatsapp.js";
+import { sitePath } from "../../config/tenant.js";
 
 const LOT_LABEL = { open: ["Disponível", "success"], upcoming: ["Em breve", "gold"], soldout: ["Esgotado", "danger"], ended: ["Encerrado", "muted"], closed: ["Encerrado", "muted"] };
 
@@ -37,7 +38,7 @@ export default function PackageDetail() {
     return (
       <div className="container-x py-20">
         <EmptyState icon={Package} title="Pacote não encontrado" text="Ele pode ter sido encerrado ou ainda não foi publicado."
-          action={<Link to="/pacotes" className="btn-primary">Ver pacotes disponíveis</Link>} />
+          action={<Link to={sitePath("/pacotes")} className="btn-primary">Ver pacotes disponíveis</Link>} />
       </div>
     );
   }
@@ -56,7 +57,7 @@ export default function PackageDetail() {
   return (
     <article>
       <div className="container-x pt-8">
-        <Link to="/pacotes" className="inline-flex items-center gap-2 text-sm text-ink-muted hover:text-ink"><ArrowLeft className="h-4 w-4" /> Todos os pacotes</Link>
+        <Link to={sitePath("/pacotes")} className="inline-flex items-center gap-2 text-sm text-ink-muted hover:text-ink"><ArrowLeft className="h-4 w-4" /> Todos os pacotes</Link>
       </div>
       <section className="container-x grid gap-12 py-10 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-7">
@@ -82,7 +83,7 @@ export default function PackageDetail() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
               {canBook && (
-                <Link to={`/agenda?pacote=${pkg.id}`} className="btn-primary flex-1 py-3.5" onClick={() => track.cta(`agendar-${pkg.id}`)}>
+                <Link to={sitePath(`/agenda?pacote=${pkg.id}`)} className="btn-primary flex-1 py-3.5" onClick={() => track.cta(`agendar-${pkg.id}`)}>
                   {pkg.ctaLabel || "Escolher data e horário"}
                 </Link>
               )}

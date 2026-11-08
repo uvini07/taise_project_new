@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useDocumentMeta } from "../../hooks/useDocumentMeta.js";
+import { sitePath } from "../../config/tenant.js";
 
 export default function NotFound() {
   useDocumentMeta({ title: "Página não encontrada" });
@@ -9,8 +10,8 @@ export default function NotFound() {
       <h1 className="display-lg mt-3">Esta página não existe</h1>
       <p className="mt-4 max-w-md text-ink-muted">O endereço pode ter mudado. Que tal voltar para o início?</p>
       <div className="mt-8 flex gap-3">
-        <Link to="/" className="btn-primary">Ir para o início</Link>
-        <Link to="/galeria" className="btn-outline">Ver a galeria</Link>
+        <Link to={sitePath("/")} className="btn-primary">Ir para o início</Link>
+        <Link to={sitePath("/galeria")} className="btn-outline">Ver a galeria</Link>
       </div>
     </section>
   );

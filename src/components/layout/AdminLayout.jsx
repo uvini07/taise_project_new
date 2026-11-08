@@ -7,6 +7,7 @@ import Logo from "../common/Logo.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { logout } from "../../services/authService.js";
 import { useBodyLock } from "../../hooks/useBodyLock.js";
+import { sitePath } from "../../config/tenant.js";
 
 export const ADMIN_NAV = [
   { to: "/adm/dashboard", label: "Visão geral", icon: LayoutDashboard },
@@ -52,7 +53,7 @@ export default function AdminLayout() {
 
   const footer = (
     <div className="space-y-1 border-t border-ink/5 pt-4">
-      <Link to="/" target="_blank" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-ink-soft hover:bg-ink/5">
+      <Link to={sitePath("/")} target="_blank" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-ink-soft hover:bg-ink/5">
         <ExternalLink className="h-[18px] w-[18px]" strokeWidth={1.6} aria-hidden /> Ver o site
       </Link>
       <button onClick={logout} className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-ink-soft hover:bg-ink/5">

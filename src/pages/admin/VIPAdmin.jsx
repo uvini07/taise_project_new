@@ -26,6 +26,7 @@ import { slugify } from "../../utils/text.js";
 import { formatPhoneBR } from "../../utils/validation.js";
 import { whatsappLink } from "../../utils/whatsapp.js";
 import { isPublicStatus } from "../../utils/lots.js";
+import { sitePath } from "../../config/tenant.js";
 
 const PHASE_LABEL = {
   upcoming: ["Inscrições em breve", "neutral"],
@@ -106,7 +107,7 @@ function CampaignEditor({ initial, packages, onClose, onSaved }) {
           <div className="space-y-5 md:col-span-2">
             <div className="grid gap-5 sm:grid-cols-2">
               <TextField label="Nome *" value={f.name} onChange={up("name")} maxLength={100} placeholder="Ex.: Lista VIP — Dia das Crianças" />
-              <TextField label="Endereço da página" value={f.slug} onChange={up("slug")} placeholder={slugify(f.name) || "nome-da-campanha"} hint={`/vip/${slugify(f.slug || f.name) || "…"}`} />
+              <TextField label="Endereço da página" value={f.slug} onChange={up("slug")} placeholder={slugify(f.name) || "nome-da-campanha"} hint={sitePath(`/vip/${slugify(f.slug || f.name) || "…"}`)} />
             </div>
             <TextArea label="Descrição curta" rows={2} value={f.description} onChange={up("description")} maxLength={300} />
             <TextArea label="Detalhes (opcional)" rows={4} value={f.details} onChange={up("details")} />
@@ -276,7 +277,7 @@ export default function VIPAdmin() {
                           }}><Rocket className="h-4 w-4" /> Lançar acesso VIP (24h)</button>
                         )}
                         {c.status === "published" && <button className="btn-ghost btn-sm" onClick={() => act(c.id, () => setCampaignStatus(c.id, "closed"), "Campanha encerrada.")}>Encerrar</button>}
-                        {c.status !== "draft" && <a className="btn-ghost btn-sm" href={`/vip/${c.slug}`} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /> Ver página</a>}
+                        {c.status !== "draft" && <a className="btn-ghost btn-sm" href={sitePath(`/vip/${c.slug}`)} target="_blank" rel="noreferrer"><ExternalLink className="h-4 w-4" /> Ver página</a>}
                         <button className="btn-ghost btn-sm text-danger" aria-label={`Excluir ${c.name}`}
                           onClick={async () => { if (await confirm({ title: "Excluir campanha?", danger: true, confirmLabel: "Excluir", text: "Só é possível excluir campanhas sem inscritos." })) act(c.id, () => deleteCampaign(c), "Campanha excluída."); }}>
                           <Trash2 className="h-4 w-4" />

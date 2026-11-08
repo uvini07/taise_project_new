@@ -1,10 +1,10 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "../contexts/AuthContext.jsx";
+import { SettingsProvider } from "../contexts/SettingsContext.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import AdminLayout from "../components/layout/AdminLayout.jsx";
 import PageLoader from "../components/common/PageLoader.jsx";
-import AdminLogin from "../pages/admin/AdminLogin.jsx";
 
 const Dashboard = lazy(() => import("../pages/admin/Dashboard.jsx"));
 const PackagesAdmin = lazy(() => import("../pages/admin/PackagesAdmin.jsx"));
@@ -22,9 +22,11 @@ const DeliveryDetail = lazy(() => import("../pages/admin/DeliveryDetail.jsx"));
 
 export default function AdminApp() {
   return (
+    <SettingsProvider>
     <AuthProvider>
       <Routes>
-        <Route path="login" element={<AdminLogin />} />
+        {/* O login agora é a tela da Revela (/entrar). */}
+        <Route path="login" element={<Navigate to="/entrar" replace />} />
         <Route element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
@@ -44,5 +46,6 @@ export default function AdminApp() {
         </Route>
       </Routes>
     </AuthProvider>
+    </SettingsProvider>
   );
 }

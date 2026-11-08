@@ -10,9 +10,12 @@ import { trackPageView } from "../../services/analyticsService.js";
 import { useCampaigns } from "../../hooks/useCampaigns.js";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { campaignPhase } from "../../services/vipService.js";
+import { stripSiteBase } from "../../config/tenant.js";
 
 export default function PublicLayout() {
-  const { pathname } = useLocation();
+  const { pathname: fullPath } = useLocation();
+  // O site do estúdio vive em /tarufino; daqui para baixo vale o caminho sem o prefixo.
+  const pathname = stripSiteBase(fullPath);
   const { settings } = useSettings();
   const { campaigns } = useCampaigns();
 

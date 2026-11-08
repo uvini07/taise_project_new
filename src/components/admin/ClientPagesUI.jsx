@@ -11,10 +11,11 @@ import { centsToInput, parseBRLToCents } from "../../utils/format.js";
 import { slugify } from "../../utils/text.js";
 import { whatsappLink } from "../../utils/whatsapp.js";
 import { DEMO_MODE } from "../../services/admin/clientPagesDemo.js";
+import { sitePath } from "../../config/tenant.js";
 
 export function clientUrl(kind, slug) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  return `${origin}/${CLIENT_PATHS[kind]}/${slug}`;
+  return `${origin}${sitePath(`/${CLIENT_PATHS[kind]}/${slug}`)}`;
 }
 
 export function DemoBanner() {

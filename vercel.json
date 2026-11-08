@@ -1,3 +1,11 @@
 {
-  "rewrites": [{ "source": "/((?!api/|assets/).*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/tarufino", "destination": "/tarufino.html" },
+    { "source": "/tarufino/:path*", "destination": "/tarufino.html" },
+    { "source": "/adm", "destination": "/tarufino.html" },
+    { "source": "/adm/:path*", "destination": "/tarufino.html" },
+    { "source": "/:old(sobre|pacotes|galeria|agenda|agendar|vip|contato|politicas|selecao|entrega)", "destination": "/tarufino.html" },
+    { "source": "/:old(sobre|pacotes|galeria|agenda|agendar|vip|contato|politicas|selecao|entrega)/:path*", "destination": "/tarufino.html" },
+    { "source": "/((?!api/|assets/).*)", "destination": "/index.html" }
+  ]
 }
