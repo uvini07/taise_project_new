@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { CalendarCheck2, Check, Heart, Lock, ShieldCheck, Download } from "lucide-react";
-import { gsap, useGSAP, MQ, reducedMotion } from "../gsap.js";
+import { gsap, useGSAP, MQ } from "../gsap.js";
 import { LOGO } from "../logoPaths.js";
 import { Aperture, Camera, Polaroid } from "../components/Objects.jsx";
 import { useOffscreenPause, siteHost } from "../hooks.js";
@@ -18,7 +18,6 @@ function GalleryWindow() {
   const [picked, setPicked] = useState(START);
   const box = useRef(null);
   useEffect(() => {
-    if (reducedMotion()) { setPicked(new Set([...START, ...ORDER])); return undefined; }
     let step = 0;
     let t;
     const tick = () => {

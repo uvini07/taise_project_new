@@ -255,17 +255,7 @@ html.rv-lens-ok .rv-lens {
 
 /* ------------------------------------------------------------------ */
 /* Quem prefere menos movimento: tudo parado, nada escondido.           */
-/* ------------------------------------------------------------------ */
-@media (prefers-reduced-motion: reduce) {
-  /* Loops e objetos ficam no estado de repouso (nunca no quadro final, que pode estar escondido). */
-  .rv [data-loop] *, .rv .rv-blob, .rv .rv-float { animation: none !important; }
-  .rv *, .rv *::before, .rv *::after {
-    animation-duration: .001ms !important;
-    animation-iteration-count: 1 !important;
-    animation-delay: 0s !important;
-    transition-duration: .001ms !important;
-  }
-}
+
 
 /* Carregando (troca de página dentro da Revela). */
 .rv-loader { display: flex; min-height: 100vh; align-items: center; justify-content: center; background: rgb(var(--nevoa)); }

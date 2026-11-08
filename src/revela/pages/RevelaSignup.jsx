@@ -78,7 +78,7 @@ export default function RevelaSignup() {
             <p className="mb-8 mt-3 text-[16px] text-rv-ink2">Já tem conta? <Link to="/entrar" className="rv-link font-medium text-rv-ameixa">Entrar</Link></p>
             <Progress step={step} />
 
-            <div key={step} className="motion-safe:animate-[rv-step-in_.5s_cubic-bezier(.16,1,.3,1)_both]">
+            <div key={step} className="animate-[rv-step-in_.5s_cubic-bezier(.16,1,.3,1)_both]">
               {step === 0 && (
                 <fieldset>
                   <legend className="mb-4 text-[17px] font-medium text-rv-ameixa">Escolha o plano</legend>

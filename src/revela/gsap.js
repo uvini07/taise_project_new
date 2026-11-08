@@ -8,16 +8,12 @@ import { useGSAP } from "@gsap/react";
 gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin, MotionPathPlugin, useGSAP);
 gsap.defaults({ ease: "power3.out", duration: 0.8 });
 
-/** Movimento completo só com tela larga, ponteiro de mouse e sem "reduzir movimento". */
+/** Cenas presas à rolagem: tablet e computador. O ponteiro só no computador. */
 export const MQ = {
-  full: "(min-width: 1024px) and (prefers-reduced-motion: no-preference)",
-  mid: "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
+  full: "(min-width: 1024px)",
+  mid: "(min-width: 768px)",
   phone: "(max-width: 767px)",
-  reduce: "(prefers-reduced-motion: reduce)",
   pointer: "(hover: hover) and (pointer: fine)",
 };
-
-export const reducedMotion = () =>
-  typeof window !== "undefined" && window.matchMedia(MQ.reduce).matches;
 
 export { gsap, ScrollTrigger, useGSAP };

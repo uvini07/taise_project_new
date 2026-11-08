@@ -150,12 +150,12 @@ export default function HowItWorks() {
                 <p className="text-[15px] font-medium text-rv-rosa">Passo {i + 1}</p>
                 <h3 className="mt-1 text-3xl leading-tight lg:text-[1.7rem]">{s.title}</h3>
                 <p className="mt-1.5 max-w-md text-[17px] leading-relaxed text-rv-ink2 lg:text-[16px]">{s.text}</p>
-                <div className="mt-6 lg:hidden motion-reduce:lg:block"><Phone><div className="px-4 pb-4 pt-12"><Screen i={i} /></div></Phone></div>
+                <div className="mt-6 lg:hidden"><Phone><div className="px-4 pb-4 pt-12"><Screen i={i} /></div></Phone></div>
               </li>
             ))}
           </ol>
         </div>
-        <div className="hidden lg:block motion-reduce:lg:hidden">
+        <div className="hidden lg:block">
           <Phone>
             {STEPS.map((s, i) => (
               <div key={s.title} data-screen className="absolute inset-0 px-4 pb-4 pt-12">
