@@ -37,8 +37,9 @@ export default {
         danger: "#A23A3A",
       },
       fontFamily: {
-        display: ['"Cormorant Garamond"', "Georgia", "serif"],
-        sans: ['"Jost"', "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
+        // As fontes do site do estúdio mudam pela aba Estilo (variáveis --font-*).
+        display: ['var(--font-display, "Cormorant Garamond")', '"Cormorant Garamond"', "Georgia", "serif"],
+        sans: ['var(--font-body, "Jost")', '"Jost"', "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
         revela: ['"Revela"', '"Jost"', "system-ui", "sans-serif"],
       },
       letterSpacing: { brand: "0.32em" },

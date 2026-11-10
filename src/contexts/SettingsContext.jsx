@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { cachedSettings, loadSettingsOnce, subscribeSettings } from "../services/settingsService.js";
 import { mergeSettings } from "../config/defaults.js";
 import { applyTheme } from "../utils/theme.js";
+import { applyFonts } from "../config/siteStyle.js";
 import { setContentVersion } from "../services/cache.js";
 
 const SettingsContext = createContext({ settings: mergeSettings(null), loading: true });
@@ -19,6 +20,7 @@ export function SettingsProvider({ children }) {
     return undefined;
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { applyTheme(state.settings.theme); }, [JSON.stringify(state.settings.theme)]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { applyFonts(state.settings.fonts); }, [state.settings.fonts?.display, state.settings.fonts?.body]);
   return <SettingsContext.Provider value={state}>{children}</SettingsContext.Provider>;
 }
 

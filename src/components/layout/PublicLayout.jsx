@@ -11,9 +11,10 @@ import { useCampaigns } from "../../hooks/useCampaigns.js";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { campaignPhase } from "../../services/vipService.js";
 import { stripSiteBase } from "../../config/tenant.js";
+import { effectiveLayout, layoutById } from "../../config/siteStyle.js";
 
 export default function PublicLayout() {
-  const { pathname: fullPath } = useLocation();
+  const { pathname: fullPath, search } = useLocation();
   // O site do estúdio vive em /tarufino; daqui para baixo vale o caminho sem o prefixo.
   const pathname = stripSiteBase(fullPath);
   const { settings } = useSettings();
@@ -35,7 +36,9 @@ export default function PublicLayout() {
   }, [campaigns]);
 
   const hasVip = campaigns.some((c) => c.status === "published");
-  const overlay = pathname === "/";
+  // O cabeçalho só fica transparente sobre topos escuros (Clássico e Diagonal).
+  const layout = effectiveLayout(settings.layout, search);
+  const overlay = pathname === "/" && layoutById(layout).overlay;
   const showBar = featured && featured.c.showBanner !== false && settings.display.showVipBanner && !pathname.startsWith("/vip");
 
   return (

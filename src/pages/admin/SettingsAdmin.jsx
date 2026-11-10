@@ -12,7 +12,6 @@ import { formatPhoneBR, isValidEmail, normalizePhoneBR } from "../../utils/valid
 
 const TABS = [
   ["identidade", "Identidade"],
-  ["cores", "Cores"],
   ["inicio", "Página inicial"],
   ["sobre", "Sobre"],
   ["contato", "Contato"],
@@ -71,7 +70,7 @@ export default function SettingsAdmin() {
     if (errs.length) { toast.error(errs.join(" ")); return; }
     setSaving(true);
     try {
-      const { promoEvent, promoTemplates, ...rest } = form; // editados na página Evento promocional
+      const { promoEvent, promoTemplates, theme, themePresets, layout, fonts, onboardingDone, ...rest } = form; // editados em Evento promocional e em Estilo
       const bw = form.contact.bookingWhatsapp ? normalizePhoneBR(form.contact.bookingWhatsapp) : "";
       if (form.contact.bookingWhatsapp && !bw) { toast.error("WhatsApp das reservas inválido."); setSaving(false); return; }
       await saveSettings({ ...rest, contact: { ...form.contact, whatsapp: wa, bookingWhatsapp: bw } });
@@ -97,7 +96,7 @@ export default function SettingsAdmin() {
 
   return (
     <>
-      <AdminHeader title="Configurações" text="Tudo o que aparece no site: textos, fotos de destaque, contato e preferências."
+      <AdminHeader title="Configurações" text="Textos, fotos de destaque, contato e preferências. Modelo, fontes e cores ficam na aba Estilo."
         actions={<button className="btn-primary" onClick={save} disabled={saving}>{saving ? <Spinner className="h-4 w-4" /> : <Save className="h-4 w-4" />} Salvar alterações</button>} />
 
       {pending.length > 0 && (
@@ -243,10 +242,6 @@ export default function SettingsAdmin() {
           </Section>
         )}
 
-        {tab === "cores" && (
-          <ThemeEditor form={form} setForm={setForm} />
-        )}
-
         {tab === "seo" && (
           <>
             <Section title="SEO e compartilhamento" text="Como o site aparece no Google e quando o link é enviado no WhatsApp ou redes sociais.">
@@ -313,7 +308,7 @@ function ThemeSwatch({ t, active, onClick, onDelete }) {
   );
 }
 
-function ThemeEditor({ form, setForm }) {
+export function ThemeEditor({ form, setForm }) {
   const [name, setName] = useState("");
   const theme = form.theme;
   const presets = form.themePresets || [];
@@ -326,7 +321,7 @@ function ThemeEditor({ form, setForm }) {
   const setKey = (k) => (v) => { const next = { ...full(theme), [k]: v }; setForm((f) => ({ ...f, theme: next })); if (isHex(v)) applyTheme(next); };
   return (
     <>
-      <Section title="Cores do site" text="A mudança aparece aqui na hora como prévia. Clique em Salvar alterações para publicar no site.">
+      <Section title="Cores do site" text="A mudança aparece aqui na hora como prévia. Clique em Salvar estilo para publicar no site.">
         <div className="grid gap-6 md:grid-cols-[auto_1fr]">
           <div className="space-y-5">
             <ColorField label="Cor principal (botões, item selecionado, rodapé)" value={full(theme).primary} onChange={setKey("primary")} />
@@ -363,7 +358,7 @@ function ThemeEditor({ form, setForm }) {
             <Plus className="h-4 w-4" /> Salvar cores atuais como modelo
           </button>
         </div>
-        <p className="mt-2 text-xs text-ink-muted">Modelos novos também precisam de “Salvar alterações”.</p>
+        <p className="mt-2 text-xs text-ink-muted">Modelos novos também precisam de “Salvar estilo”.</p>
       </Section>
     </>
   );

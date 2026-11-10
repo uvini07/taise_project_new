@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useOutletContext } from "react-router-dom";
+import { Link, useLocation, useOutletContext } from "react-router-dom";
 import { ArrowRight, ChevronDown, MapPin, Quote } from "lucide-react";
 import BlurText from "../../components/common/BlurText.jsx";
 import Reveal from "../../components/common/Reveal.jsx";
@@ -21,78 +21,207 @@ import { paragraphs } from "../../utils/text.js";
 import { waMessages } from "../../utils/whatsapp.js";
 import { track } from "../../services/analyticsService.js";
 import { sitePath } from "../../config/tenant.js";
+import { effectiveLayout, layoutById } from "../../config/siteStyle.js";
 
-function Hero() {
+// ---------------------------------------------------------------------------
+// Topo da página inicial: 5 modelos (aba Estilo do painel). Todos usam os
+// mesmos textos e fotos de Configurações; muda só a estrutura.
+
+function useHeroData() {
   const { settings } = useSettings();
   const { hero } = settings;
   const images = hero.images?.length ? hero.images : FALLBACK_IMAGES.hero;
   const [active, setActive] = useState(0);
-
   useEffect(() => {
     if (images.length < 2) return undefined;
     const id = setInterval(() => setActive((i) => (i + 1) % images.length), 7000);
     return () => clearInterval(id);
   }, [images.length]);
+  return { settings, hero, images, active, setActive };
+}
 
+/** Fotos em troca suave (crossfade) dentro de uma moldura qualquer. */
+function Slides({ images, active, sizes = "100vw", zoom = true }) {
+  return images.map((img, i) => (
+    <div key={img.url} className={`absolute inset-0 transition-opacity duration-[1600ms] ${i === active ? "opacity-100" : "opacity-0"}`} aria-hidden={i !== active}>
+      <img
+        src={img.url}
+        srcSet={img.thumbUrl ? `${img.thumbUrl} 800w, ${img.url} 1600w` : undefined}
+        sizes={sizes}
+        alt={i === 0 ? img.alt || "" : ""}
+        className={`h-full w-full object-cover ${zoom && i === active ? "animate-slow-zoom" : ""}`}
+        style={{ objectPosition: img.focus || "center 35%" }}
+        loading={i === 0 ? "eager" : "lazy"}
+        fetchpriority={i === 0 ? "high" : undefined}
+        decoding="async"
+      />
+    </div>
+  ));
+}
+
+function Dots({ images, active, setActive, light = true, className = "" }) {
+  if (images.length < 2) return null;
+  return (
+    <div className={`flex gap-2 ${className}`} role="tablist" aria-label="Fotos de destaque">
+      {images.map((img, i) => (
+        <button key={img.url} role="tab" aria-selected={i === active} aria-label={`Foto ${i + 1}`} onClick={() => setActive(i)}
+          className={`h-[3px] rounded-full transition-all duration-500 ${i === active
+            ? `w-10 ${light ? "bg-cream" : "bg-wine-900"}`
+            : `w-5 ${light ? "bg-cream/40 hover:bg-cream/70" : "bg-ink/20 hover:bg-ink/40"}`}`} />
+      ))}
+    </div>
+  );
+}
+
+/** Selo, título, subtítulo e botões. tone="light" sobre foto/cor escura. */
+function HeroText({ settings, hero, tone = "light", align = "left" }) {
+  const light = tone === "light";
+  const center = align === "center";
+  return (
+    <div className={center ? "mx-auto max-w-3xl text-center" : "max-w-3xl"}>
+      {hero.eyebrow && (
+        <p className={`eyebrow flex animate-fade-up items-center gap-2 ${center ? "justify-center" : ""} ${light ? "!text-gold-light" : ""}`}>
+          <Sparkle className="h-2.5 w-2.5" /> {hero.eyebrow}
+        </p>
+      )}
+      <BlurText text={hero.title} className={`display-xl mt-5 text-balance ${light ? "!text-cream" : "!text-ink"}`} delay={150} />
+      {hero.subtitle && (
+        <p className={`mt-6 max-w-xl animate-fade-up text-base leading-relaxed [animation-delay:600ms] sm:text-lg ${center ? "mx-auto" : ""} ${light ? "text-cream/80" : "text-ink-soft"}`}>
+          {hero.subtitle}
+        </p>
+      )}
+      <div className={`mt-9 flex animate-fade-up flex-wrap items-center gap-3 [animation-delay:800ms] ${center ? "justify-center" : ""}`}>
+        <Link to={sitePath("/pacotes")} className={`${light ? "btn-gold" : "btn-primary"} px-7 py-3.5`} onClick={() => track.cta("hero-pacotes")}>
+          {hero.primaryLabel || "Conhecer os pacotes"} <ArrowRight className="h-4 w-4" />
+        </Link>
+        <Link to={sitePath("/galeria")} className={`${light ? "btn-light" : "btn-outline"} px-7 py-3.5`} onClick={() => track.cta("hero-galeria")}>
+          {hero.secondaryLabel || "Ver a galeria"}
+        </Link>
+        <WhatsAppLink message={waMessages.quote(settings.brandName)} context="hero"
+          className={`inline-flex items-center gap-2 px-3 py-3 text-sm underline-offset-4 hover:underline ${light ? "text-cream/85 hover:text-white" : "text-ink-soft hover:text-wine-900"}`}>
+          <WhatsAppIcon className="h-4 w-4" /> Pedir orçamento
+        </WhatsAppLink>
+      </div>
+    </div>
+  );
+}
+
+const ScrollCue = ({ light = true }) => (
+  <a href="#sobre" className={`absolute bottom-6 left-1/2 z-10 -translate-x-1/2 p-2 transition ${light ? "text-cream/60 hover:text-cream" : "text-ink-muted hover:text-ink"}`} aria-label="Rolar para a próxima seção">
+    <ChevronDown className="h-5 w-5 animate-bounce" />
+  </a>
+);
+
+/** 1. Clássico: foto em tela cheia com o texto por cima. */
+function HeroClassico() {
+  const d = useHeroData();
   return (
     <section className="relative flex min-h-[calc(100svh-var(--top-offset,0px))] items-end overflow-hidden bg-wine-950 text-cream" aria-label="Apresentação">
-      {images.map((img, i) => (
-        <div key={img.url} className={`absolute inset-0 transition-opacity duration-[1600ms] ${i === active ? "opacity-100" : "opacity-0"}`} aria-hidden={i !== active}>
-          <img
-            src={img.url}
-            srcSet={img.thumbUrl ? `${img.thumbUrl} 800w, ${img.url} 1600w` : undefined}
-            sizes="100vw"
-            alt={i === 0 ? img.alt || "" : ""}
-            className={`h-full w-full object-cover ${i === active ? "animate-slow-zoom" : ""}`}
-            style={{ objectPosition: img.focus || "center 35%" }}
-            loading={i === 0 ? "eager" : "lazy"}
-            fetchpriority={i === 0 ? "high" : undefined}
-            decoding="async"
-          />
-        </div>
-      ))}
+      <Slides images={d.images} active={d.active} />
       <div className="absolute inset-0 bg-gradient-to-t from-wine-950/90 via-wine-950/35 to-wine-950/30" aria-hidden />
+      <div className="container-x relative z-10 pb-16 pt-32 sm:pb-20"><HeroText {...d} /></div>
+      <Dots {...d} className="absolute bottom-8 right-6 z-10 hidden sm:flex" />
+      <ScrollCue />
+    </section>
+  );
+}
 
-      <div className="container-x relative z-10 pb-16 pt-32 sm:pb-20">
-        <div className="max-w-3xl">
-          {hero.eyebrow && (
-            <p className="eyebrow flex animate-fade-up items-center gap-2 !text-gold-light">
-              <Sparkle className="h-2.5 w-2.5" /> {hero.eyebrow}
-            </p>
-          )}
-          <BlurText text={hero.title} className="display-xl mt-5 text-balance !text-cream" delay={150} />
-          {hero.subtitle && (
-            <p className="mt-6 max-w-xl animate-fade-up text-base leading-relaxed text-cream/80 [animation-delay:600ms] sm:text-lg">
-              {hero.subtitle}
-            </p>
-          )}
-          <div className="mt-9 flex animate-fade-up flex-wrap items-center gap-3 [animation-delay:800ms]">
-            <Link to={sitePath("/pacotes")} className="btn-gold px-7 py-3.5" onClick={() => track.cta("hero-pacotes")}>
-              {hero.primaryLabel || "Conhecer os pacotes"} <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link to={sitePath("/galeria")} className="btn-light px-7 py-3.5" onClick={() => track.cta("hero-galeria")}>
-              {hero.secondaryLabel || "Ver a galeria"}
-            </Link>
-            <WhatsAppLink message={waMessages.quote(settings.brandName)} context="hero"
-              className="inline-flex items-center gap-2 px-3 py-3 text-sm text-cream/85 underline-offset-4 hover:text-white hover:underline">
-              <WhatsAppIcon className="h-4 w-4" /> Pedir orçamento
-            </WhatsAppLink>
-          </div>
+/** 2. Diagonal: texto sobre a cor principal, foto cortada em diagonal. */
+function HeroDiagonal() {
+  const d = useHeroData();
+  return (
+    <section className="relative overflow-hidden bg-wine-950 text-cream lg:min-h-[calc(100svh-var(--top-offset,0px))]" aria-label="Apresentação">
+      {/* Celular: foto em cima, cortada em diagonal embaixo. Computador: metade direita, cortada à esquerda. */}
+      <div className="relative h-[58svh] [clip-path:polygon(0_0,100%_0,100%_82%,0_100%)] lg:absolute lg:inset-y-0 lg:right-0 lg:h-auto lg:w-[58%] lg:[clip-path:polygon(22%_0,100%_0,100%_100%,0_100%)]">
+        <Slides images={d.images} active={d.active} sizes="(min-width: 1024px) 58vw, 100vw" />
+        <div className="absolute inset-0 bg-wine-950/15" aria-hidden />
+      </div>
+      <span className="pointer-events-none absolute -left-24 top-1/3 hidden h-72 w-72 rounded-full border border-cream/10 lg:block" aria-hidden />
+      <div className="container-x relative z-10 flex items-center pb-16 pt-10 lg:min-h-[calc(100svh-var(--top-offset,0px))] lg:py-32">
+        <div className="lg:w-[46%]"><HeroText {...d} /></div>
+      </div>
+      <Dots {...d} className="absolute bottom-8 right-8 z-10 hidden lg:flex" />
+    </section>
+  );
+}
+
+/** 3. Dividido: foto de um lado, texto do outro, fundo claro. */
+function HeroDividido() {
+  const d = useHeroData();
+  return (
+    <section className="grid bg-ivory lg:min-h-[calc(100svh-var(--top-offset,0px))] lg:grid-cols-2" aria-label="Apresentação">
+      <div className="relative min-h-[52svh] overflow-hidden lg:min-h-0">
+        <Slides images={d.images} active={d.active} sizes="(min-width: 1024px) 50vw, 100vw" />
+        <Dots {...d} className="absolute bottom-6 left-6 z-10" />
+      </div>
+      <div className="flex items-center px-5 py-16 sm:px-10 lg:px-16 xl:px-24">
+        <HeroText {...d} tone="dark" />
+      </div>
+    </section>
+  );
+}
+
+/** 4. Arco: título centralizado e a foto numa moldura em arco. */
+function HeroArco() {
+  const d = useHeroData();
+  return (
+    <section className="relative overflow-hidden bg-paper pb-16 pt-14 sm:pt-20" aria-label="Apresentação">
+      <span className="pointer-events-none absolute left-1/2 top-24 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-wine-900/[0.04]" aria-hidden />
+      <div className="container-x relative">
+        <HeroText {...d} tone="dark" align="center" />
+        <div className="relative mx-auto mt-14 aspect-[4/5] max-w-md overflow-hidden rounded-t-full shadow-lift sm:aspect-[16/11] sm:max-w-4xl sm:rounded-t-[999px]">
+          <Slides images={d.images} active={d.active} sizes="(min-width: 640px) 900px, 100vw" />
+        </div>
+        <Dots {...d} light={false} className="mt-6 justify-center" />
+      </div>
+    </section>
+  );
+}
+
+/** 5. Mosaico: texto ao lado de uma composição com três fotos. */
+function HeroMosaico() {
+  const d = useHeroData();
+  const pick = (k) => d.images[k % d.images.length];
+  const tile = (img, cls, sizes) => (
+    <div className={`relative overflow-hidden rounded-[28px] shadow-soft ${cls}`}>
+      <img src={img.thumbUrl || img.url} srcSet={img.thumbUrl ? `${img.thumbUrl} 800w, ${img.url} 1600w` : undefined} sizes={sizes}
+        alt="" className="h-full w-full object-cover" style={{ objectPosition: img.focus || "center 35%" }} loading="eager" decoding="async" />
+    </div>
+  );
+  return (
+    <section className="bg-ivory py-14 sm:py-20 lg:flex lg:min-h-[calc(100svh-var(--top-offset,0px))] lg:items-center" aria-label="Apresentação">
+      <div className="container-x grid items-center gap-12 lg:grid-cols-[1fr_1.05fr] lg:gap-16">
+        <HeroText {...d} tone="dark" />
+        <div className="grid h-[460px] grid-cols-2 grid-rows-2 gap-3 sm:h-[560px] sm:gap-4">
+          {tile(pick(0), "row-span-2 animate-fade-up", "(min-width: 1024px) 26vw, 50vw")}
+          {tile(pick(1), "animate-fade-up [animation-delay:150ms]", "(min-width: 1024px) 26vw, 50vw")}
+          {tile(pick(2), "animate-fade-up [animation-delay:300ms]", "(min-width: 1024px) 26vw, 50vw")}
         </div>
       </div>
-
-      {images.length > 1 && (
-        <div className="absolute bottom-8 right-6 z-10 hidden gap-2 sm:flex" role="tablist" aria-label="Fotos de destaque">
-          {images.map((img, i) => (
-            <button key={img.url} role="tab" aria-selected={i === active} aria-label={`Foto ${i + 1}`} onClick={() => setActive(i)}
-              className={`h-[3px] rounded-full transition-all duration-500 ${i === active ? "w-10 bg-cream" : "w-5 bg-cream/40 hover:bg-cream/70"}`} />
-          ))}
-        </div>
-      )}
-      <a href="#sobre" className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 p-2 text-cream/60 transition hover:text-cream" aria-label="Rolar para a próxima seção">
-        <ChevronDown className="h-5 w-5 animate-bounce" />
-      </a>
     </section>
+  );
+}
+
+const HEROES = { classico: HeroClassico, diagonal: HeroDiagonal, dividido: HeroDividido, arco: HeroArco, mosaico: HeroMosaico };
+
+function Hero() {
+  const { settings } = useSettings();
+  const { search } = useLocation();
+  const Comp = HEROES[effectiveLayout(settings.layout, search)] || HeroClassico;
+  return <Comp />;
+}
+
+/** Faixa que aparece quando a fotógrafa abre a prévia de um modelo pela aba Estilo. */
+function PreviewBadge() {
+  const { search } = useLocation();
+  const q = new URLSearchParams(search).get("modelo");
+  if (!q) return null;
+  const l = layoutById(q);
+  return (
+    <div className="fixed bottom-5 left-1/2 z-[60] flex -translate-x-1/2 items-center gap-3 rounded-full bg-ink/90 py-2 pl-5 pr-2 text-sm text-white shadow-lift backdrop-blur">
+      Prévia do modelo <b className="font-medium">{l.name}</b>
+      <button type="button" onClick={() => window.close()} className="rounded-full bg-white/15 px-3 py-1.5 text-xs hover:bg-white/25">Fechar prévia</button>
+    </div>
   );
 }
 
@@ -294,6 +423,7 @@ export default function Home() {
   const { featuredCampaign } = useOutletContext() || {};
   return (
     <>
+      <PreviewBadge />
       <Hero />
       <PromoEvent />
       <AboutTeaser />

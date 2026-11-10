@@ -1,0 +1,215 @@
+import { useEffect, useState } from "react";
+import { Check, ExternalLink, PlayCircle, Save } from "lucide-react";
+import { AdminHeader, Section } from "../../components/admin/AdminUI.jsx";
+import Spinner from "../../components/common/Spinner.jsx";
+import { useSettings } from "../../contexts/SettingsContext.jsx";
+import { useToast } from "../../contexts/ToastContext.jsx";
+import { saveSettings } from "../../services/admin/settingsAdmin.js";
+import { FALLBACK_IMAGES } from "../../config/defaults.js";
+import { sitePath } from "../../config/tenant.js";
+import {
+  BODY_FONTS, DISPLAY_FONTS, LAYOUTS, applyFonts, loadAllFontsForPreview,
+} from "../../config/siteStyle.js";
+import { applyTheme, isHex } from "../../utils/theme.js";
+import { ThemeEditor } from "./SettingsAdmin.jsx";
+
+// ---------------------------------------------------------------- miniaturas
+// Desenho simplificado de cada modelo, já com as cores e a foto do estúdio.
+const Bar = ({ w, light, h = "h-1.5" }) => <span className={`block rounded-full ${h} ${light ? "bg-cream/80" : "bg-ink/70"}`} style={{ width: w }} />;
+const Btns = ({ light, center }) => (
+  <span className={`mt-2 flex gap-1 ${center ? "justify-center" : ""}`}>
+    <span className={`h-2 w-7 rounded-full ${light ? "bg-gold" : "bg-wine-900"}`} />
+    <span className={`h-2 w-6 rounded-full border ${light ? "border-cream/60" : "border-ink/40"}`} />
+  </span>
+);
+const TextBlock = ({ light, center }) => (
+  <span className={`flex flex-col gap-1 ${center ? "items-center" : ""}`}>
+    <Bar w="28%" light={light} h="h-1" />
+    <Bar w="78%" light={light} h="h-2.5" />
+    <Bar w="62%" light={light} h="h-2.5" />
+    <Bar w="50%" light={light} h="h-1" />
+    <Btns light={light} center={center} />
+  </span>
+);
+const MiniNav = ({ light }) => (
+  <span className="absolute inset-x-0 top-0 z-10 flex items-center justify-between px-3 py-2">
+    <span className={`h-2 w-10 rounded-full ${light ? "bg-cream/80" : "bg-wine-900/80"}`} />
+    <span className="flex gap-1">{[0, 1, 2, 3].map((i) => <span key={i} className={`h-1 w-4 rounded-full ${light ? "bg-cream/60" : "bg-ink/30"}`} />)}</span>
+  </span>
+);
+
+function MiniHero({ id, img, img2, img3 }) {
+  const photo = (cls, src = img, style) => <span className={`block bg-cover bg-center ${cls}`} style={{ backgroundImage: `url(${src})`, ...style }} />;
+  const wrap = "relative block aspect-[4/3] overflow-hidden rounded-xl";
+  if (id === "classico") return (
+    <span className={`${wrap} bg-wine-950`}>
+      {photo("absolute inset-0")}
+      <span className="absolute inset-0 bg-gradient-to-t from-wine-950/90 via-wine-950/30 to-transparent" />
+      <MiniNav light />
+      <span className="absolute bottom-4 left-4 w-1/2"><TextBlock light /></span>
+    </span>
+  );
+  if (id === "diagonal") return (
+    <span className={`${wrap} bg-wine-950`}>
+      {photo("absolute inset-y-0 right-0 w-[58%]", img, { clipPath: "polygon(24% 0,100% 0,100% 100%,0 100%)" })}
+      <MiniNav light />
+      <span className="absolute left-4 top-1/2 w-[42%] -translate-y-1/2"><TextBlock light /></span>
+    </span>
+  );
+  if (id === "dividido") return (
+    <span className={`${wrap} grid grid-cols-2 bg-ivory`}>
+      {photo("h-full")}
+      <span className="flex items-center px-3"><span className="w-full"><TextBlock /></span></span>
+      <MiniNav />
+    </span>
+  );
+  if (id === "arco") return (
+    <span className={`${wrap} bg-paper`}>
+      <MiniNav />
+      <span className="absolute inset-x-0 top-7 mx-auto w-2/3"><TextBlock center /></span>
+      {photo("absolute bottom-0 left-1/2 h-[42%] w-[64%] -translate-x-1/2 rounded-t-full")}
+    </span>
+  );
+  return (
+    <span className={`${wrap} bg-ivory`}>
+      <MiniNav />
+      <span className="absolute left-3 top-1/2 w-[40%] -translate-y-1/2"><TextBlock /></span>
+      <span className="absolute bottom-3 right-3 top-8 grid w-[50%] grid-cols-2 grid-rows-2 gap-1">
+        {photo("row-span-2 rounded-lg")}
+        {photo("rounded-lg", img2)}
+        {photo("rounded-lg", img3)}
+      </span>
+    </span>
+  );
+}
+
+// ------------------------------------------------------------------ página
+export default function StyleAdmin() {
+  const { settings, loading } = useSettings();
+  const toast = useToast();
+  const [form, setForm] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => { if (!loading && !form) setForm(settings); }, [loading, settings, form]);
+  useEffect(() => { loadAllFontsForPreview(); }, []);
+  // Ao sair sem salvar, a prévia volta para o que está publicado.
+  const saved = { theme: settings.theme, fonts: settings.fonts };
+  useEffect(() => () => { applyTheme(saved.theme); applyFonts(saved.fonts); }, [saved.theme, saved.fonts]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!form) return <div className="py-20 text-center"><Spinner /></div>;
+
+  const imgs = form.hero?.images?.length ? form.hero.images : FALLBACK_IMAGES.hero;
+  const imgAt = (k) => { const i = imgs[k % imgs.length]; return i.thumbUrl || i.url; };
+  const about = form.about?.photoThumbUrl || form.about?.photoUrl || FALLBACK_IMAGES.about.url;
+  const setFont = (k, id) => setForm((f) => { const fonts = { ...f.fonts, [k]: id }; applyFonts(fonts); return { ...f, fonts }; });
+  const dirty = form.layout !== settings.layout
+    || form.fonts.display !== settings.fonts.display || form.fonts.body !== settings.fonts.body
+    || JSON.stringify(form.theme) !== JSON.stringify(settings.theme)
+    || JSON.stringify(form.themePresets) !== JSON.stringify(settings.themePresets);
+
+  async function save() {
+    if (["primary", "background", "surface", "text", "onPrimary", "accent"].some((k) => form.theme[k] && !isHex(form.theme[k]))) {
+      toast.error("Cores inválidas: use o formato #RRGGBB.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await saveSettings({ layout: form.layout, fonts: form.fonts, theme: form.theme, themePresets: form.themePresets || [] });
+      toast.success("Estilo salvo. O site já foi atualizado.");
+    } catch (e) {
+      toast.error(e.code === "permission-denied" ? "Sem permissão para salvar." : "Não foi possível salvar.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const saveBtn = (
+    <button className="btn-primary" onClick={save} disabled={saving || !dirty}>
+      {saving ? <Spinner className="h-4 w-4" /> : <Save className="h-4 w-4" />} Salvar estilo
+    </button>
+  );
+
+  return (
+    <>
+      <AdminHeader title="Estilo" text="A cara do seu site: o modelo da página inicial, as fontes e as cores. Os textos e as fotos ficam em Configurações."
+        actions={(
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="btn-outline" onClick={() => window.dispatchEvent(new Event("revela:tour"))}>
+              <PlayCircle className="h-4 w-4" /> Rever apresentação
+            </button>
+            {saveBtn}
+          </div>
+        )} />
+
+      <div className="space-y-6">
+        <Section title="1. Modelo do site" text="Escolha como o topo da página inicial é montado. Abra a prévia para ver o modelo com as suas fotos e textos antes de decidir.">
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {LAYOUTS.map((l) => {
+              const on = form.layout === l.id;
+              return (
+                <div key={l.id} className={`flex flex-col rounded-2xl border bg-surface p-3 transition ${on ? "border-wine-900 ring-4 ring-wine-900/10" : "border-ink/10 hover:border-ink/25"}`}>
+                  <button type="button" onClick={() => setForm((f) => ({ ...f, layout: l.id }))} className="block text-left" aria-pressed={on}>
+                    <MiniHero id={l.id} img={imgAt(0)} img2={imgAt(1)} img3={about} />
+                  </button>
+                  <div className="flex flex-1 flex-col px-1 pb-1 pt-4">
+                    <p className="flex items-center justify-between gap-2 font-display text-2xl">
+                      {l.name}
+                      {on && <span className="inline-flex items-center gap-1 rounded-full bg-wine-900 px-2.5 py-1 font-sans text-[11px] font-medium text-cream"><Check className="h-3 w-3" /> Escolhido</span>}
+                    </p>
+                    <p className="mt-1 flex-1 text-sm text-ink-soft">{l.text}</p>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <a href={`${sitePath("/")}?modelo=${l.id}`} target="_blank" rel="noopener noreferrer" className="btn-outline btn-sm">
+                        <ExternalLink className="h-4 w-4" /> Visualizar modelo de site
+                      </a>
+                      {!on && <button type="button" className="btn-primary btn-sm" onClick={() => setForm((f) => ({ ...f, layout: l.id }))}>Usar este modelo</button>}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-4 text-xs text-ink-muted">A prévia mostra o que já está publicado (textos, fotos e cores salvos). Depois de escolher, clique em Salvar estilo.</p>
+        </Section>
+
+        <Section title="2. Fontes" text="Uma fonte para os títulos e outra para os textos e menus. A mudança aparece aqui na hora como prévia.">
+          <p className="mb-3 text-sm font-medium">Títulos</p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {DISPLAY_FONTS.map((f) => {
+              const on = form.fonts.display === f.id;
+              return (
+                <button key={f.id} type="button" onClick={() => setFont("display", f.id)} aria-pressed={on}
+                  className={`rounded-2xl border bg-surface px-4 py-4 text-left transition ${on ? "border-wine-900 ring-4 ring-wine-900/10" : "border-ink/10 hover:border-ink/25"}`}>
+                  <span className="block text-3xl leading-none text-ink" style={{ fontFamily: `"${f.id}"` }}>Aa</span>
+                  <span className="mt-3 block text-sm font-medium">{f.label}</span>
+                  <span className="block text-xs text-ink-muted">{f.mood}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="mb-3 mt-6 text-sm font-medium">Textos e menus</p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {BODY_FONTS.map((f) => {
+              const on = form.fonts.body === f.id;
+              return (
+                <button key={f.id} type="button" onClick={() => setFont("body", f.id)} aria-pressed={on}
+                  className={`rounded-2xl border bg-surface px-4 py-3 text-left transition ${on ? "border-wine-900 ring-4 ring-wine-900/10" : "border-ink/10 hover:border-ink/25"}`}>
+                  <span className="block text-lg text-ink" style={{ fontFamily: `"${f.id}"` }}>Agende já</span>
+                  <span className="block text-xs text-ink-muted">{f.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-6 rounded-2xl border border-ink/10 bg-paper p-6">
+            <p className="eyebrow">Prévia</p>
+            <p className="display-md mt-2">{form.hero?.title || "Momentos que merecem ser lembrados"}</p>
+            <p className="mt-3 max-w-xl text-ink-soft">{form.hero?.subtitle || "Fotografia feita com calma, luz cuidadosa e muito carinho pelos detalhes."}</p>
+          </div>
+        </Section>
+
+        <ThemeEditor form={form} setForm={setForm} />
+
+        <div className="flex justify-end">{saveBtn}</div>
+      </div>
+    </>
+  );
+}

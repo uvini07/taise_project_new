@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
-  BarChart3, CalendarDays, Crown, Heart, PackageCheck, ExternalLink, Images, LayoutDashboard, LogOut, Menu, Package, Settings, Sparkles, Wallet, X,
+  BarChart3, CalendarDays, Crown, Heart, PackageCheck, ExternalLink, Images, LayoutDashboard, LogOut, Menu, Package, Palette, Settings, Sparkles, Wallet, X,
 } from "lucide-react";
 import Logo from "../common/Logo.jsx";
+import OnboardingTour from "../admin/OnboardingTour.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { logout } from "../../services/authService.js";
 import { useBodyLock } from "../../hooks/useBodyLock.js";
@@ -20,6 +21,7 @@ export const ADMIN_NAV = [
   { to: "/adm/vip", label: "VIP", icon: Crown },
   { to: "/adm/financeiro", label: "Financeiro", icon: Wallet },
   { to: "/adm/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/adm/estilo", label: "Estilo", icon: Palette },
   { to: "/adm/configuracoes", label: "Configurações", icon: Settings },
 ];
 
@@ -70,6 +72,7 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-paper">
+      <OnboardingTour />
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-ink/5 bg-ivory p-5 lg:flex">
         <Link to="/adm/dashboard" className="mb-8 block px-2"><Logo className="h-14 w-auto" eager /></Link>
         <div className="flex-1 overflow-y-auto"><NavList /></div>
