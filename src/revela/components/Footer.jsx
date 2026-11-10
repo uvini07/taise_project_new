@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Wordmark } from "./Logo.jsx";
 import { useSectionLink } from "./Nav.jsx";
-import { sitePath } from "../../config/tenant.js";
+import { SITE_BASE } from "../../config/tenant.js";
 
 export default function Footer() {
   const goSection = useSectionLink();
@@ -34,7 +34,7 @@ export default function Footer() {
         <nav aria-label="Estúdios">
           <p className="mb-4 text-sm font-medium text-white">Estúdios na Revela</p>
           <ul className={col}>
-            <li><Link to={sitePath("/")} className={a}>Taíse Foto</Link></li>
+            <li><Link to={SITE_BASE} className={a}>Taíse Foto</Link></li>
           </ul>
         </nav>
       </div>

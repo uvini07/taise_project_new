@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import RevelaLayout from "../components/RevelaLayout.jsx";
 import AuthScene from "../components/AuthScene.jsx";
 import { useRevelaMeta } from "../hooks.js";
-import { sitePath } from "../../config/tenant.js";
+import { SITE_BASE } from "../../config/tenant.js";
 
 export default function RevelaNotFound() {
   useRevelaMeta("Página não encontrada");
@@ -17,7 +17,7 @@ export default function RevelaNotFound() {
             <p className="mt-3 text-[16px] leading-relaxed text-rv-ink2">O endereço pode ter mudado. Procurando o site de um estúdio? Ele fica no endereço com o nome do estúdio.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link to="/" className="rv-btn rv-btn-primary"><span className="rv-btn-dot" aria-hidden />Ir para o início</Link>
-              <Link to={sitePath("/")} className="rv-btn lg lg-pill rv-btn-glass">Ver o site da Taíse</Link>
+              <Link to={SITE_BASE} className="rv-btn lg lg-pill rv-btn-glass">Ver o site da Taíse</Link>
             </div>
           </div>
         </div>

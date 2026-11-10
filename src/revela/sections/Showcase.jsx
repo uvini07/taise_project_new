@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { ArrowUpRight, Lock } from "lucide-react";
 import { siteHost } from "../hooks.js";
-import { SITE_BASE, TENANT, sitePath } from "../../config/tenant.js";
+import { SITE_BASE, TENANT } from "../../config/tenant.js";
 
 /** O primeiro estúdio na Revela: o site da Taíse, em /tarufino. */
 export default function Showcase() {
@@ -12,7 +12,7 @@ export default function Showcase() {
         <span className="rv-blob" style={{ left: "58%", top: "-14%", width: "50vw", height: "50vw", background: "radial-gradient(closest-side, rgba(142,134,166,.32), rgba(142,134,166,0))" }} />
       </div>
       <div className="rv-wrap relative z-10 grid items-center gap-12 lg:grid-cols-[1.25fr_1fr] lg:gap-16">
-        <Link to={sitePath("/")} className="lg rv-lift group block overflow-hidden" style={{ "--lg-r": "24px", "--lg-bg": "rgba(255,255,255,.5)" }} aria-label={`Abrir o site da ${TENANT.name}`}>
+        <Link to={SITE_BASE} className="lg rv-lift group block overflow-hidden" style={{ "--lg-r": "24px", "--lg-bg": "rgba(255,255,255,.5)" }} aria-label={`Abrir o site da ${TENANT.name}`}>
           <span className="flex items-center gap-3 border-b border-white/60 px-4 py-3">
             <span className="flex gap-1.5" aria-hidden>{[0, 1, 2].map((i) => <i key={i} className="h-2.5 w-2.5 rounded-full bg-rv-ameixa/15" />)}</span>
             <span className="flex min-w-0 flex-1 items-center gap-2 rounded-full bg-white/70 px-3 py-1.5 text-[12px] text-rv-ink2">
@@ -28,7 +28,7 @@ export default function Showcase() {
           <p className="mt-5 max-w-lg text-lg leading-relaxed text-rv-ink2">
             Pacotes com lotes, agenda com sinal, galeria e lista VIP da fotógrafa Taíse, no endereço {siteHost()}{SITE_BASE}.
           </p>
-          <Link to={sitePath("/")} className="rv-btn lg lg-pill rv-btn-glass mt-8">
+          <Link to={SITE_BASE} className="rv-btn lg lg-pill rv-btn-glass mt-8">
             Abrir o site da Taíse <ArrowUpRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
