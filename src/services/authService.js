@@ -36,7 +36,7 @@ export function watchAdminSession(cb) {
       setCurrentStudio(owner.slug);
       return cb({
         user, status: expired ? "expired" : "admin",
-        admin: { uid: user.uid, email: user.email, role: "owner", studio: owner.slug, studioName: studio?.name || owner.name, trialEndsAt, plan: studio?.status || "trial" },
+        admin: { uid: user.uid, email: user.email, name: owner.name || user.displayName || "", role: "owner", studio: owner.slug, studioName: studio?.name || owner.name, trialEndsAt, plan: studio?.status || "trial" },
       });
     }
     // Estúdio original (Taíse).

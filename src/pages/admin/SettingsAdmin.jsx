@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AlertCircle, ArrowDown, ArrowUp, Plus, Save, Trash2 } from "lucide-react";
 import { AdminHeader, ImageInput, Section } from "../../components/admin/AdminUI.jsx";
 import { TextArea, TextField, Toggle } from "../../components/common/Fields.jsx";
@@ -9,6 +10,7 @@ import { saveSettings } from "../../services/admin/settingsAdmin.js";
 import { deleteStoragePaths, uploadImage } from "../../services/imageService.js";
 import { BUILTIN_THEMES, applyTheme, isHex } from "../../utils/theme.js";
 import { formatPhoneBR, isValidEmail, normalizePhoneBR } from "../../utils/validation.js";
+import { isLegacyStudio } from "../../config/tenant.js";
 
 const TABS = [
   ["identidade", "Identidade"],
@@ -29,7 +31,13 @@ export default function SettingsAdmin() {
   const { settings, loading } = useSettings();
   const toast = useToast();
   const [form, setForm] = useState(null);
-  const [tab, setTab] = useState("identidade");
+  const [params] = useSearchParams();
+  const [tab, setTab] = useState(() => (TABS.some(([id]) => id === params.get("aba")) ? params.get("aba") : "identidade"));
+  // Vindo do convite "adicionar sua logo": rola até o campo da logo.
+  useEffect(() => {
+    if (!form || window.location.hash !== "#logo") return;
+    setTimeout(() => document.getElementById("logo")?.scrollIntoView({ behavior: "smooth", block: "center" }), 150);
+  }, [form]);
   const [saving, setSaving] = useState(false);
   const [toDelete, setToDelete] = useState([]);
 
@@ -115,10 +123,11 @@ export default function SettingsAdmin() {
 
       <div className="space-y-6">
         {tab === "identidade" && (
-          <Section title="Identidade" text="A logo original já está no site. Envie outra apenas se a marca mudar.">
+          <Section title="Identidade" text={isLegacyStudio() ? "A logo original já está no site. Envie outra apenas se a marca mudar." : "Envie a sua logo e clique em Salvar alterações. Enquanto não houver logo, o site mostra o nome do estúdio."}>
             <div className="grid gap-5 sm:grid-cols-2">
               <TextField label="Nome comercial" value={v("brandName")} onChange={upd("brandName")} />
               <TextField label="Nome completo / razão" value={v("legalName")} onChange={upd("legalName")} hint="Usado no rodapé e no texto alternativo da logo." />
+              <div id="logo" className="scroll-mt-24 sm:col-span-2" />
               <ImageInput label="Logo para fundo claro (opcional)" aspect="aspect-[16/9]" value={form.logoUrl}
                 hint="PNG ou WebP com fundo transparente."
                 onUpload={async (f, p) => { const img = await replaceImage("logo", ["logoPath"])(f, p, { thumb: false, maxEdge: 1200 }); setForm((x) => ({ ...x, logoUrl: img.url, logoPath: img.path })); }}

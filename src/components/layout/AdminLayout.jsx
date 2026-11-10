@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
-  BarChart3, CalendarDays, Crown, Heart, PackageCheck, ExternalLink, Images, LayoutDashboard, LogOut, Menu, Package, Palette, Settings, Sparkles, Wallet, X,
+  BarChart3, CalendarDays, Crown, Heart, PackageCheck, ExternalLink, ImagePlus, Images, LayoutDashboard, LogOut, Menu, Package, Palette, Settings, Sparkles, Wallet, X,
 } from "lucide-react";
 import Logo from "../common/Logo.jsx";
+import { useSettings } from "../../contexts/SettingsContext.jsx";
+import { isLegacyStudio } from "../../config/tenant.js";
 import OnboardingTour from "../admin/OnboardingTour.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { logout } from "../../services/authService.js";
@@ -36,6 +38,29 @@ function NavList({ onNavigate }) {
         </NavLink>
       ))}
     </nav>
+  );
+}
+
+/**
+ * Logo no topo do painel. Estúdio novo sem logo: no lugar do nome aparece um
+ * convite para enviar a logo, que leva direto ao campo em Configurações.
+ */
+function AdminBrand({ compact = false }) {
+  const { settings } = useSettings();
+  if (isLegacyStudio() || settings.logoUrl) {
+    return <Link to="/adm/dashboard" className={compact ? "" : "mb-8 block px-2"}><Logo className={compact ? "h-10 w-auto" : "h-14 w-auto"} eager /></Link>;
+  }
+  return (
+    <Link to="/adm/configuracoes?aba=identidade#logo"
+      className={`group flex items-center gap-2.5 rounded-2xl border-2 border-dashed border-wine-900/25 text-wine-900 transition hover:border-wine-900/60 hover:bg-wine-900/5 ${compact ? "px-3 py-1.5" : "mb-8 px-3 py-3"}`}>
+      <span className={`flex shrink-0 items-center justify-center rounded-xl bg-wine-900/10 ${compact ? "h-7 w-7" : "h-9 w-9"}`}>
+        <ImagePlus className="h-4 w-4" strokeWidth={1.8} aria-hidden />
+      </span>
+      <span className={`leading-tight ${compact ? "text-xs" : "text-sm"}`}>
+        <b className="block font-medium">Clique para adicionar sua logo</b>
+        {!compact && <span className="text-xs text-ink-muted">Ela aparece no seu site e aqui</span>}
+      </span>
+    </Link>
   );
 }
 
@@ -74,13 +99,13 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-paper">
       <OnboardingTour />
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-ink/5 bg-ivory p-5 lg:flex">
-        <Link to="/adm/dashboard" className="mb-8 block px-2"><Logo className="h-14 w-auto" eager /></Link>
+        <AdminBrand />
         <div className="flex-1 overflow-y-auto"><NavList /></div>
         {footer}
       </aside>
 
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-ink/5 bg-ivory/90 px-4 backdrop-blur lg:hidden">
-        <Link to="/adm/dashboard"><Logo className="h-10 w-auto" eager /></Link>
+        <AdminBrand compact />
         <button onClick={() => setOpen(true)} className="rounded-full p-2.5 hover:bg-ink/5" aria-label="Abrir menu" aria-expanded={open}>
           <Menu className="h-6 w-6" />
         </button>

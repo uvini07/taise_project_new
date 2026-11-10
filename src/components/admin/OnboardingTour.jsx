@@ -91,7 +91,7 @@ export default function OnboardingTour() {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="tour-title">
       <div className="relative w-full max-w-lg animate-fade-up overflow-hidden rounded-3xl bg-surface shadow-lift">
-        <button type="button" onClick={() => close(false)} className="absolute right-4 top-4 z-10 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm text-ink-soft hover:bg-ink/5">
+        <button type="button" onClick={() => close(false)} className="absolute right-4 top-4 z-10 inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium text-white hover:bg-white/15">
           Pular <X className="h-4 w-4" aria-hidden />
         </button>
 
