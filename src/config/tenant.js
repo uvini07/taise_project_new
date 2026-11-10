@@ -9,16 +9,26 @@ export const TENANT = {
 
 export const SITE_BASE = `/${TENANT.slug}`;
 
+// Estúdio aberto agora (no site público, o do endereço; no painel, o da conta).
+// A Taíse continua nas coleções da raiz do banco; os novos estúdios ficam em
+// studios/{slug}/... (veja services/studioDb.js).
+let current = TENANT.slug;
+export function setCurrentStudio(slug) { current = slug || TENANT.slug; }
+export function currentStudio() { return current; }
+export function isLegacyStudio(slug = current) { return slug === TENANT.slug; }
+const base = () => `/${current}`;
+
 /** Caminho dentro do site do estúdio: sitePath("/pacotes") → "/tarufino/pacotes". */
 export function sitePath(path = "/") {
-  if (!path || path === "/") return SITE_BASE;
-  return `${SITE_BASE}${path.startsWith("/") ? path : `/${path}`}`;
+  if (!path || path === "/") return base();
+  return `${base()}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 /** O caminho sem o prefixo do estúdio ("/tarufino/vip/x" → "/vip/x"). */
 export function stripSiteBase(pathname = "/") {
-  if (pathname === SITE_BASE) return "/";
-  if (pathname.startsWith(`${SITE_BASE}/`)) return pathname.slice(SITE_BASE.length) || "/";
+  const b = base();
+  if (pathname === b) return "/";
+  if (pathname.startsWith(`${b}/`)) return pathname.slice(b.length) || "/";
   return pathname;
 }
 
@@ -36,6 +46,6 @@ export function legacyRedirect(pathname = "/", search = "", hash = "") {
 // Endereços que nenhum estúdio pode usar (rotas da própria Revela).
 export const RESERVED_SLUGS = [
   "adm", "api", "assets", "entrar", "cadastro", "planos", "ferramentas", "login", "revela", "admin", "painel", "conta",
-  "ajuda", "suporte", "termos", "privacidade", "blog", "app", "www", "legacy", "brand", "img", "static",
+  "ajuda", "suporte", "termos", "privacidade", "blog", "app", "www", "legacy", "brand", "img", "static", "studios",
   ...LEGACY_SITE_ROOTS,
 ];

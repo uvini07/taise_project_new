@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Check, Info } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowLeft, ArrowRight, Check, Info, Loader2 } from "lucide-react";
 import RevelaLayout from "../components/RevelaLayout.jsx";
 import AuthScene from "../components/AuthScene.jsx";
 import { PasswordInput, TextInput, inputCls } from "../components/Field.jsx";
@@ -8,10 +8,11 @@ import { PLANS, planById } from "../data.js";
 import { cleanSlugInput, slugProblem, suggestSlug } from "../slug.js";
 import { siteHost, useRevelaMeta } from "../hooks.js";
 import { isValidEmail, normalizePhoneBR } from "../../utils/validation.js";
+import { TRIAL_DAYS, isSlugTaken, signupErrorMessage, signupStudio } from "../../services/authService.js";
 
-// Quando a criação automática de estúdios estiver pronta (Firebase + plano),
-// este valor vira true e o último passo passa a criar a conta de verdade.
-const SIGNUP_OPEN = false;
+// Cadastro aberto em modo de teste: cria a conta e o estúdio com 30 dias
+// grátis. A cobrança do plano entra depois (Mercado Pago).
+const SIGNUP_OPEN = true;
 
 const STEPS = ["Plano", "Seus dados", "Endereço", "Revisão"];
 
@@ -39,12 +40,22 @@ export default function RevelaSignup() {
   const [slug, setSlug] = useState("");
   const [slugTouched, setSlugTouched] = useState(false);
   const [errors, setErrors] = useState({});
-  const [tried, setTried] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [submitErr, setSubmitErr] = useState("");
+  const [taken, setTaken] = useState(null); // null = conferindo
+  const navigate = useNavigate();
 
   const set = (k) => (e) => setF((v) => ({ ...v, [k]: e.target.value }));
   const autoSlug = suggestSlug(f.studio || f.name);
   const address = slugTouched ? slug : autoSlug;
-  const slugErr = slugProblem(address);
+  // Confere no banco se o endereço está livre (espera a pessoa parar de digitar).
+  useEffect(() => {
+    if (slugProblem(address)) return undefined;
+    setTaken(null);
+    const t = setTimeout(() => isSlugTaken(address).then(setTaken), 400);
+    return () => clearTimeout(t);
+  }, [address]);
+  const slugErr = slugProblem(address) || (taken ? "Este endereço já está em uso. Tente outro." : null);
   const chosen = useMemo(() => planById(plan), [plan]);
 
   function validateData() {
@@ -57,16 +68,41 @@ export default function RevelaSignup() {
     return e;
   }
 
-  function next() {
+  async function next() {
     if (step === 1) {
       const e = validateData();
       setErrors(e);
       if (Object.keys(e).length) return;
     }
-    if (step === 2 && slugErr) { setSlugTouched(true); setSlug(address); return; }
+    if (step === 2) {
+      setSlugTouched(true);
+      setSlug(address);
+      if (slugErr) return;
+      // Ainda conferindo: confere agora e só avança se estiver livre.
+      if (taken === null) {
+        const t = await isSlugTaken(address);
+        setTaken(t);
+        if (t) return;
+      }
+    }
     setStep((s) => Math.min(s + 1, STEPS.length - 1));
   }
   const back = () => setStep((s) => Math.max(0, s - 1));
+
+  async function startTrial() {
+    setBusy(true);
+    setSubmitErr("");
+    try {
+      if (await isSlugTaken(address)) { setTaken(true); setStep(2); throw Object.assign(new Error(), { code: "permission-denied" }); }
+      await signupStudio({ name: f.name, studio: f.studio, email: f.email, phone: normalizePhoneBR(f.phone), password: f.password, slug: address, plan });
+      navigate("/adm/dashboard", { replace: true });
+    } catch (e) {
+      setSubmitErr(signupErrorMessage(e));
+      if (e?.code === "auth/email-already-in-use") setStep(1);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   return (
     <RevelaLayout footer={false}>
@@ -124,7 +160,9 @@ export default function RevelaSignup() {
                   </label>
                   {slugErr
                     ? <p className="mt-2 text-[13px] font-medium text-rv-rosa">{slugErr}</p>
-                    : <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-medium text-[#2F6B5C]"><Check className="h-3.5 w-3.5" />Disponível</p>}
+                    : taken === null
+                      ? <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] text-rv-ink2"><Loader2 className="h-3.5 w-3.5 animate-spin" />Conferindo…</p>
+                      : <p className="mt-2 inline-flex items-center gap-1.5 text-[13px] font-medium text-[#2F6B5C]"><Check className="h-3.5 w-3.5" />Disponível</p>}
                   <p className="mt-5 text-[14px] leading-relaxed text-rv-ink2">É o link que vai para o Instagram e para os clientes. Dá para trocar depois, nas configurações do estúdio.</p>
                 </div>
               )}
@@ -150,7 +188,13 @@ export default function RevelaSignup() {
                       O cadastro automático de novos estúdios abre em breve. Por enquanto, esta tela ainda não cria a conta.
                     </p>
                   )}
-                  {tried && SIGNUP_OPEN && <p className="mt-4 text-[14px] text-rv-rosa">Não foi possível criar a conta agora.</p>}
+                  {SIGNUP_OPEN && (
+                    <p className="mt-5 flex gap-3 rounded-2xl bg-white/70 px-4 py-3.5 text-[14px] leading-relaxed text-rv-ameixa">
+                      <Info className="mt-0.5 h-4 w-4 shrink-0 text-rv-rosa" aria-hidden />
+                      Você usa a Revela de graça por {TRIAL_DAYS} dias, com todas as ferramentas. Nenhum cartão é pedido agora.
+                    </p>
+                  )}
+                  {submitErr && <p role="alert" className="mt-4 rounded-2xl bg-rv-rosa/10 px-4 py-3 text-[14px] text-rv-ameixa">{submitErr}</p>}
                 </div>
               )}
             </div>
@@ -161,8 +205,9 @@ export default function RevelaSignup() {
                 : <span />}
               {step < STEPS.length - 1
                 ? <button type="button" onClick={next} className="rv-btn rv-btn-primary">Continuar<ArrowRight className="h-4 w-4" aria-hidden /></button>
-                : <button type="button" className="rv-btn rv-btn-primary" aria-disabled={!SIGNUP_OPEN} onClick={() => setTried(true)} disabled={!SIGNUP_OPEN}>
-                    <span className="rv-btn-dot" aria-hidden />Criar conta
+                : <button type="button" className="rv-btn rv-btn-primary" onClick={startTrial} disabled={!SIGNUP_OPEN || busy}>
+                    {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <span className="rv-btn-dot" aria-hidden />}
+                    {busy ? "Criando seu estúdio…" : `Usar teste de ${TRIAL_DAYS} dias`}
                   </button>}
             </div>
           </div>

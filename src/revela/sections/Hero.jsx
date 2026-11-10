@@ -183,7 +183,7 @@ export default function Hero() {
             Monte seu site, receba agendamentos com sinal pago, deixe o cliente escolher as fotos com proteção contra print e entregue tudo em alta, num lugar só.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link to="/cadastro" className="rv-btn rv-btn-primary"><span className="rv-btn-dot" aria-hidden />Criar conta</Link>
+            <Link to="/cadastro" className="rv-btn rv-btn-primary"><span className="rv-btn-dot" aria-hidden />Usar teste de 30 dias</Link>
             <Link to="/planos" className="rv-btn lg lg-pill rv-btn-glass">Ver planos</Link>
           </div>
         </div>

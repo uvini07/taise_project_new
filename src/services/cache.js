@@ -6,7 +6,11 @@
 // visitante que volta ao site não gasta leitura nenhuma com pacotes, galeria,
 // categorias, campanhas e agenda — só com o documento de configurações.
 
-const PREFIX = "tf-cache:";
+import { currentStudio } from "../config/tenant.js";
+
+// Um espaço de cache por estúdio (vários estúdios podem abrir no mesmo aparelho).
+const BASE = "tf-cache:";
+const prefixOf = () => `${BASE}${currentStudio()}:`;
 const mem = new Map();
 let currentVersion = "0";
 
@@ -19,7 +23,7 @@ export function setContentVersion(v) {
   try {
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const k = localStorage.key(i);
-      if (k?.startsWith(PREFIX) && !k.startsWith(`${PREFIX}${next}:`)) localStorage.removeItem(k);
+      if (k?.startsWith(prefixOf()) && !k.startsWith(`${prefixOf()}${next}:`)) localStorage.removeItem(k);
     }
   } catch { /* sem armazenamento */ }
 }
@@ -32,7 +36,7 @@ const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } ca
  * senão busca, guarda e devolve. ttl em ms (padrão 24 h; a versão invalida antes).
  */
 export function cached(name, fn, { ttl = 24 * 3600 * 1000, persist = true } = {}) {
-  const key = `${PREFIX}${currentVersion}:${name}`;
+  const key = `${prefixOf()}${currentVersion}:${name}`;
   const m = mem.get(key);
   if (m && Date.now() - m.at < ttl) return m.promise;
   if (persist) {

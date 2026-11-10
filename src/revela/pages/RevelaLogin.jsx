@@ -18,7 +18,7 @@ function LoginForm() {
   const [msg, setMsg] = useState(null);
 
   // Conta com estúdio ativo: vai direto para o painel (ou para onde ia antes do login).
-  if (status === "admin") return <Navigate to={location.state?.from || "/adm/dashboard"} replace />;
+  if (status === "admin" || status === "expired") return <Navigate to={location.state?.from || "/adm/dashboard"} replace />;
 
   async function submit(e) {
     e.preventDefault();

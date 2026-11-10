@@ -1,3 +1,5 @@
+import { isLegacyStudio } from "./tenant.js";
+
 // Valores iniciais do site, usados enquanto a fotógrafa não salva as
 // Configurações no painel. Contato e endereço foram conferidos no projeto
 // antigo (index.html: CONFIG.contact, seção "Onde fica o estúdio?" e rodapé).
@@ -58,15 +60,35 @@ export const DEFAULT_SETTINGS = {
   },
 };
 
-// Fotos provisórias (do projeto antigo) usadas só até a fotógrafa escolher as
-// dela em Configurações. O painel avisa enquanto estiverem em uso.
-export const FALLBACK_IMAGES = {
+// Estúdio novo (cadastro pela Revela): o mesmo modelo do site, "em branco",
+// sem nenhum dado da Taíse. A fotógrafa preenche tudo em Configurações.
+const BLANK_SETTINGS = {
+  ...DEFAULT_SETTINGS,
+  brandName: "Seu estúdio",
+  legalName: "",
+  about: { ...DEFAULT_SETTINGS.about, signature: "" },
+  contact: { phone: "", whatsapp: "", bookingWhatsapp: "", email: "", address: "", addressLine2: "", city: "", mapUrl: "", hours: "", studioNote: "" },
+  seo: { title: "", description: "", shareImageUrl: "" },
+};
+
+// Fotos provisórias usadas só até a fotógrafa escolher as dela em
+// Configurações. O painel avisa enquanto estiverem em uso.
+const LEGACY_FALLBACK = {
   hero: [
     { url: "/legacy/hero-1.webp", thumbUrl: "/legacy/hero-1-800.webp", alt: "Ensaio infantil em estúdio" },
     { url: "/legacy/hero-2.webp", thumbUrl: "/legacy/hero-2-800.webp", alt: "Irmãos abraçados durante o ensaio" },
   ],
   about: { url: "/legacy/about-1.webp", thumbUrl: "/legacy/about-1-800.webp", alt: "Ensaio em estúdio" },
 };
+// Estúdios novos: fotos de exemplo livres (StockSnap, CC0), nunca as da Taíse.
+const BLANK_FALLBACK = {
+  hero: [
+    { url: "/revela/img/familia-brincando.webp", thumbUrl: "/revela/img/familia-brincando.webp", alt: "Foto de exemplo" },
+    { url: "/revela/img/gestante-floral.webp", thumbUrl: "/revela/img/gestante-floral.webp", alt: "Foto de exemplo" },
+  ],
+  about: { url: "/revela/img/fotografo.webp", thumbUrl: "/revela/img/fotografo.webp", alt: "Foto de exemplo" },
+};
+export const FALLBACK_IMAGES = new Proxy({}, { get: (_, k) => (isLegacyStudio() ? LEGACY_FALLBACK : BLANK_FALLBACK)[k] });
 
 export const LOGO = {
   dark: "/brand/logo-dark.webp",
@@ -83,9 +105,11 @@ export const SUGGESTED_CATEGORIES = [
 /** Mescla o documento salvo com os padrões, campo a campo. */
 export function mergeSettings(saved) {
   const s = saved || {};
-  const out = { ...DEFAULT_SETTINGS, ...s };
+  const legacy = isLegacyStudio();
+  const base = legacy ? DEFAULT_SETTINGS : BLANK_SETTINGS;
+  const out = { ...base, ...s };
   for (const k of ["hero", "about", "contact", "social", "policies", "seo", "display"]) {
-    out[k] = { ...DEFAULT_SETTINGS[k], ...(s[k] || {}) };
+    out[k] = { ...base[k], ...(s[k] || {}) };
   }
   out.faq = Array.isArray(s.faq) ? s.faq : [];
   out.testimonials = Array.isArray(s.testimonials) ? s.testimonials : [];
@@ -94,7 +118,7 @@ export function mergeSettings(saved) {
   out.promoEvent = { enabled: false, title: "", subtitle: "", images: [], packageIds: [], ...(s.promoEvent || {}) };
   out.promoTemplates = Array.isArray(s.promoTemplates) ? s.promoTemplates : [];
   // Migração: o número antigo passou a ser só das reservas.
-  if (!s.contact?.bookingWhatsapp && out.contact.whatsapp === "5511960382670") {
+  if (legacy && !s.contact?.bookingWhatsapp && out.contact.whatsapp === "5511960382670") {
     out.contact = { ...out.contact, bookingWhatsapp: "5511960382670", whatsapp: "5511914564549", phone: "(11) 91456-4549" };
   }
   out.contentVersion = s.contentVersion ?? 0;

@@ -133,7 +133,7 @@ export default function RevelaTools() {
           <div className="rv-wrap flex flex-col items-center">
             <h2 className="max-w-2xl text-4xl leading-tight sm:text-5xl">Comece com todas as ferramentas</h2>
             <div className="mt-8 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-              <Link to="/cadastro" className="rv-btn rv-btn-primary"><span className="rv-btn-dot" aria-hidden />Criar conta</Link>
+              <Link to="/cadastro" className="rv-btn rv-btn-primary"><span className="rv-btn-dot" aria-hidden />Usar teste de 30 dias</Link>
               <Link to="/planos" className="rv-btn lg lg-pill rv-btn-glass">Ver planos</Link>
             </div>
           </div>

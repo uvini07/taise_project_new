@@ -6,6 +6,7 @@
 // (≈20px) guardado no próprio documento para o efeito de carregamento suave.
 import { collection, deleteDoc, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "./firebase.js";
+import { auth } from "./firebaseAuth.js";
 import { scrambleMoves, scramblePlan } from "../utils/imageScramble.js";
 
 export const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
@@ -232,7 +233,7 @@ export async function uploadBlob(folder, blob, onProgress) {
   const ref = doc(collection(db, "imageBlobs"));
   onProgress?.(0.1);
   const data = await blobToBase64(blob);
-  await setDoc(ref, { data, contentType: blob.type, size: blob.size, folder, createdAt: serverTimestamp() });
+  await setDoc(ref, { data, contentType: blob.type, size: blob.size, folder, createdAt: serverTimestamp(), owner: auth.currentUser?.uid || "" });
   onProgress?.(1);
   return { path: `imageBlobs/${ref.id}`, url: `/api/img/${ref.id}` };
 }

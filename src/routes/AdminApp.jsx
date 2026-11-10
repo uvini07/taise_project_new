@@ -1,6 +1,6 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
-import { AuthProvider } from "../contexts/AuthContext.jsx";
+import { AuthProvider, useAuth } from "../contexts/AuthContext.jsx";
 import { SettingsProvider } from "../contexts/SettingsContext.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import AdminLayout from "../components/layout/AdminLayout.jsx";
@@ -20,14 +20,19 @@ const SelectionDetail = lazy(() => import("../pages/admin/SelectionDetail.jsx"))
 const DeliveryAdmin = lazy(() => import("../pages/admin/DeliveryAdmin.jsx"));
 const DeliveryDetail = lazy(() => import("../pages/admin/DeliveryDetail.jsx"));
 
+// As configurações só carregam depois do login, já no estúdio da conta.
+function StudioSettings({ children }) {
+  const { admin } = useAuth();
+  return <SettingsProvider key={admin?.studio}>{children}</SettingsProvider>;
+}
+
 export default function AdminApp() {
   return (
-    <SettingsProvider>
     <AuthProvider>
       <Routes>
         {/* O login agora é a tela da Revela (/entrar). */}
         <Route path="login" element={<Navigate to="/entrar" replace />} />
-        <Route element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+        <Route element={<ProtectedRoute><StudioSettings><AdminLayout /></StudioSettings></ProtectedRoute>}>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<Suspense fallback={<PageLoader />}><Dashboard /></Suspense>} />
           <Route path="pacotes" element={<Suspense fallback={<PageLoader />}><PackagesAdmin /></Suspense>} />
@@ -46,6 +51,5 @@ export default function AdminApp() {
         </Route>
       </Routes>
     </AuthProvider>
-    </SettingsProvider>
   );
 }

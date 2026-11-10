@@ -8,15 +8,16 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase.js";
 import { withAvailabilityDefaults } from "../utils/slots.js";
+import { sCol, sDoc } from "./studioDb.js";
 
 export async function getAvailability() {
-  const snap = await getDoc(doc(db, "availability", "config"));
+  const snap = await getDoc(sDoc("availability", "config"));
   return withAvailabilityDefaults(snap.exists() ? snap.data() : null);
 }
 
 /** Travas ocupadas entre duas datas: { taken:Set<lockId>, owners:Map<lockId, apptId> }. */
 export async function fetchTakenLocks(fromDay, toDay) {
-  const snap = await getDocs(query(collection(db, "slotLocks"),
+  const snap = await getDocs(query(sCol("slotLocks"),
     where("date", ">=", fromDay), where("date", "<=", toDay)));
   const taken = new Set();
   const owners = new Map();
@@ -37,7 +38,7 @@ export class SlotTakenError extends Error {
  */
 export async function createBookingRequest(input) {
   const { pkg, lot, slot, durationMin, name, phone, email, notes, vip } = input;
-  const apptRef = doc(collection(db, "appointments"));
+  const apptRef = doc(sCol("appointments"));
   const batch = writeBatch(db);
 
   const data = {
@@ -67,14 +68,14 @@ export async function createBookingRequest(input) {
 
   batch.set(apptRef, data);
   for (const id of slot.lockIds) {
-    batch.set(doc(db, "slotLocks", id), { appointmentId: apptRef.id, date: slot.date, createdAt: serverTimestamp() });
+    batch.set(sDoc("slotLocks", id), { appointmentId: apptRef.id, date: slot.date, createdAt: serverTimestamp() });
   }
   try {
     await batch.commit();
   } catch (e) {
     if (e?.code === "permission-denied") {
       // Ou o horário foi ocupado, ou o lote/pacote mudou entre o carregamento e o envio.
-      const still = await Promise.all(slot.lockIds.map((id) => getDoc(doc(db, "slotLocks", id))));
+      const still = await Promise.all(slot.lockIds.map((id) => getDoc(sDoc("slotLocks", id))));
       if (still.some((s) => s.exists())) throw new SlotTakenError();
       const err = new Error("Não foi possível enviar: a disponibilidade deste pacote mudou. Atualize a página e tente de novo.");
       err.code = "unavailable";

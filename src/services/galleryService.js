@@ -2,12 +2,13 @@ import {
   collection, getDocs, limit, orderBy, query, startAfter, where,
 } from "firebase/firestore";
 import { db } from "./firebase.js";
+import { sCol } from "./studioDb.js";
 
 const withId = (d) => ({ id: d.id, ...d.data() });
 const byOrder = (a, b) => (a.order ?? 0) - (b.order ?? 0);
 
 export async function listVisibleCategories() {
-  const snap = await getDocs(query(collection(db, "galleryCategories"), where("visible", "==", true)));
+  const snap = await getDocs(query(sCol("galleryCategories"), where("visible", "==", true)));
   return snap.docs.map(withId).sort(byOrder);
 }
 
@@ -16,7 +17,7 @@ export async function listVisibleCategories() {
  * Retorna { items, cursor } — passe o cursor para buscar a próxima página.
  */
 export async function listPublishedPhotos({ categoryId = null, pageSize = 24, cursor = null } = {}) {
-  const parts = [collection(db, "galleryPhotos"), where("published", "==", true)];
+  const parts = [sCol("galleryPhotos"), where("published", "==", true)];
   if (categoryId) parts.push(where("categoryId", "==", categoryId));
   parts.push(orderBy("order", "asc"), limit(pageSize));
   if (cursor != null) parts.push(startAfter(cursor));
@@ -27,7 +28,7 @@ export async function listPublishedPhotos({ categoryId = null, pageSize = 24, cu
 }
 
 export async function listFeaturedPhotos(max = 12) {
-  const snap = await getDocs(query(collection(db, "galleryPhotos"),
+  const snap = await getDocs(query(sCol("galleryPhotos"),
     where("published", "==", true), where("featured", "==", true), orderBy("order", "asc"), limit(max)));
   return snap.docs.map(withId);
 }

@@ -3,17 +3,18 @@ import {
 } from "firebase/firestore";
 import { db } from "./firebase.js";
 import { toDate } from "../utils/format.js";
+import { sCol, sDoc } from "./studioDb.js";
 
 const withId = (d) => ({ id: d.id, ...d.data() });
 
 /** Campanhas publicadas (e encerradas, para exibir a mensagem de fim). */
 export async function listPublicCampaigns() {
-  const snap = await getDocs(query(collection(db, "vipCampaigns"), where("status", "in", ["published", "closed"])));
+  const snap = await getDocs(query(sCol("vipCampaigns"), where("status", "in", ["published", "closed"])));
   return snap.docs.map(withId);
 }
 
 export async function getCampaignStats(campaignId) {
-  const s = await getDoc(doc(db, "vipCampaignStats", campaignId));
+  const s = await getDoc(sDoc("vipCampaignStats", campaignId));
   return s.exists() ? s.data().count || 0 : 0;
 }
 
@@ -59,9 +60,9 @@ export class CampaignFullError extends Error {
  * Firestore conferem que os três documentos andam juntos.
  */
 export async function registerVip(campaign, form) {
-  const memberRef = doc(db, "vipMembers", `${campaign.id}_${form.phone}`);
-  const statsRef = doc(db, "vipCampaignStats", campaign.id);
-  const regRef = doc(collection(db, "vipRegistrations"));
+  const memberRef = sDoc("vipMembers", `${campaign.id}_${form.phone}`);
+  const statsRef = sDoc("vipCampaignStats", campaign.id);
+  const regRef = doc(sCol("vipRegistrations"));
   await runTransaction(db, async (tx) => {
     const [member, stats] = await Promise.all([tx.get(memberRef), tx.get(statsRef)]);
     if (member.exists()) throw new DuplicateRegistrationError();
@@ -87,6 +88,6 @@ export async function registerVip(campaign, form) {
 
 /** Confere se um WhatsApp está na lista VIP da campanha (consulta pontual). */
 export async function isVipMember(campaignId, phone) {
-  const s = await getDoc(doc(db, "vipMembers", `${campaignId}_${phone}`));
+  const s = await getDoc(sDoc("vipMembers", `${campaignId}_${phone}`));
   return s.exists();
 }

@@ -5,8 +5,9 @@ import { db } from "../firebase.js";
 import { audit, actorLabel } from "../auditService.js";
 import { withId } from "./common.js";
 import { addDays } from "../../utils/format.js";
+import { sCol, sDoc } from "../studioDb.js";
 
-const col = () => collection(db, "financialTransactions");
+const col = () => sCol("financialTransactions");
 
 /**
  * Lançamentos com vencimento até 1 ano antes/depois do período — cobre os
@@ -25,7 +26,7 @@ export async function saveTransaction(id, data) {
     updatedAt: serverTimestamp(),
   };
   if (id) {
-    await setDoc(doc(db, "financialTransactions", id), payload, { merge: true });
+    await setDoc(sDoc("financialTransactions", id), payload, { merge: true });
     audit("finance.update", "financialTransactions", id, { type: data.type, amountCents: data.amountCents });
     return id;
   }
@@ -35,7 +36,7 @@ export async function saveTransaction(id, data) {
 }
 
 export async function addPayment(id, payment) {
-  await updateDoc(doc(db, "financialTransactions", id), {
+  await updateDoc(sDoc("financialTransactions", id), {
     payments: arrayUnion({ ...payment, recordedAt: Timestamp.now(), by: actorLabel() }),
     updatedAt: serverTimestamp(),
   });
@@ -43,12 +44,12 @@ export async function addPayment(id, payment) {
 }
 
 export async function replacePayments(id, payments) {
-  await updateDoc(doc(db, "financialTransactions", id), { payments, updatedAt: serverTimestamp() });
+  await updateDoc(sDoc("financialTransactions", id), { payments, updatedAt: serverTimestamp() });
   audit("finance.payments.edit", "financialTransactions", id, { count: payments.length });
 }
 
 export async function addRefund(id, refund) {
-  await updateDoc(doc(db, "financialTransactions", id), {
+  await updateDoc(sDoc("financialTransactions", id), {
     refunds: arrayUnion({ ...refund, recordedAt: Timestamp.now(), by: actorLabel() }),
     updatedAt: serverTimestamp(),
   });
@@ -56,13 +57,13 @@ export async function addRefund(id, refund) {
 }
 
 export async function setTransactionStatus(id, status, note = "") {
-  await updateDoc(doc(db, "financialTransactions", id), { status, statusNote: note, updatedAt: serverTimestamp() });
+  await updateDoc(sDoc("financialTransactions", id), { status, statusNote: note, updatedAt: serverTimestamp() });
   audit("finance.status", "financialTransactions", id, { status });
 }
 
 /** Arquivamento lógico: some dos relatórios, mas continua no banco. */
 export async function archiveTransaction(id) {
-  await updateDoc(doc(db, "financialTransactions", id), { archived: true, archivedAt: serverTimestamp(), archivedBy: actorLabel() });
+  await updateDoc(sDoc("financialTransactions", id), { archived: true, archivedAt: serverTimestamp(), archivedBy: actorLabel() });
   audit("finance.archive", "financialTransactions", id);
 }
 

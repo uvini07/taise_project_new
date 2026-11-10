@@ -13,11 +13,12 @@ import { COUNTED_STATUSES, HOLDING_STATUSES, APPOINTMENT_STATUS } from "../../co
 import { dayInfo, generateSlots, lockId, parseLockId, withAvailabilityDefaults } from "../../utils/slots.js";
 import { dayTimeToDate, minutesToTime, timeToMinutes } from "../../utils/format.js";
 import { countConfirmedByLot } from "../../utils/lots.js";
+import { sCol, sDoc } from "../studioDb.js";
 
-const apptCol = () => collection(db, "appointments");
+const apptCol = () => sCol("appointments");
 
 export async function saveAvailability(cfg) {
-  await setDoc(doc(db, "availability", "config"), { ...cfg, updatedAt: serverTimestamp() });
+  await setDoc(sDoc("availability", "config"), { ...cfg, updatedAt: serverTimestamp() });
   audit("availability.update", "availability", "config");
 }
 
@@ -32,7 +33,7 @@ export async function listOpenRequests() {
 }
 
 export async function getAppointment(id) {
-  const s = await getDoc(doc(db, "appointments", id));
+  const s = await getDoc(sDoc("appointments", id));
   return s.exists() ? withId(s) : null;
 }
 
@@ -62,8 +63,8 @@ function scheduleProblem(cfg, a) {
  */
 export async function changeAppointmentStatus(id, to, { note = "", force = false } = {}) {
   if (!APPOINTMENT_STATUS[to]) throw new Error("Status inválido.");
-  const cfg = to === "confirmed" ? withAvailabilityDefaults((await getDoc(doc(db, "availability", "config"))).data()) : null;
-  const apptRef = doc(db, "appointments", id);
+  const cfg = to === "confirmed" ? withAvailabilityDefaults((await getDoc(sDoc("availability", "config"))).data()) : null;
+  const apptRef = sDoc("appointments", id);
 
   await runTransaction(db, async (tx) => {
     const snap = await tx.get(apptRef);
@@ -72,9 +73,9 @@ export async function changeAppointmentStatus(id, to, { note = "", force = false
     const from = a.status;
     if (from === to) return;
 
-    const lotRef = a.lotId ? doc(db, "packageLots", a.lotId) : null;
+    const lotRef = a.lotId ? sDoc("packageLots", a.lotId) : null;
     const lotSnap = lotRef ? await tx.get(lotRef) : null;
-    const lockRefs = (a.slotLockIds || []).map((x) => doc(db, "slotLocks", x));
+    const lockRefs = (a.slotLockIds || []).map((x) => sDoc("slotLocks", x));
     const lockSnaps = await Promise.all(lockRefs.map((r) => tx.get(r)));
 
     const wasCounted = COUNTED_STATUSES.includes(from);
@@ -120,7 +121,7 @@ export async function changeAppointmentStatus(id, to, { note = "", force = false
 }
 
 export async function addAppointmentNote(id, note) {
-  await updateDoc(doc(db, "appointments", id), {
+  await updateDoc(sDoc("appointments", id), {
     updatedAt: serverTimestamp(),
     history: arrayUnion(historyEntry("note", { note })),
   });
@@ -129,7 +130,7 @@ export async function addAppointmentNote(id, note) {
 export async function updateAppointmentDetails(id, patch) {
   const allowed = ["name", "phone", "email", "notes", "priceCents"];
   const data = Object.fromEntries(Object.entries(patch).filter(([k]) => allowed.includes(k)));
-  await updateDoc(doc(db, "appointments", id), {
+  await updateDoc(sDoc("appointments", id), {
     ...data,
     updatedAt: serverTimestamp(),
     history: arrayUnion(historyEntry("edit", { fields: Object.keys(data) })),
@@ -156,7 +157,7 @@ async function acquireLocks(tx, cfg, date, time, durationMin, apptId) {
   const candidates = manualLockCandidates(cfg, date, time, durationMin);
   const chosen = [];
   for (const cell of candidates) {
-    const snaps = await Promise.all(cell.map((x) => tx.get(doc(db, "slotLocks", x))));
+    const snaps = await Promise.all(cell.map((x) => tx.get(sDoc("slotLocks", x))));
     const free = snaps.find((s) => !s.exists() || s.data().appointmentId === apptId);
     if (!free) throw new ConflictError(`O horário ${date} ${parseLockId(cell[0]).time} já está ocupado.`);
     chosen.push(free.id);
@@ -166,20 +167,20 @@ async function acquireLocks(tx, cfg, date, time, durationMin, apptId) {
 
 /** Remarca: libera as travas antigas e ocupa as novas na mesma transação. */
 export async function rescheduleAppointment(id, { date, time }, { note = "" } = {}) {
-  const cfg = (await getDoc(doc(db, "availability", "config"))).data();
-  const apptRef = doc(db, "appointments", id);
+  const cfg = (await getDoc(sDoc("availability", "config"))).data();
+  const apptRef = sDoc("appointments", id);
   await runTransaction(db, async (tx) => {
     const snap = await tx.get(apptRef);
     if (!snap.exists()) throw new Error("Agendamento não encontrado.");
     const a = snap.data();
     const oldLocks = a.slotLockIds || [];
-    const oldSnaps = await Promise.all(oldLocks.map((x) => tx.get(doc(db, "slotLocks", x))));
+    const oldSnaps = await Promise.all(oldLocks.map((x) => tx.get(sDoc("slotLocks", x))));
     const newLocks = await acquireLocks(tx, cfg, date, time, a.durationMin || 60, id);
     oldSnaps.forEach((s) => {
       if (s.exists() && s.data().appointmentId === id && !newLocks.includes(s.id)) tx.delete(s.ref);
     });
     if (HOLDING_STATUSES.includes(a.status)) {
-      newLocks.forEach((x) => { if (!oldLocks.includes(x)) tx.set(doc(db, "slotLocks", x), { appointmentId: id, date, createdAt: serverTimestamp() }); });
+      newLocks.forEach((x) => { if (!oldLocks.includes(x)) tx.set(sDoc("slotLocks", x), { appointmentId: id, date, createdAt: serverTimestamp() }); });
     }
     tx.update(apptRef, {
       date, time,
@@ -194,10 +195,10 @@ export async function rescheduleAppointment(id, { date, time }, { note = "" } = 
 
 /** Agendamento lançado pela fotógrafa (telefone, Instagram, presencial...). */
 export async function createManualAppointment(input) {
-  const cfg = (await getDoc(doc(db, "availability", "config"))).data();
+  const cfg = (await getDoc(sDoc("availability", "config"))).data();
   const ref = doc(apptCol());
   await runTransaction(db, async (tx) => {
-    const lotRef = input.lotId ? doc(db, "packageLots", input.lotId) : null;
+    const lotRef = input.lotId ? sDoc("packageLots", input.lotId) : null;
     const lotSnap = lotRef ? await tx.get(lotRef) : null;
     const locks = await acquireLocks(tx, cfg, input.date, input.time, input.durationMin || 60, ref.id);
     const counted = COUNTED_STATUSES.includes(input.status);
@@ -208,7 +209,7 @@ export async function createManualAppointment(input) {
       }
       tx.update(lotRef, { confirmedCount: (lot.confirmedCount || 0) + 1 });
     }
-    locks.forEach((x) => tx.set(doc(db, "slotLocks", x), { appointmentId: ref.id, date: input.date, createdAt: serverTimestamp() }));
+    locks.forEach((x) => tx.set(sDoc("slotLocks", x), { appointmentId: ref.id, date: input.date, createdAt: serverTimestamp() }));
     tx.set(ref, {
       name: input.name,
       phone: input.phone,
@@ -246,7 +247,7 @@ export function freeSlotsForAdmin(cfg, date, taken, durationMin) {
  * agendamentos (corrige qualquer divergência).
  */
 export async function recountLotCounters() {
-  const [appts, lots] = await Promise.all([getDocs(apptCol()), getDocs(collection(db, "packageLots"))]);
+  const [appts, lots] = await Promise.all([getDocs(apptCol()), getDocs(sCol("packageLots"))]);
   const counts = countConfirmedByLot(appts.docs.map((d) => d.data()));
   const batch = writeBatch(db);
   let changed = 0;
@@ -264,14 +265,14 @@ export async function recountLotCounters() {
  * lote se ele estava confirmado/realizado. (Cancelar mantém o histórico.)
  */
 export async function deleteAppointment(id) {
-  const apptRef = doc(db, "appointments", id);
+  const apptRef = sDoc("appointments", id);
   await runTransaction(db, async (tx) => {
     const snap = await tx.get(apptRef);
     if (!snap.exists()) return;
     const a = snap.data();
-    const lotRef = a.lotId ? doc(db, "packageLots", a.lotId) : null;
+    const lotRef = a.lotId ? sDoc("packageLots", a.lotId) : null;
     const lotSnap = lotRef ? await tx.get(lotRef) : null;
-    const lockRefs = (a.slotLockIds || []).map((x) => doc(db, "slotLocks", x));
+    const lockRefs = (a.slotLockIds || []).map((x) => sDoc("slotLocks", x));
     const lockSnaps = await Promise.all(lockRefs.map((r) => tx.get(r)));
     lockSnaps.forEach((s, i) => { if (s.exists() && s.data().appointmentId === id) tx.delete(lockRefs[i]); });
     if (lotSnap?.exists() && COUNTED_STATUSES.includes(a.status)) {

@@ -5,6 +5,7 @@
 import { doc, increment, setDoc } from "firebase/firestore";
 import { db, app, useEmulators } from "./firebase.js";
 import { toDayKey } from "../utils/format.js";
+import { sDoc } from "./studioDb.js";
 
 const CONSENT_KEY = "tf-cookie-consent";
 const safe = (fn, fallback = null) => { try { return fn(); } catch { return fallback; } };
@@ -43,7 +44,7 @@ const clean = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9_-]+/g, "-")
 export function bump(key) {
   if (isBot() || isAdminPath()) return;
   const day = toDayKey(new Date());
-  setDoc(doc(db, "analyticsDaily", day), { [key]: increment(1), _k: key }, { merge: true })
+  setDoc(sDoc("analyticsDaily", day), { [key]: increment(1), _k: key }, { merge: true })
     .catch(() => { /* métrica nunca pode quebrar o site */ });
 }
 

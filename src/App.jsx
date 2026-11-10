@@ -1,10 +1,10 @@
 import { Suspense, lazy } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { ToastProvider } from "./contexts/ToastContext.jsx";
 import PageLoader from "./components/common/PageLoader.jsx";
 import ErrorBoundary from "./components/common/ErrorBoundary.jsx";
 import RevelaLoader from "./revela/components/RevelaLoader.jsx";
-import { SITE_BASE, legacyRedirect, sitePath } from "./config/tenant.js";
+import { LEGACY_SITE_ROOTS, RESERVED_SLUGS, legacyRedirect, setCurrentStudio } from "./config/tenant.js";
 
 // Revela (raiz do domínio): página inicial, planos, entrar e cadastro.
 const RevelaHome = lazy(() => import("./revela/pages/RevelaHome.jsx"));
@@ -41,6 +41,22 @@ function RootFallback() {
   return to ? <Navigate to={to} replace /> : revela(RevelaNotFound);
 }
 
+/**
+ * revela.com.br/{endereço}: o site de cada estúdio. Endereços antigos do site
+ * da Taíse (/vip/natal, /pacotes/x…) continuam levando para /tarufino.
+ */
+function StudioGate() {
+  const { studio = "" } = useParams();
+  const { pathname, search, hash } = useLocation();
+  if (LEGACY_SITE_ROOTS.includes(studio)) {
+    const to = legacyRedirect(pathname, search, hash);
+    if (to) return <Navigate to={to} replace />;
+  }
+  if (!/^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/.test(studio) || RESERVED_SLUGS.includes(studio)) return revela(RevelaNotFound);
+  setCurrentStudio(studio);
+  return <StudioShell key={studio} studio={studio} />;
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
@@ -53,7 +69,7 @@ export default function App() {
             <Route path="/entrar" element={revela(RevelaLogin)} />
             <Route path="/cadastro" element={revela(RevelaSignup)} />
             <Route path="/adm/*" element={<AdminApp />} />
-            <Route path={SITE_BASE} element={<StudioShell />}>
+            <Route path="/:studio" element={<StudioGate />}>
               <Route index element={<Home />} />
               <Route path="sobre" element={<About />} />
               <Route path="pacotes" element={<Packages />} />
@@ -61,7 +77,7 @@ export default function App() {
               <Route path="galeria" element={<Gallery />} />
               <Route path="galeria/:slug" element={<Gallery />} />
               <Route path="agenda" element={<Booking />} />
-              <Route path="agendar" element={<Navigate to={sitePath("/agenda")} replace />} />
+              <Route path="agendar" element={<Navigate to="../agenda" replace />} />
               <Route path="vip" element={<VIP />} />
               <Route path="vip/:slug" element={<VIP />} />
               <Route path="contato" element={<Contact />} />

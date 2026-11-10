@@ -1,5 +1,6 @@
 import { LOGO } from "../../config/defaults.js";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
+import { isLegacyStudio } from "../../config/tenant.js";
 
 /**
  * Logo original da fotógrafa (TR — Taise Rufino Fotografia).
@@ -9,6 +10,13 @@ import { useSettings } from "../../contexts/SettingsContext.jsx";
 export default function Logo({ tone = "dark", className = "h-12 w-auto", eager = false }) {
   const { settings } = useSettings();
   const custom = tone === "light" ? settings.logoLightUrl : settings.logoUrl;
+  // Estúdio novo sem logo enviada: mostra o nome do estúdio em texto.
+  if (!custom && !isLegacyStudio()) {
+    return (
+      <span className={`inline-flex items-center font-display leading-none ${tone === "light" ? "text-white" : "text-wine-900"} ${className}`}
+        style={{ fontSize: "1.6rem", width: "auto" }}>{settings.brandName}</span>
+    );
+  }
   const src = custom || (tone === "light" ? LOGO.light : LOGO.dark);
   const png = tone === "light" ? LOGO.lightPng : LOGO.darkPng;
   // Logo original em cor sólida: na versão escura ela acompanha a cor principal do tema.

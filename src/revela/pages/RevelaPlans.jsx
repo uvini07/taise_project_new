@@ -71,7 +71,7 @@ export default function RevelaPlans() {
         <div className="rv-wrap grid gap-10 lg:grid-cols-[1fr_1.4fr]">
           <div>
             <h2 id="rv-faq" className="text-4xl leading-tight sm:text-5xl">Perguntas sobre os planos</h2>
-            <Link to="/cadastro" className="rv-btn rv-btn-primary mt-8"><span className="rv-btn-dot" aria-hidden />Criar conta</Link>
+            <Link to="/cadastro" className="rv-btn rv-btn-primary mt-8"><span className="rv-btn-dot" aria-hidden />Usar teste de 30 dias</Link>
           </div>
           <div className="space-y-3">
             {FAQ.map((f) => (

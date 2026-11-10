@@ -40,7 +40,7 @@ export default function Close() {
           Site, agenda, seleção e entrega no mesmo lugar, a partir de R$ {FROM_PRICE} por mês.
         </p>
         <div className="mt-9 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-          <Link to="/cadastro" className="rv-btn rv-btn-primary"><span className="rv-btn-dot" aria-hidden />Criar conta</Link>
+          <Link to="/cadastro" className="rv-btn rv-btn-primary"><span className="rv-btn-dot" aria-hidden />Usar teste de 30 dias</Link>
           <Link to="/entrar" className="rv-btn lg lg-pill rv-btn-glass">Entrar</Link>
         </div>
       </div>

@@ -22,6 +22,7 @@ import { MAX_PUBLISHED_PACKAGES, isPublicStatus, lotRemaining, packageAvailabili
 import { summarize, txBalance } from "../../utils/finance.js";
 import { resolvePeriod } from "../../utils/period.js";
 import { getDoc, doc } from "firebase/firestore";
+import { sCol, sDoc } from "../../services/studioDb.js";
 
 const withId = (d) => ({ id: d.id, ...d.data() });
 
@@ -31,10 +32,10 @@ async function loadDashboard(range) {
     listAllPackages(),
     listAllCategories(),
     listOpenRequests(),
-    getDocs(query(collection(db, "appointments"), where("date", ">=", today), where("date", "<=", addDays(today, 30)), orderBy("date", "asc"))),
-    getDocs(query(collection(db, "vipRegistrations"), orderBy("createdAt", "desc"), limit(50))),
+    getDocs(query(sCol("appointments"), where("date", ">=", today), where("date", "<=", addDays(today, 30)), orderBy("date", "asc"))),
+    getDocs(query(sCol("vipRegistrations"), orderBy("createdAt", "desc"), limit(50))),
     listTransactions(range),
-    getDoc(doc(db, "availability", "config")),
+    getDoc(sDoc("availability", "config")),
   ]);
   return {
     packages, categories, pending,

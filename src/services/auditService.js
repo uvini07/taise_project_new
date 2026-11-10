@@ -1,6 +1,7 @@
 import { addDoc, collection, doc, increment, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "./firebase.js";
 import { currentUser } from "./authService.js";
+import { sCol, sDoc } from "./studioDb.js";
 
 /** Registra uma operação administrativa relevante (falha silenciosa). */
 export async function audit(action, entity, entityId, details = {}) {
@@ -8,7 +9,7 @@ export async function audit(action, entity, entityId, details = {}) {
   if (!u) return;
   if (PUBLIC_ENTITIES.has(entity)) bumpContentVersion();
   try {
-    await addDoc(collection(db, "auditLogs"), {
+    await addDoc(sCol("auditLogs"), {
       at: serverTimestamp(),
       uid: u.uid,
       email: u.email || "",
@@ -36,7 +37,7 @@ let bumpTimer = null;
 export function bumpContentVersion() {
   clearTimeout(bumpTimer);
   bumpTimer = setTimeout(() => {
-    setDoc(doc(db, "siteSettings", "public"), { contentVersion: increment(1) }, { merge: true })
+    setDoc(sDoc("siteSettings", "public"), { contentVersion: increment(1) }, { merge: true })
       .catch((e) => console.warn("contentVersion", e));
   }, 800);
 }

@@ -8,11 +8,12 @@ import { withId } from "./common.js";
 import { slugify } from "../../utils/text.js";
 import { deleteStoragePaths } from "../imageService.js";
 import { toDate } from "../../utils/format.js";
+import { sCol, sDoc } from "../studioDb.js";
 
 export async function listCampaigns() {
-  const s = await getDocs(collection(db, "vipCampaigns"));
+  const s = await getDocs(sCol("vipCampaigns"));
   const items = s.docs.map(withId);
-  const stats = await Promise.all(items.map((c) => getDoc(doc(db, "vipCampaignStats", c.id))));
+  const stats = await Promise.all(items.map((c) => getDoc(sDoc("vipCampaignStats", c.id))));
   return items
     .map((c, i) => ({ ...c, count: stats[i].exists() ? stats[i].data().count || 0 : 0 }))
     .sort((a, b) => (toDate(b.createdAt)?.getTime() || 0) - (toDate(a.createdAt)?.getTime() || 0));
@@ -20,9 +21,9 @@ export async function listCampaigns() {
 
 export async function saveCampaign(id, data) {
   const slug = slugify(data.slug || data.name);
-  const dup = await getDocs(query(collection(db, "vipCampaigns"), where("slug", "==", slug), limit(2)));
+  const dup = await getDocs(query(sCol("vipCampaigns"), where("slug", "==", slug), limit(2)));
   if (dup.docs.some((d) => d.id !== id)) throw new Error("Já existe uma campanha com esse endereço (slug). Escolha outro.");
-  const ref = id ? doc(db, "vipCampaigns", id) : doc(collection(db, "vipCampaigns"));
+  const ref = id ? sDoc("vipCampaigns", id) : doc(sCol("vipCampaigns"));
   await setDoc(ref, {
     ...data,
     slug,
@@ -35,14 +36,14 @@ export async function saveCampaign(id, data) {
 }
 
 export async function setCampaignStatus(id, status) {
-  await updateDoc(doc(db, "vipCampaigns", id), { status, updatedAt: serverTimestamp() });
+  await updateDoc(sDoc("vipCampaigns", id), { status, updatedAt: serverTimestamp() });
   audit("vip.campaign.status", "vipCampaigns", id, { status });
 }
 
 /** Abre a janela de acesso VIP agora, com contador de N horas. */
 export async function launchVipAccess(id, hours = 24) {
   const now = new Date();
-  await updateDoc(doc(db, "vipCampaigns", id), {
+  await updateDoc(sDoc("vipCampaigns", id), {
     vipAccessStartsAt: now,
     countdownEndsAt: new Date(now.getTime() + hours * 3600000),
     status: "published",
@@ -52,24 +53,24 @@ export async function launchVipAccess(id, hours = 24) {
 }
 
 export async function deleteCampaign(c) {
-  const regs = await getDocs(query(collection(db, "vipRegistrations"), where("campaignId", "==", c.id), limit(1)));
+  const regs = await getDocs(query(sCol("vipRegistrations"), where("campaignId", "==", c.id), limit(1)));
   if (!regs.empty) throw new Error("Esta campanha tem inscritos. Encerre a campanha (ou exclua os inscritos) antes de apagá-la.");
-  await deleteDoc(doc(db, "vipCampaigns", c.id));
-  await deleteDoc(doc(db, "vipCampaignStats", c.id)).catch(() => {});
+  await deleteDoc(sDoc("vipCampaigns", c.id));
+  await deleteDoc(sDoc("vipCampaignStats", c.id)).catch(() => {});
   await deleteStoragePaths([c.imagePath, c.imageThumbPath]);
   audit("vip.campaign.delete", "vipCampaigns", c.id, { name: c.name });
 }
 
 export async function listRegistrations(campaignId = null) {
   const q = campaignId
-    ? query(collection(db, "vipRegistrations"), where("campaignId", "==", campaignId), orderBy("createdAt", "desc"))
-    : query(collection(db, "vipRegistrations"), orderBy("createdAt", "desc"));
+    ? query(sCol("vipRegistrations"), where("campaignId", "==", campaignId), orderBy("createdAt", "desc"))
+    : query(sCol("vipRegistrations"), orderBy("createdAt", "desc"));
   const s = await getDocs(q);
   return s.docs.map(withId);
 }
 
 export async function updateRegistration(id, patch) {
-  await updateDoc(doc(db, "vipRegistrations", id), { ...patch, updatedAt: serverTimestamp() });
+  await updateDoc(sDoc("vipRegistrations", id), { ...patch, updatedAt: serverTimestamp() });
   audit("vip.registration.update", "vipRegistrations", id, patch);
 }
 
@@ -80,10 +81,10 @@ export async function updateRegistration(id, patch) {
 export async function deleteRegistrations(regs, reason = "manual") {
   for (const r of regs) {
     await runTransaction(db, async (tx) => {
-      const statsRef = doc(db, "vipCampaignStats", r.campaignId);
+      const statsRef = sDoc("vipCampaignStats", r.campaignId);
       const stats = await tx.get(statsRef);
-      tx.delete(doc(db, "vipRegistrations", r.id));
-      tx.delete(doc(db, "vipMembers", `${r.campaignId}_${r.phone}`));
+      tx.delete(sDoc("vipRegistrations", r.id));
+      tx.delete(sDoc("vipMembers", `${r.campaignId}_${r.phone}`));
       if (stats.exists()) tx.update(statsRef, { count: Math.max(0, (stats.data().count || 0) - 1) });
     });
   }

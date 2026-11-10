@@ -48,8 +48,8 @@ export default function AdminLayout() {
     meta.content = "noindex, nofollow";
     document.head.appendChild(meta);
     const current = ADMIN_NAV.find((n) => pathname.startsWith(n.to));
-    document.title = `${current?.label || "Painel"} · Painel Taíse Foto`;
-  }, [pathname]);
+    document.title = `${current?.label || "Painel"} · ${admin?.studioName || "Painel"}`;
+  }, [pathname, admin?.studioName]);
 
   const footer = (
     <div className="space-y-1 border-t border-ink/5 pt-4">
@@ -59,6 +59,11 @@ export default function AdminLayout() {
       <button onClick={logout} className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-ink-soft hover:bg-ink/5">
         <LogOut className="h-[18px] w-[18px]" strokeWidth={1.6} aria-hidden /> Sair
       </button>
+      {admin?.plan === "trial" && admin?.trialEndsAt && (
+        <p className="mx-2 mt-2 rounded-xl bg-wine-900/5 px-3 py-2 text-xs text-ink-soft">
+          Teste grátis até <b>{admin.trialEndsAt.toLocaleDateString("pt-BR")}</b>
+        </p>
+      )}
       <p className="truncate px-3.5 pt-2 text-xs text-ink-muted" title={user?.email}>{admin?.name || user?.email}</p>
     </div>
   );

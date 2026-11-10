@@ -3,10 +3,11 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase.js";
 import { dayTimeToDate, addDays } from "../../utils/format.js";
+import { sCol } from "../studioDb.js";
 
 /** Contadores diários do período: { 'AAAA-MM-DD': { pv, visit, ... } }. */
 export async function loadDailyCounters(from, to) {
-  const s = await getDocs(query(collection(db, "analyticsDaily"), where(documentId(), ">=", from), where(documentId(), "<=", to)));
+  const s = await getDocs(query(sCol("analyticsDaily"), where(documentId(), ">=", from), where(documentId(), "<=", to)));
   const out = {};
   s.docs.forEach((d) => { const { _k, ...rest } = d.data(); out[d.id] = rest; });
   return out;
@@ -16,7 +17,7 @@ export async function loadDailyCounters(from, to) {
 export async function countRecords(from, to) {
   const start = Timestamp.fromDate(dayTimeToDate(from, "00:00"));
   const end = Timestamp.fromDate(dayTimeToDate(addDays(to, 1), "00:00"));
-  const range = (name) => query(collection(db, name), where("createdAt", ">=", start), where("createdAt", "<", end));
+  const range = (name) => query(sCol(name), where("createdAt", ">=", start), where("createdAt", "<", end));
   const [appts, vips] = await Promise.all([
     getCountFromServer(range("appointments")),
     getCountFromServer(range("vipRegistrations")),
