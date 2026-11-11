@@ -152,9 +152,11 @@ export default function RevelaSignup() {
                   <p className="mb-4 text-[17px] font-medium text-rv-ameixa">Endereço do seu site</p>
                   <label className="block">
                     <span className="sr-only">Endereço</span>
-                    <span className={`${inputCls} flex items-center gap-0 p-0 focus-within:border-rv-rosa focus-within:ring-4 focus-within:ring-rv-rosa/15`}>
-                      <span className="shrink-0 select-none py-3.5 pl-4 text-rv-ink2">{siteHost()}/</span>
-                      <input className="min-w-0 flex-1 bg-transparent py-3.5 pr-4 text-rv-ameixa outline-none" value={address} aria-invalid={!!slugErr || undefined}
+                    {/* No celular o domínio fica numa linha pequena em cima e o campo ocupa a largura toda. */}
+                    <span className={`${inputCls} flex flex-col gap-0 p-0 focus-within:border-rv-rosa focus-within:ring-4 focus-within:ring-rv-rosa/15 sm:flex-row sm:items-center`}>
+                      <span className="min-w-0 shrink-0 select-none truncate px-4 pt-3 text-[13px] text-rv-ink2 sm:max-w-[60%] sm:py-3.5 sm:pr-0 sm:text-[16px]">{siteHost()}/</span>
+                      <input className="min-w-0 flex-1 bg-transparent px-4 pb-3.5 pt-0.5 text-[17px] font-medium text-rv-ameixa outline-none focus:outline-none focus-visible:outline-none sm:pl-0 sm:pt-3.5 sm:text-[16px] sm:font-normal"
+                        style={{ outline: "none", boxShadow: "none" }} value={address} aria-invalid={!!slugErr || undefined}
                         onChange={(e) => { setSlugTouched(true); setSlug(cleanSlugInput(e.target.value)); }} spellCheck="false" autoCapitalize="none" />
                     </span>
                   </label>
@@ -177,8 +179,9 @@ export default function RevelaSignup() {
                       ["E-mail", f.email],
                       ["Endereço", `${siteHost()}/${address}`],
                     ].map(([k, v]) => (
-                      <div key={k} className="flex justify-between gap-4 py-3.5">
-                        <dt className="text-rv-ink2">{k}</dt><dd className="min-w-0 truncate text-right font-medium text-rv-ameixa">{v}</dd>
+                      <div key={k} className="flex flex-col gap-0.5 py-3 sm:flex-row sm:justify-between sm:gap-4 sm:py-3.5">
+                        <dt className="shrink-0 text-[13px] text-rv-ink2 sm:text-[15px]">{k}</dt>
+                        <dd className="min-w-0 break-all font-medium text-rv-ameixa sm:break-normal sm:truncate sm:text-right">{v}</dd>
                       </div>
                     ))}
                   </dl>
@@ -199,13 +202,14 @@ export default function RevelaSignup() {
               )}
             </div>
 
-            <div className="mt-8 flex items-center justify-between gap-3">
+            {/* Celular: botões empilhados, largura toda, o principal em cima. */}
+            <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
               {step > 0
-                ? <button type="button" onClick={back} className="rv-btn lg lg-pill rv-btn-glass"><ArrowLeft className="h-4 w-4" aria-hidden />Voltar</button>
-                : <span />}
+                ? <button type="button" onClick={back} className="rv-btn lg lg-pill rv-btn-glass w-full justify-center sm:w-auto"><ArrowLeft className="h-4 w-4" aria-hidden />Voltar</button>
+                : <span className="hidden sm:block" />}
               {step < STEPS.length - 1
-                ? <button type="button" onClick={next} className="rv-btn rv-btn-primary">Continuar<ArrowRight className="h-4 w-4" aria-hidden /></button>
-                : <button type="button" className="rv-btn rv-btn-primary" onClick={startTrial} disabled={!SIGNUP_OPEN || busy}>
+                ? <button type="button" onClick={next} className="rv-btn rv-btn-primary w-full justify-center sm:w-auto">Continuar<ArrowRight className="h-4 w-4" aria-hidden /></button>
+                : <button type="button" className="rv-btn rv-btn-primary w-full justify-center sm:w-auto" onClick={startTrial} disabled={!SIGNUP_OPEN || busy}>
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <span className="rv-btn-dot" aria-hidden />}
                     {busy ? "Criando seu estúdio…" : `Usar teste de ${TRIAL_DAYS} dias`}
                   </button>}

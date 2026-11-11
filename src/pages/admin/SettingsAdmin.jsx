@@ -49,13 +49,14 @@ export default function SettingsAdmin() {
   const pending = useMemo(() => {
     if (!form) return [];
     const p = [];
+    const legacy = isLegacyStudio();
     if (form.isDefault) p.push("As configurações ainda não foram salvas — o site está usando os textos iniciais.");
-    if (!form.hero.images?.length) p.push("Escolha as fotos de destaque da página inicial (hoje aparecem fotos provisórias do projeto antigo).");
+    if (!form.hero.images?.length) p.push(legacy ? "Escolha as fotos de destaque da página inicial (hoje aparecem fotos provisórias do projeto antigo)." : "Escolha as fotos de destaque da página inicial (hoje aparecem fotos de exemplo).");
     if (!form.about.photoUrl) p.push("Escolha a foto da seção Sobre.");
-    if (!form.contact.city) p.push("Informe a cidade/bairro do estúdio (não constava no projeto antigo).");
+    if (!form.contact.city) p.push(legacy ? "Informe a cidade/bairro do estúdio (não constava no projeto antigo)." : "Informe a cidade ou o bairro do estúdio.");
     if (!form.contact.hours) p.push("Informe os horários de atendimento.");
-    if (!form.social.instagram) p.push("Informe o link do Instagram (no projeto antigo o link estava vazio).");
-    if (form.contact.email === "tarufino@gmail.com") p.push("Confirme o e-mail de contato: o projeto antigo exibia tarufino@gmail.com no rodapé e contato@taisefoto.com na configuração.");
+    if (!form.social.instagram) p.push(legacy ? "Informe o link do Instagram (no projeto antigo o link estava vazio)." : "Informe o link do Instagram.");
+    if (legacy && form.contact.email === "tarufino@gmail.com") p.push("Confirme o e-mail de contato: o projeto antigo exibia tarufino@gmail.com no rodapé e contato@taisefoto.com na configuração.");
     return p;
   }, [form]);
 
@@ -199,7 +200,7 @@ export default function SettingsAdmin() {
         )}
 
         {tab === "contato" && (
-          <Section title="Contato e localização" text="Dados conferidos no projeto antigo. Ajuste se algo mudou.">
+          <Section title="Contato e localização" text={isLegacyStudio() ? "Dados conferidos no projeto antigo. Ajuste se algo mudou." : "Como os clientes falam com você e onde fica o estúdio."}>
             <div className="grid gap-5 sm:grid-cols-2">
               <TextField label="Telefone (como aparece no site)" value={v("contact.phone")} onChange={upd("contact.phone")} />
               <TextField label="WhatsApp (com DDD)" value={formatPhoneBR(v("contact.whatsapp")) || v("contact.whatsapp")} onChange={upd("contact.whatsapp")}

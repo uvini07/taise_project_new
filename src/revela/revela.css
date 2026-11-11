@@ -34,7 +34,9 @@
   letter-spacing: -0.015em;
 }
 .rv ::selection { background: rgb(var(--rosa)); color: #fff; }
-.rv :focus-visible { outline: 2px solid rgb(var(--rosa)); outline-offset: 3px; border-radius: 10px; }
+/* Campos de texto já têm o próprio destaque (borda + halo); a moldura fica só em botões e links. */
+.rv :focus-visible:not(input):not(textarea):not(select) { outline: 2px solid rgb(var(--rosa)); outline-offset: 3px; border-radius: 10px; }
+.rv input:focus-visible, .rv textarea:focus-visible, .rv select:focus-visible { outline: none; }
 .rv a { -webkit-tap-highlight-color: transparent; }
 
 .rv-wrap { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: 20px; }

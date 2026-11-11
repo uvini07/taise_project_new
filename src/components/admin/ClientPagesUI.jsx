@@ -12,6 +12,7 @@ import { slugify } from "../../utils/text.js";
 import { whatsappLink } from "../../utils/whatsapp.js";
 import { DEMO_MODE } from "../../services/admin/clientPagesDemo.js";
 import { sitePath } from "../../config/tenant.js";
+import { useSettings } from "../../contexts/SettingsContext.jsx";
 
 export function clientUrl(kind, slug) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -103,6 +104,7 @@ export function ProgressBar({ value, label }) {
  * kind = "selection" (seleção de fotos) | "delivery" (entrega final).
  */
 export function ClientEditor({ kind, initial, taken, selections = [], onClose, onSave }) {
+  const brandName = useSettings().settings.brandName || "Seu estúdio";
   const isSelection = kind === "selection";
   const defaults = isSelection ? SELECTION_DEFAULTS : DELIVERY_DEFAULTS;
   const [code] = useState(() => randomCode(4));
@@ -209,7 +211,7 @@ export function ClientEditor({ kind, initial, taken, selections = [], onClose, o
                   checked={f.watermarkStrong} onChange={(v) => setF((x) => ({ ...x, watermarkStrong: v }))} />
               )}
               {f.watermark && (
-                <Toggle label="Nome do cliente na marca d'água" hint={`Ex.: “Taíse Foto · ${f.clientName.trim() || "Ana Souza"}”. Se a foto vazar, dá para saber de quem veio — é o que mais desestimula prints.`}
+                <Toggle label="Nome do cliente na marca d'água" hint={`Ex.: “${brandName} · ${f.clientName.trim() || "Ana Souza"}”. Se a foto vazar, dá para saber de quem veio — é o que mais desestimula prints.`}
                   checked={f.watermarkClientName} onChange={(v) => setF((x) => ({ ...x, watermarkClientName: v }))} />
               )}
               <Toggle label="Proteção contra cópia e prints" hint="Bloqueia clique direito, salvar imagem, arrastar e copiar; esconde as fotos em atalhos de print, ao abrir o Inspecionar e quando a janela perde o foco; põe nome, data e hora por cima das fotos. Dificulta muito, mas nenhum site impede prints 100% (no celular, nada bloqueia o print do aparelho)."

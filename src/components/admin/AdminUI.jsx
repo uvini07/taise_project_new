@@ -39,11 +39,12 @@ export function StatCard({ label, value, hint, icon: Icon, tone = "default", onC
 
 export function PeriodPicker({ value, custom, onChange }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <div className="flex flex-wrap gap-1 rounded-full border border-ink/10 bg-surface p-1">
+    <div className="flex max-w-full flex-wrap items-center gap-2">
+      {/* Uma linha só; no celular rola para o lado em vez de quebrar. */}
+      <div className="scrollbar-none flex max-w-full gap-1 overflow-x-auto rounded-full border border-ink/10 bg-surface p-1">
         {PERIODS.map((p) => (
           <button key={p.id} onClick={() => onChange(p.id, custom)}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${value === p.id ? "bg-wine-900 text-cream" : "text-ink-soft hover:bg-ink/5"}`}>
+            className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-medium transition ${value === p.id ? "bg-wine-900 text-cream" : "text-ink-soft hover:bg-ink/5"}`}>
             {p.label}
           </button>
         ))}
