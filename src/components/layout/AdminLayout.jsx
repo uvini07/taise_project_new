@@ -7,37 +7,70 @@ import Logo from "../common/Logo.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { isLegacyStudio } from "../../config/tenant.js";
 import OnboardingTour from "../admin/OnboardingTour.jsx";
+import { confirmLeave } from "../../utils/unsaved.js";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { logout } from "../../services/authService.js";
 import { useBodyLock } from "../../hooks/useBodyLock.js";
 import { sitePath } from "../../config/tenant.js";
 
-export const ADMIN_NAV = [
-  { to: "/adm/dashboard", label: "Visão geral", icon: LayoutDashboard },
-  { to: "/adm/agenda", label: "Agenda", icon: CalendarDays },
-  { to: "/adm/selecao", label: "Seleção de fotos", icon: Heart },
-  { to: "/adm/entrega", label: "Entrega final", icon: PackageCheck },
-  { to: "/adm/pacotes", label: "Pacotes", icon: Package },
-  { to: "/adm/galeria", label: "Galeria", icon: Images },
-  { to: "/adm/evento", label: "Evento promocional", icon: Sparkles },
-  { to: "/adm/vip", label: "VIP", icon: Crown },
-  { to: "/adm/financeiro", label: "Financeiro", icon: Wallet },
-  { to: "/adm/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/adm/estilo", label: "Estilo", icon: Palette },
-  { to: "/adm/configuracoes", label: "Configurações", icon: Settings },
+// Menu do painel em três grupos. "beta" marca ferramentas ainda em teste.
+export const ADMIN_GROUPS = [
+  { title: null, items: [
+    { to: "/adm/dashboard", label: "Visão geral", icon: LayoutDashboard },
+  ] },
+  { title: "Meu site", items: [
+    { to: "/adm/estilo", label: "Estilo do site", icon: Palette, hint: "Modelo, fontes e cores" },
+    { to: "/adm/configuracoes", label: "Conteúdo do site", icon: Settings, hint: "Textos, fotos e contato" },
+    { to: "/adm/pacotes", label: "Pacotes", icon: Package },
+    { to: "/adm/galeria", label: "Galeria", icon: Images },
+    { to: "/adm/evento", label: "Evento promocional", icon: Sparkles },
+    { to: "/adm/vip", label: "Lista VIP", icon: Crown },
+  ] },
+  { title: "Clientes", items: [
+    { to: "/adm/agenda", label: "Agenda", icon: CalendarDays },
+    { to: "/adm/selecao", label: "Seleção de fotos", icon: Heart, beta: true },
+    { to: "/adm/entrega", label: "Entrega final", icon: PackageCheck, beta: true },
+  ] },
+  { title: "Gestão", items: [
+    { to: "/adm/financeiro", label: "Financeiro", icon: Wallet },
+    { to: "/adm/analytics", label: "Visitas do site", icon: BarChart3 },
+  ] },
 ];
+export const ADMIN_NAV = ADMIN_GROUPS.flatMap((g) => g.items);
 
 function NavList({ onNavigate }) {
   return (
-    <nav aria-label="Painel" className="flex flex-col gap-1">
-      {ADMIN_NAV.map(({ to, label, icon: Icon }) => (
-        <NavLink key={to} to={to} onClick={onNavigate}
-          className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm transition ${
-            isActive ? "bg-wine-900 text-cream shadow-soft" : "text-ink-soft hover:bg-ink/5 hover:text-ink"}`}>
-          <Icon className="h-[18px] w-[18px]" strokeWidth={1.6} aria-hidden /> {label}
-        </NavLink>
+    <nav aria-label="Painel" className="flex flex-col gap-3">
+      {ADMIN_GROUPS.map((g) => (
+        <div key={g.title || "inicio"} className="flex flex-col gap-0.5">
+          {g.title && <p className="px-3.5 pb-1 text-[10px] font-medium uppercase tracking-[0.2em] text-ink-muted">{g.title}</p>}
+          {g.items.map(({ to, label, icon: Icon, beta, hint }) => (
+            <NavLink key={to} to={to} title={hint}
+              onClick={(e) => { if (!confirmLeave()) { e.preventDefault(); return; } onNavigate?.(); }}
+              className={({ isActive }) => `flex items-center gap-3 rounded-xl px-3.5 py-[7px] text-sm transition ${
+                isActive ? "bg-wine-900 text-cream shadow-soft" : "text-ink-soft hover:bg-ink/5 hover:text-ink"}`}>
+              <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.6} aria-hidden />
+              <span className="flex-1">{label}</span>
+              {beta && <span className="rounded-full bg-gold/20 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-gold-dark" title="Em teste: as fotos ainda não ficam salvas">teste</span>}
+            </NavLink>
+          ))}
+        </div>
       ))}
     </nav>
+  );
+}
+
+/** Aviso no topo do painel quando faltam 7 dias ou menos para o teste acabar. */
+function TrialBanner() {
+  const { admin } = useAuth();
+  if (admin?.plan !== "trial" || !admin?.trialEndsAt) return null;
+  const days = Math.ceil((admin.trialEndsAt.getTime() - Date.now()) / 86400000);
+  if (days > 7) return null;
+  return (
+    <div className="sticky top-0 z-50 bg-wine-900 px-4 py-2.5 text-center text-sm text-cream lg:pl-64">
+      {days <= 0 ? "Seu teste grátis termina hoje." : `Seu teste grátis termina em ${days} ${days === 1 ? "dia" : "dias"}.`}{" "}
+      Para continuar sem perder nada, <a href="/planos" target="_blank" rel="noopener noreferrer" className="font-medium underline underline-offset-2">escolha um plano</a>.
+    </div>
   );
 }
 
@@ -48,11 +81,11 @@ function NavList({ onNavigate }) {
 function AdminBrand({ compact = false }) {
   const { settings } = useSettings();
   if (isLegacyStudio() || settings.logoUrl) {
-    return <Link to="/adm/dashboard" className={compact ? "" : "mb-8 block px-2"}><Logo className={compact ? "h-10 w-auto" : "h-14 w-auto"} eager /></Link>;
+    return <Link to="/adm/dashboard" className={compact ? "" : "mb-5 block px-2"}><Logo className={compact ? "h-10 w-auto" : "h-14 w-auto"} eager /></Link>;
   }
   return (
     <Link to="/adm/configuracoes?aba=identidade#logo"
-      className={`group flex items-center gap-2.5 rounded-2xl border-2 border-dashed border-wine-900/25 text-wine-900 transition hover:border-wine-900/60 hover:bg-wine-900/5 ${compact ? "px-3 py-1.5" : "mb-8 px-3 py-3"}`}>
+      className={`group flex items-center gap-2.5 rounded-2xl border-2 border-dashed border-wine-900/25 text-wine-900 transition hover:border-wine-900/60 hover:bg-wine-900/5 ${compact ? "px-3 py-1.5" : "mb-5 px-3 py-3"}`}>
       <span className={`flex shrink-0 items-center justify-center rounded-xl bg-wine-900/10 ${compact ? "h-7 w-7" : "h-9 w-9"}`}>
         <ImagePlus className="h-4 w-4" strokeWidth={1.8} aria-hidden />
       </span>
@@ -83,7 +116,7 @@ export default function AdminLayout() {
       <Link to={sitePath("/")} target="_blank" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-ink-soft hover:bg-ink/5">
         <ExternalLink className="h-[18px] w-[18px]" strokeWidth={1.6} aria-hidden /> Ver o site
       </Link>
-      <button onClick={logout} className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-ink-soft hover:bg-ink/5">
+      <button onClick={() => confirmLeave() && logout()} className="flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-ink-soft hover:bg-ink/5">
         <LogOut className="h-[18px] w-[18px]" strokeWidth={1.6} aria-hidden /> Sair
       </button>
       {admin?.plan === "trial" && admin?.trialEndsAt && (
@@ -98,6 +131,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-paper">
       <OnboardingTour />
+      <TrialBanner />
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-ink/5 bg-ivory p-5 lg:flex">
         <AdminBrand />
         <div className="flex-1 overflow-y-auto"><NavList /></div>
@@ -114,12 +148,13 @@ export default function AdminLayout() {
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 animate-fade-in bg-ink/40" onClick={() => setOpen(false)} aria-hidden />
-          <div className="absolute inset-y-0 right-0 flex w-72 max-w-[85vw] animate-fade-in flex-col bg-ivory p-5 shadow-lift" role="dialog" aria-label="Menu do painel">
-            <div className="mb-6 flex justify-end">
+          {/* No celular o menu inteiro rola junto (itens + Ver o site/Sair), sem área escondida. */}
+          <div className="absolute inset-y-0 right-0 w-72 max-w-[85vw] animate-fade-in overflow-y-auto overscroll-contain bg-ivory p-5 pb-safe shadow-lift" role="dialog" aria-label="Menu do painel">
+            <div className="mb-4 flex justify-end">
               <button onClick={() => setOpen(false)} className="rounded-full p-2 hover:bg-ink/5" aria-label="Fechar menu"><X className="h-5 w-5" /></button>
             </div>
-            <div className="flex-1 overflow-y-auto"><NavList onNavigate={() => setOpen(false)} /></div>
-            {footer}
+            <NavList onNavigate={() => setOpen(false)} />
+            <div className="mt-5">{footer}</div>
           </div>
         </div>
       )}

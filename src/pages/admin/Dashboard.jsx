@@ -23,6 +23,7 @@ import { summarize, txBalance } from "../../utils/finance.js";
 import { resolvePeriod } from "../../utils/period.js";
 import { getDoc, doc } from "firebase/firestore";
 import { sCol, sDoc } from "../../services/studioDb.js";
+import { isLegacyStudio, sitePath } from "../../config/tenant.js";
 
 const withId = (d) => ({ id: d.id, ...d.data() });
 
@@ -73,12 +74,19 @@ export default function Dashboard() {
     return { published, seats, unlimited, fin, vipInPeriod, openIncome, recentExpenses, next7: data.upcoming.filter((a) => a.date <= addDays(today, 7)) };
   }, [data, range.from, range.to, today]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Lista de primeiros passos: o site primeiro, depois agenda e pacotes.
+  const legacy = isLegacyStudio();
+  const [sawSite, setSawSite] = useState(() => { try { return localStorage.getItem(`revela-viu-site:${admin?.studio}`) === "1"; } catch { return false; } });
+  const markSawSite = () => { setSawSite(true); try { localStorage.setItem(`revela-viu-site:${admin?.studio}`, "1"); } catch { /* sem armazenamento */ } };
   const steps = data ? [
-    [!settings.isDefault, "Revise textos, contato e fotos de destaque", "/adm/configuracoes"],
-    [data.categories.length > 0, "Crie as categorias da galeria", "/adm/galeria"],
-    [data.categories.length > 0 && data.categories.some((c) => c.visible), "Publique fotos e deixe uma categoria visível", "/adm/galeria"],
-    [data.hasAvailability, "Configure dias e horários de atendimento", "/adm/agenda"],
+    [legacy || !!settings.logoUrl, "Envie a sua logo", "/adm/configuracoes?aba=identidade#logo"],
+    [legacy || !!settings.styleChosen, "Escolha o modelo, as fontes e as cores do site", "/adm/estilo"],
+    [!!settings.hero?.images?.length, "Coloque as suas fotos no topo do site", "/adm/configuracoes?aba=inicio"],
+    [legacy ? !settings.isDefault : !!settings.contentSaved, "Revise os textos e o contato do site", "/adm/configuracoes"],
+    [data.categories.length > 0 && data.categories.some((c) => c.visible), "Monte a galeria com as suas fotos", "/adm/galeria"],
     [data.packages.some((p) => isPublicStatus(p.status)), "Publique o primeiro pacote", "/adm/pacotes"],
+    [data.hasAvailability, "Configure os dias e horários da agenda", "/adm/agenda"],
+    [sawSite, "Veja como ficou o seu site", sitePath("/"), true],
   ] : [];
   const pendingSteps = steps.filter(([ok]) => !ok).length;
   const first = (admin?.name || user?.email || "").split(/[ @]/)[0];
@@ -91,16 +99,28 @@ export default function Dashboard() {
       {error ? <ErrorState error={error} onRetry={reload} /> : !view ? <div className="py-20 text-center"><Spinner /></div> : (
         <div className="space-y-6">
           {pendingSteps > 0 && (
-            <Section title="Primeiros passos" text={`${steps.length - pendingSteps} de ${steps.length} concluídos.`}>
+            <Section title="Primeiros passos" text={`${steps.length - pendingSteps} de ${steps.length} concluídos. Clique em um item para ir direto ao lugar certo.`}>
+              <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-ink/5" aria-hidden>
+                <div className="h-full rounded-full bg-success transition-all" style={{ width: `${((steps.length - pendingSteps) / steps.length) * 100}%` }} />
+              </div>
               <ul className="grid gap-2 sm:grid-cols-2">
-                {steps.map(([ok, label, to]) => (
-                  <li key={label}>
-                    <Link to={to} className="flex items-center gap-3 rounded-xl px-3 py-2 text-sm hover:bg-ink/5">
-                      {ok ? <CheckCircle2 className="h-5 w-5 text-success" /> : <Circle className="h-5 w-5 text-ink-muted" />}
-                      <span className={ok ? "text-ink-muted line-through" : ""}>{label}</span>
-                    </Link>
-                  </li>
-                ))}
+                {steps.map(([ok, label, to, external]) => {
+                  const inner = (
+                    <>
+                      {ok ? <CheckCircle2 className="h-5 w-5 shrink-0 text-success" /> : <Circle className="h-5 w-5 shrink-0 text-ink-muted" />}
+                      <span className={`flex-1 ${ok ? "text-ink-muted line-through" : ""}`}>{label}</span>
+                      {!ok && <ArrowRight className="h-4 w-4 shrink-0 text-ink-muted" aria-hidden />}
+                    </>
+                  );
+                  const cls = "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm hover:bg-ink/5";
+                  return (
+                    <li key={label}>
+                      {external
+                        ? <a href={to} target="_blank" rel="noopener noreferrer" onClick={markSawSite} className={cls}>{inner}</a>
+                        : <Link to={to} className={cls}>{inner}</Link>}
+                    </li>
+                  );
+                })}
               </ul>
             </Section>
           )}
@@ -173,7 +193,7 @@ export default function Dashboard() {
 
           <Section title="Atalhos">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[[Images, "Enviar fotos", "/adm/galeria"], [Package, "Editar pacotes", "/adm/pacotes"], [CalendarCheck, "Administrar agenda", "/adm/agenda"], [Settings, "Configurações", "/adm/configuracoes"]].map(([Icon, label, to]) => (
+              {[[Images, "Enviar fotos", "/adm/galeria"], [Package, "Editar pacotes", "/adm/pacotes"], [CalendarCheck, "Administrar agenda", "/adm/agenda"], [Settings, "Conteúdo do site", "/adm/configuracoes"]].map(([Icon, label, to]) => (
                 <Link key={to} to={to} className="flex flex-col items-center gap-2 rounded-2xl border border-ink/10 px-3 py-5 text-center text-sm transition hover:border-wine-900 hover:bg-wine-50">
                   <Icon className="h-6 w-6 text-gold" strokeWidth={1.5} /> {label}
                 </Link>

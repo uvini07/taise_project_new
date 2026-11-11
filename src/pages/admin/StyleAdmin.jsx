@@ -12,6 +12,7 @@ import {
 } from "../../config/siteStyle.js";
 import { applyTheme, isHex } from "../../utils/theme.js";
 import { ThemeEditor } from "./SettingsAdmin.jsx";
+import { useUnsavedGuard } from "../../utils/unsaved.js";
 
 // ---------------------------------------------------------------- miniaturas
 // Desenho simplificado de cada modelo, já com as cores e a foto do estúdio.
@@ -198,16 +199,19 @@ export default function StyleAdmin() {
   const saved = { theme: settings.theme, fonts: settings.fonts };
   useEffect(() => () => { applyTheme(saved.theme); applyFonts(saved.fonts); }, [saved.theme, saved.fonts]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Alterações ainda não salvas (modelo, fontes ou cores)?
+  const dirty = !!form && (form.layout !== settings.layout
+    || form.fonts.display !== settings.fonts.display || form.fonts.body !== settings.fonts.body
+    || JSON.stringify(form.theme) !== JSON.stringify(settings.theme)
+    || JSON.stringify(form.themePresets) !== JSON.stringify(settings.themePresets));
+  useUnsavedGuard(dirty);
+
   if (!form) return <div className="py-20 text-center"><Spinner /></div>;
 
   const imgs = form.hero?.images?.length ? form.hero.images : FALLBACK_IMAGES.hero;
   const imgAt = (k) => { const i = imgs[k % imgs.length]; return i.thumbUrl || i.url; };
   const about = form.about?.photoThumbUrl || form.about?.photoUrl || FALLBACK_IMAGES.about.url;
   const setFont = (k, id) => setForm((f) => { const fonts = { ...f.fonts, [k]: id }; applyFonts(fonts); return { ...f, fonts }; });
-  const dirty = form.layout !== settings.layout
-    || form.fonts.display !== settings.fonts.display || form.fonts.body !== settings.fonts.body
-    || JSON.stringify(form.theme) !== JSON.stringify(settings.theme)
-    || JSON.stringify(form.themePresets) !== JSON.stringify(settings.themePresets);
 
   async function save() {
     if (["primary", "background", "surface", "text", "onPrimary", "accent"].some((k) => form.theme[k] && !isHex(form.theme[k]))) {
@@ -216,8 +220,8 @@ export default function StyleAdmin() {
     }
     setSaving(true);
     try {
-      await saveSettings({ layout: form.layout, fonts: form.fonts, theme: form.theme, themePresets: form.themePresets || [] });
-      toast.success("Estilo salvo. O site já foi atualizado.");
+      await saveSettings({ layout: form.layout, fonts: form.fonts, theme: form.theme, themePresets: form.themePresets || [], styleChosen: true });
+      toast.success("Estilo salvo! Clique em “Ver no site” para conferir.");
     } catch (e) {
       toast.error(e.code === "permission-denied" ? "Sem permissão para salvar." : "Não foi possível salvar.");
     } finally {
@@ -227,18 +231,19 @@ export default function StyleAdmin() {
 
   const saveBtn = (
     <button className="btn-primary" onClick={save} disabled={saving || !dirty}>
-      {saving ? <Spinner className="h-4 w-4" /> : <Save className="h-4 w-4" />} Salvar estilo
+      {saving ? <Spinner className="h-4 w-4" /> : <Save className="h-4 w-4" />} {dirty ? "Salvar estilo" : "Tudo salvo"}
     </button>
   );
 
   return (
     <>
-      <AdminHeader title="Estilo" text="A cara do seu site: o modelo (estrutura do site inteiro), as fontes e as cores. Os textos e as fotos ficam em Configurações."
+      <AdminHeader title="Estilo do site" text="A cara do seu site: o modelo (estrutura do site inteiro), as fontes e as cores. Os textos e as fotos ficam em Conteúdo do site."
         actions={(
           <div className="flex flex-wrap gap-2">
             <button type="button" className="btn-outline" onClick={() => window.dispatchEvent(new Event("revela:tour"))}>
               <PlayCircle className="h-4 w-4" /> Rever apresentação
             </button>
+            <a href={sitePath("/")} target="_blank" rel="noopener noreferrer" className="btn-outline"><ExternalLink className="h-4 w-4" /> Ver no site</a>
             {saveBtn}
           </div>
         )} />

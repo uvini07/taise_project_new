@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { AlertCircle, ArrowDown, ArrowUp, Plus, Save, Trash2 } from "lucide-react";
+import { AlertCircle, ArrowDown, ArrowUp, ExternalLink, Plus, Save, Trash2 } from "lucide-react";
 import { AdminHeader, ImageInput, Section } from "../../components/admin/AdminUI.jsx";
 import { TextArea, TextField, Toggle } from "../../components/common/Fields.jsx";
 import Spinner from "../../components/common/Spinner.jsx";
@@ -10,7 +10,8 @@ import { saveSettings } from "../../services/admin/settingsAdmin.js";
 import { deleteStoragePaths, uploadImage } from "../../services/imageService.js";
 import { BUILTIN_THEMES, applyTheme, isHex } from "../../utils/theme.js";
 import { formatPhoneBR, isValidEmail, normalizePhoneBR } from "../../utils/validation.js";
-import { isLegacyStudio } from "../../config/tenant.js";
+import { isLegacyStudio, sitePath } from "../../config/tenant.js";
+import { useUnsavedGuard } from "../../utils/unsaved.js";
 
 const TABS = [
   ["identidade", "Identidade"],
@@ -19,7 +20,7 @@ const TABS = [
   ["contato", "Contato"],
   ["textos", "Rodapé e políticas"],
   ["depoimentos", "Depoimentos"],
-  ["seo", "SEO e exibição"],
+  ["seo", "Google e exibição"],
 ];
 
 const set = (obj, path, value) => {
@@ -41,7 +42,11 @@ export default function SettingsAdmin() {
   const [saving, setSaving] = useState(false);
   const [toDelete, setToDelete] = useState([]);
 
-  useEffect(() => { if (!loading && !form) setForm(settings); }, [loading, settings, form]);
+  // Há alterações não salvas? (compara com o que foi carregado/salvo por último)
+  const [snapshot, setSnapshot] = useState("");
+  useEffect(() => { if (!loading && !form) { setForm(settings); setSnapshot(JSON.stringify(settings)); } }, [loading, settings, form]);
+  const dirty = !!form && !!snapshot && JSON.stringify(form) !== snapshot;
+  useUnsavedGuard(dirty);
   // Ao sair sem salvar, a prévia de cores volta para o tema publicado.
   const savedTheme = settings.theme;
   useEffect(() => () => applyTheme(savedTheme), [savedTheme]);
@@ -79,13 +84,13 @@ export default function SettingsAdmin() {
     if (errs.length) { toast.error(errs.join(" ")); return; }
     setSaving(true);
     try {
-      const { promoEvent, promoTemplates, theme, themePresets, layout, fonts, onboardingDone, ...rest } = form; // editados em Evento promocional e em Estilo
+      const { promoEvent, promoTemplates, theme, themePresets, layout, fonts, onboardingDone, styleChosen, ...rest } = form; // editados em Evento promocional e em Estilo
       const bw = form.contact.bookingWhatsapp ? normalizePhoneBR(form.contact.bookingWhatsapp) : "";
       if (form.contact.bookingWhatsapp && !bw) { toast.error("WhatsApp das reservas inválido."); setSaving(false); return; }
-      await saveSettings({ ...rest, contact: { ...form.contact, whatsapp: wa, bookingWhatsapp: bw } });
+      await saveSettings({ ...rest, contentSaved: true, contact: { ...form.contact, whatsapp: wa, bookingWhatsapp: bw } });
       if (toDelete.length) { await deleteStoragePaths(toDelete); setToDelete([]); }
-      setForm((f) => ({ ...f, isDefault: false, contact: { ...f.contact, whatsapp: wa } }));
-      toast.success("Configurações salvas. O site já foi atualizado.");
+      setForm((f) => { const next = { ...f, isDefault: false, contact: { ...f.contact, whatsapp: wa, bookingWhatsapp: bw } }; setSnapshot(JSON.stringify(next)); return next; });
+      toast.success("Salvo! Seu site já foi atualizado — clique em “Ver no site” para conferir.");
     } catch (e) {
       toast.error(e.code === "permission-denied" ? "Sem permissão para salvar." : "Não foi possível salvar.");
     } finally {
@@ -105,12 +110,17 @@ export default function SettingsAdmin() {
 
   return (
     <>
-      <AdminHeader title="Configurações" text="Textos, fotos de destaque, contato e preferências. Modelo, fontes e cores ficam na aba Estilo."
-        actions={<button className="btn-primary" onClick={save} disabled={saving}>{saving ? <Spinner className="h-4 w-4" /> : <Save className="h-4 w-4" />} Salvar alterações</button>} />
+      <AdminHeader title="Conteúdo do site" text="Os textos, as fotos e o contato que aparecem no seu site. O modelo, as fontes e as cores ficam em Estilo do site."
+        actions={(
+          <div className="flex flex-wrap gap-2">
+            <a href={sitePath("/")} target="_blank" rel="noopener noreferrer" className="btn-outline"><ExternalLink className="h-4 w-4" /> Ver no site</a>
+            <button className="btn-primary" onClick={save} disabled={saving || !dirty}>{saving ? <Spinner className="h-4 w-4" /> : <Save className="h-4 w-4" />} {dirty ? "Salvar alterações" : "Tudo salvo"}</button>
+          </div>
+        )} />
 
       {pending.length > 0 && (
         <div className="mb-6 rounded-2xl border border-warning/25 bg-warning/5 p-5 text-sm">
-          <p className="flex items-center gap-2 font-medium text-warning"><AlertCircle className="h-4 w-4" /> Pendências</p>
+          <p className="flex items-center gap-2 font-medium text-warning"><AlertCircle className="h-4 w-4" /> Falta preencher</p>
           <ul className="mt-2 list-disc space-y-1 pl-5 text-ink-soft">{pending.map((p) => <li key={p}>{p}</li>)}</ul>
         </div>
       )}

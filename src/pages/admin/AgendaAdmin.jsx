@@ -11,6 +11,8 @@ import PageLoader from "../../components/common/PageLoader.jsx";
 import { EmptyState, ErrorState } from "../../components/common/States.jsx";
 import { useConfirm } from "../../components/common/useConfirm.jsx";
 import { WhatsAppIcon } from "../../components/common/Icons.jsx";
+import { Link } from "react-router-dom";
+import { sitePath } from "../../config/tenant.js";
 import { useToast } from "../../contexts/ToastContext.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
@@ -26,7 +28,7 @@ import {
   addDays, centsToInput, formatBRL, formatDateTime, formatDayBR, formatDayLong, formatMonth, parseBRLToCents, todayKey, weekday,
 } from "../../utils/format.js";
 import { WEEKDAYS, generateSlots, withAvailabilityDefaults } from "../../utils/slots.js";
-import { packageAvailability } from "../../utils/lots.js";
+import { isPublicStatus, packageAvailability } from "../../utils/lots.js";
 import { formatPhoneBR, normalizePhoneBR, validateName } from "../../utils/validation.js";
 import { whatsappLink } from "../../utils/whatsapp.js";
 
@@ -488,6 +490,38 @@ function MonthGrid({ month, appts, onOpen }) {
   );
 }
 
+/**
+ * O que falta para o cliente conseguir agendar pelo site. Some quando tudo
+ * estiver pronto.
+ */
+function BookingGuide({ cfg, packages, onOpenAvailability }) {
+  const bookingPkgs = packages.filter((p) => isPublicStatus(p.status) && (p.ctaMode || "booking") === "booking");
+  const withLot = bookingPkgs.some((p) => (p.lots || []).some((l) => !l.archived && l.status === "active"));
+  const anyDay = Object.values(cfg.weekly || {}).some((d) => d?.enabled);
+  const steps = [
+    [bookingPkgs.length > 0, "Publique um pacote com o botão “Agenda on-line”", <Link to="/adm/pacotes" className="btn-outline btn-sm">Ir para Pacotes</Link>],
+    [withLot, "Dê um preço e um número de vagas ao pacote (um lote ativo)", <Link to="/adm/pacotes" className="btn-outline btn-sm">Ir para Pacotes</Link>],
+    [cfg.bookingEnabled && anyDay, "Deixe a agenda aberta e marque os dias e horários em que você atende", <button type="button" className="btn-outline btn-sm" onClick={onOpenAvailability}>Abrir Disponibilidade</button>],
+  ];
+  const done = steps.filter(([ok]) => ok).length;
+  if (done === steps.length) return null;
+  return (
+    <div className="mb-6 rounded-2xl border border-gold/30 bg-gold/5 p-5 sm:p-6">
+      <p className="font-display text-2xl">Para os clientes agendarem pelo seu site</p>
+      <p className="mt-1 text-sm text-ink-muted">{done} de {steps.length} prontos. Quando tudo estiver pronto, a página <a className="underline" href={sitePath("/agenda")} target="_blank" rel="noopener noreferrer">Agenda do seu site</a> passa a mostrar os horários livres.</p>
+      <ol className="mt-4 space-y-3">
+        {steps.map(([ok, label, action], i) => (
+          <li key={label} className="flex flex-col gap-2 rounded-xl bg-surface p-3 sm:flex-row sm:items-center">
+            <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${ok ? "bg-success text-white" : "bg-ink/10 text-ink"}`}>{ok ? "✓" : i + 1}</span>
+            <span className={`flex-1 text-sm ${ok ? "text-ink-muted line-through" : ""}`}>{label}</span>
+            {!ok && action}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 export default function AgendaAdmin() {
   const [tab, setTab] = useState("appointments");
   const [view, setView] = useState("list");
@@ -515,11 +549,13 @@ export default function AgendaAdmin() {
   return (
     <>
       {confirmUI}
-      <AdminHeader title="Agenda" text="Pedidos, confirmações e regras de disponibilidade."
+      <AdminHeader title="Agenda" text="Os pedidos de horário que chegam pelo site e os dias e horários em que você atende."
         actions={tab === "appointments" && <>
           <button className="btn-outline" onClick={() => { setTab("availability"); setTimeout(() => document.getElementById("bloquear")?.scrollIntoView({ behavior: "smooth" }), 300); }}>Bloquear horário</button>
           <button className="btn-primary" onClick={() => setCreating(true)}><CalendarPlus className="h-4 w-4" /> Novo agendamento</button>
         </>} />
+
+      <BookingGuide cfg={cfg} packages={packages} onOpenAvailability={() => setTab("availability")} />
 
       <div className="mb-6 flex gap-1" role="tablist">
         {[["appointments", "Agendamentos"], ["availability", "Disponibilidade"]].map(([k, l]) => (

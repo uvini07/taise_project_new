@@ -61,7 +61,7 @@ export default function AnalyticsAdmin() {
 
   return (
     <>
-      <AdminHeader title="Analytics" text="Como os visitantes usam o site. Métricas anônimas, sem dados pessoais." />
+      <AdminHeader title="Visitas do site" text="Quantas pessoas visitam o seu site e o que mais olham. Números anônimos, sem dados pessoais." />
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <PeriodPicker value={period.id} custom={period.custom} onChange={(id, custom) => setPeriod({ id, custom: custom || {} })} />
         <a className="btn-ghost btn-sm" href={`https://console.firebase.google.com/project/${firebaseConfig.projectId}/analytics`} target="_blank" rel="noopener noreferrer">

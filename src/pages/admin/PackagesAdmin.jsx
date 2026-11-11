@@ -80,7 +80,7 @@ function BookingNotice({ f }) {
   const pkg = lots.length ? { status: f.status } : { status: f.status, salesStart: fromDateTimeInput(f.salesStartText), salesEnd: fromDateTimeInput(f.salesEndText) };
   const av = packageAvailability(pkg, lots);
   let why = null;
-  if (!settings?.display?.showAgenda) why = "a agenda on-line está desligada em Configurações → Exibição.";
+  if (!settings?.display?.showAgenda) why = "a agenda on-line está desligada em Conteúdo do site → Google e exibição.";
   else if (!isPublicStatus(f.status)) why = "o pacote não está publicado.";
   else if (!lots.length) why = "o pacote não tem lotes.";
   else if (av.state === "upcoming") why = `nenhum lote está aberto ainda. As vendas abrem em ${formatDateTime(av.opensAt)}; até lá o site mostra “Em breve” e só o botão do WhatsApp.`;
@@ -203,7 +203,8 @@ function PackageEditor({ initial, categories, onClose, onSaved }) {
         </section>
 
         <section>
-          <h3 className="mb-4 font-display text-2xl">Valores e lotes</h3>
+          <h3 className="font-display text-2xl">Valores e lotes</h3>
+          <p className="mb-4 mt-1 text-sm text-ink-muted">Lote é uma fase de preço com vagas limitadas. Ex.: “1º lote” com 5 vagas a R$ 350; quando acabar, o site passa sozinho para o “2º lote” a R$ 400. Sem lotes, vale o preço base.</p>
           <div className="grid gap-5 sm:grid-cols-3">
             <TextField label="Preço base (R$)" inputMode="decimal" placeholder="0,00" value={f.priceText} onChange={up("priceText")} hint="Usado quando não há lotes." />
             <TextField label="Preço promocional (opcional)" inputMode="decimal" placeholder="0,00" value={f.promoText} onChange={up("promoText")} hint="Também só vale sem lotes; com lotes, vale o preço do lote." />
