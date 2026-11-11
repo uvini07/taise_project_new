@@ -7,7 +7,7 @@ const IMG = (n) => `/revela/img/${n}.webp`;
 
 const STEPS = [
   { title: "Crie sua conta", text: "Escolha o plano e o endereço do seu site." },
-  { title: "Monte o seu site", text: "Coloque suas fotos, cores e pacotes. Agenda e lista VIP já vêm prontas." },
+  { title: "Monte o seu site", text: "Escolha um dos 10 modelos e troque fotos, cores e fontes vendo a prévia ao vivo. Agenda e lista VIP já vêm prontas." },
   { title: "Receba os agendamentos", text: "O cliente escolhe o horário e paga o sinal pelo Pix. O horário sai da agenda na hora." },
   { title: "Selecione e entregue", text: "O cliente escolhe as fotos na galeria protegida e baixa as editadas pelo link de entrega." },
 ];

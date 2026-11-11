@@ -5,7 +5,8 @@ import { Wordmark } from "./Logo.jsx";
 
 const LINKS = [
   { to: "/ferramentas", label: "Ferramentas" },
-  { to: "/#como-funciona", label: "Como funciona" },
+  { to: "/#editor", label: "Editor do site" },
+  { to: "/#polaroidy", label: "Polaroidy IA" },
   { to: "/planos", label: "Planos" },
 ];
 

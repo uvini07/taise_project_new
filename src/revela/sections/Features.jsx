@@ -242,7 +242,7 @@ export default function Features() {
             Datas novas e lotes promocionais chegam antes para quem entrou na lista.
           </Card>
           <Card className="md:col-span-3 lg:col-span-4" icon={Globe} title="Monta o seu site" visual={<SiteVisual />}>
-            Portfólio, pacotes e contato com as suas cores e fotos, sem programar.
+            10 modelos prontos. Troque cores, fontes, textos e fotos vendo a prévia ao vivo, sem programar.
           </Card>
           <Card className="md:col-span-3 lg:col-span-4" icon={Package} title="Vende pacotes por lote" visual={<PacotesVisual />}>
             O preço muda sozinho na data marcada, do 1º para o 2º lote.

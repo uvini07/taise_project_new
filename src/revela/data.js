@@ -41,7 +41,7 @@ export const PLANS = [
   },
 ];
 
-export const INCLUDED = ["Site com o seu nome", "Agenda online com sinal", "Pacotes e lotes", "Lista VIP", "Financeiro e relatórios"];
+export const INCLUDED = ["Site com o seu nome e 10 modelos", "Agenda online com sinal", "Pacotes e lotes", "Lista VIP", "Financeiro e relatórios", "Polaroidy, assistente com IA"];
 
 export const CREDITS = [
   { label: "+10 GB de entrega", price: 20 },
@@ -53,6 +53,7 @@ export const CREDITS = [
 export const COMPARE = [
   { label: "Site, pacotes, agenda, lista VIP e financeiro", values: [true, true, true] },
   { label: "Seleção de fotos com proteção contra print", values: [true, true, true] },
+  { label: "Polaroidy, assistente com IA", values: [true, true, true] },
   { label: "Seleções abertas ao mesmo tempo", values: ["4", "15", "Sem limite"] },
   { label: "Prévias por ensaio", values: ["150", "400", "1.500"] },
   { label: "Espaço de entrega ativa", values: ["5 GB", "20 GB", "100 GB"] },

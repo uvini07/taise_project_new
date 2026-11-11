@@ -37,7 +37,7 @@ export default function Close() {
         </div>
         <h2 id="rv-close" className="mt-14 max-w-2xl text-4xl leading-[1.05] sm:text-5xl">Seu estúdio inteiro num painel</h2>
         <p className="mt-5 max-w-xl text-lg leading-relaxed text-rv-ink2">
-          Site, agenda, seleção e entrega no mesmo lugar, a partir de R$ {FROM_PRICE} por mês.
+          Site, agenda, seleção, entrega e uma assistente com IA no mesmo lugar, a partir de R$ {FROM_PRICE} por mês.
         </p>
         <div className="mt-9 flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
           <Link to="/cadastro" className="rv-btn rv-btn-primary"><span className="rv-btn-dot" aria-hidden />Usar teste de 30 dias</Link>

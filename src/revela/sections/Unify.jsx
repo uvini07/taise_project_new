@@ -13,7 +13,7 @@ const TOOLS = [
   { label: "Site separado", Icon: Globe },
   { label: "Caderno do financeiro", Icon: Calculator },
 ];
-const OUT = ["Site", "Agenda", "Pacotes", "Lista VIP", "Seleção", "Entrega", "Financeiro"];
+const OUT = ["Site", "Agenda", "Pacotes", "Lista VIP", "Seleção", "Entrega", "Financeiro", "Polaroidy IA"];
 // Posição de cada ferramenta em volta do centro (porcentagem do palco).
 const SPOTS = [[-34, -30], [6, -40], [36, -26], [44, 6], [30, 34], [-6, 40], [-38, 28], [-46, -2]];
 

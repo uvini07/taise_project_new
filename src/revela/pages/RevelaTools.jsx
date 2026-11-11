@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { BarChart3, CalendarDays, Check, Download, Globe, Images, LayoutDashboard, Megaphone, Package, Users } from "lucide-react";
+import { BarChart3, CalendarDays, Check, Download, Globe, Images, LayoutDashboard, Megaphone, Package, Sparkles, Users } from "lucide-react";
+import { ChatDemo } from "../sections/Polaroidy.jsx";
 import RevelaLayout from "../components/RevelaLayout.jsx";
 import { AgendaVisual, EntregaVisual, FinanceVisual, LOOP_CSS, PacotesVisual, SelectionVisual, SiteVisual, VipVisual } from "../sections/Features.jsx";
 import { useOffscreenPause, useRevelaMeta } from "../hooks.js";
@@ -51,8 +52,10 @@ function PanelVisual() {
 const TOOLS = [
   { id: "painel", icon: LayoutDashboard, name: "Painel", title: "Tudo do dia num lugar só", text: "Ao entrar, você vê os próximos ensaios, as seleções esperando o cliente, as entregas no ar e o que falta receber.",
     items: ["Resumo da semana", "Avisos do que precisa da sua ação", "Acesso pelo computador e pelo celular"], visual: PanelVisual },
-  { id: "site", icon: Globe, name: "Site personalizado", title: "Seu site com a sua cara", text: "Um site profissional com o seu nome no endereço, suas cores, sua logo e suas fotos, sem precisar programar.",
-    items: ["Página inicial, sobre, pacotes, galeria e contato", "Cores, textos e fotos editáveis no painel", "Botão de WhatsApp e imagem certa ao compartilhar o link"], visual: SiteVisual },
+  { id: "site", icon: Globe, name: "Site personalizado", title: "Seu site com a sua cara", text: "Escolha um dos 10 modelos e deixe com a sua cara: suas cores, fontes, logo e fotos, vendo tudo mudar na hora. Sem precisar programar.",
+    items: ["10 modelos de site, cada um com uma estrutura diferente", "Editor com prévia ao vivo: logo, cores, fontes, textos e fotos", "Página inicial, sobre, pacotes, galeria e contato", "Botão de WhatsApp e imagem certa ao compartilhar o link"], visual: SiteVisual },
+  { id: "polaroidy", icon: Sparkles, name: "Polaroidy IA", title: "Uma assistente com IA no seu painel", text: "Pergunte do seu jeito e a Polaroidy responde na hora: o que tem na agenda, quem ainda não pagou e onde fica cada coisa no painel.",
+    items: ["Agenda do dia, da semana ou do mês", "Pagamentos em aberto, com a cobrança pronta no WhatsApp", "Atalhos para a tela certa do painel", "Só consulta e sugere: nada muda sem você"], visual: ChatDemo, still: true },
   { id: "agenda", icon: CalendarDays, name: "Agenda online", title: "O cliente marca, você só confirma", text: "Você define os dias e horários livres. O cliente escolhe o horário, informa os dados e paga o sinal pelo Pix.",
     items: ["Horários bloqueados assim que são reservados", "Sinal pago pelo Pix", "Lista de pedidos e confirmação no painel"], visual: AgendaVisual },
   { id: "pacotes", icon: Package, name: "Pacotes e lotes", title: "Venda pacotes com preço por lote", text: "Monte cada pacote com fotos, duração e preço. Abra lotes promocionais e o preço muda sozinho na data marcada.",
@@ -91,7 +94,7 @@ function ToolSection({ t, i }) {
             ))}
           </ul>
         </div>
-        <div className={`lg rv-lift min-w-0 p-5 sm:p-7 ${flip ? "lg:order-1" : ""}`} style={{ "--lg-bg": "rgba(255,255,255,.5)" }} onPointerEnter={() => setRun((r) => r + 1)}>
+        <div className={`lg rv-lift min-w-0 p-5 sm:p-7 ${flip ? "lg:order-1" : ""}`} style={{ "--lg-bg": "rgba(255,255,255,.5)" }} onPointerEnter={() => !t.still && setRun((r) => r + 1)}>
           <div key={run} data-loop aria-hidden>{Visual && <Visual />}</div>
         </div>
       </div>
@@ -100,7 +103,7 @@ function ToolSection({ t, i }) {
 }
 
 export default function RevelaTools() {
-  useRevelaMeta("Ferramentas", "Todas as ferramentas da Revela: site, agenda, pacotes e lotes, lista VIP, evento promocional, galeria, seleção protegida, entrega e financeiro.");
+  useRevelaMeta("Ferramentas", "Todas as ferramentas da Revela: site com 10 modelos, Polaroidy (assistente com IA), agenda, pacotes e lotes, lista VIP, evento promocional, galeria, seleção protegida, entrega e financeiro.");
   const root = useRef(null);
   useOffscreenPause(root, "0px");
   return (
@@ -116,7 +119,7 @@ export default function RevelaTools() {
           <div className="rv-wrap">
             <h1 id="rv-tools-h1" className="max-w-3xl text-[2.4rem] leading-[1.04] min-[400px]:text-[2.75rem] sm:text-6xl">Todas as ferramentas da Revela</h1>
             <p className="mt-5 max-w-2xl text-lg leading-relaxed text-rv-ink2 sm:text-xl">
-              Dez ferramentas ligadas entre si, do primeiro contato do cliente à entrega das fotos. Todas estão em todos os planos, a partir de R$ {FROM_PRICE} por mês.
+              Onze ferramentas ligadas entre si, do primeiro contato do cliente à entrega das fotos. Todas estão em todos os planos, a partir de R$ {FROM_PRICE} por mês.
             </p>
             <nav aria-label="Ferramentas" className="mt-8 flex flex-wrap gap-2">
               {TOOLS.map((t) => (

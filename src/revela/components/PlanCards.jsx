@@ -37,7 +37,7 @@ export function PlanCards({ dark = true, headingLevel = 3 }) {
             </ul>
             <div className={`my-7 h-px ${dark ? "bg-white/15" : "bg-rv-ameixa/10"}`} />
             <p className={`text-[14px] leading-relaxed ${dark ? "text-rv-lavanda/70" : "text-rv-ink2"}`}>
-              Também inclui: {INCLUDED.join(", ").toLowerCase().replace("vip", "VIP")}.
+              Também inclui: {INCLUDED.join(", ").toLowerCase().replace("vip", "VIP").replace("polaroidy", "Polaroidy").replace(" ia", " IA")}.
             </p>
             <div className="mt-auto pt-8">
               <Link to={`/cadastro?plano=${p.id}`}

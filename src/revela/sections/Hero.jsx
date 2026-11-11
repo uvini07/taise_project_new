@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarCheck2, Check, Heart, Lock, ShieldCheck, Download } from "lucide-react";
+import { ArrowRight, CalendarCheck2, Check, Heart, Lock, ShieldCheck, Download, Sparkles } from "lucide-react";
 import { gsap, useGSAP, MQ } from "../gsap.js";
 import { LOGO } from "../logoPaths.js";
 import { Aperture, Camera, Polaroid } from "../components/Objects.jsx";
@@ -168,10 +168,12 @@ export default function Hero() {
 
       <div className="rv-wrap relative z-10 grid items-center gap-14 pb-20 lg:min-h-[100svh] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-10 lg:pb-0 lg:pt-24">
         <div className="min-w-0 max-w-[620px]">
-          <p className="lg lg-pill inline-flex max-w-full flex-wrap items-center gap-x-2.5 gap-y-0.5 py-2 pl-2.5 pr-4 text-[14px] text-rv-ink2" style={{ "--lg-bg": "rgba(255,255,255,.45)" }}>
-            <span className="h-2 w-2 rounded-full bg-rv-rosa shadow-[0_0_0_4px_rgba(201,93,99,.18)]" aria-hidden />
-            Planos a partir de <b className="font-medium text-rv-ameixa">R$ {FROM_PRICE} por mês</b>
-          </p>
+          <a href="/#polaroidy" onClick={(e) => { e.preventDefault(); document.getElementById("polaroidy")?.scrollIntoView({ behavior: "smooth" }); }}
+            className="lg lg-pill rv-lift inline-flex max-w-full items-center gap-2.5 py-1.5 pl-1.5 pr-4 text-[14px] text-rv-ink2" style={{ "--lg-bg": "rgba(255,255,255,.45)" }}>
+            <span className="inline-flex items-center gap-1 rounded-full bg-rv-rosa px-2.5 py-1 text-[12px] font-medium text-white"><Sparkles className="h-3.5 w-3.5" aria-hidden />Novo</span>
+            <span className="min-w-0">Conheça a <b className="font-medium text-rv-ameixa">Polaroidy</b>, sua assistente com IA</span>
+            <ArrowRight className="h-4 w-4 shrink-0 text-rv-rosa" aria-hidden />
+          </a>
           <h1 id="rv-h1" className="mt-6 text-[2.3rem] leading-[1.04] min-[400px]:text-[2.75rem] sm:text-6xl lg:text-[4.35rem]">
             Site, agenda e entrega de fotos para{" "}
             <span className="relative inline-block whitespace-nowrap">
@@ -180,12 +182,13 @@ export default function Hero() {
             </span>
           </h1>
           <p className="mt-6 max-w-[540px] text-lg leading-relaxed text-rv-ink2 sm:text-xl">
-            Monte seu site, receba agendamentos com sinal pago, deixe o cliente escolher as fotos com proteção contra print e entregue tudo em alta, num lugar só.
+            Monte seu site em minutos, receba agendamentos com sinal pago, deixe o cliente escolher as fotos com proteção contra print e entregue tudo em alta, num lugar só.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link to="/cadastro" className="rv-btn rv-btn-primary"><span className="rv-btn-dot" aria-hidden />Usar teste de 30 dias</Link>
             <Link to="/planos" className="rv-btn lg lg-pill rv-btn-glass">Ver planos</Link>
           </div>
+          <p className="mt-4 text-[14px] text-rv-ink2">30 dias grátis · depois, a partir de <b className="font-medium text-rv-ameixa">R$ {FROM_PRICE} por mês</b></p>
         </div>
 
         {/* Cena: o "r" de vidro, a tela de seleção, os avisos e os objetos de fotografia. */}
