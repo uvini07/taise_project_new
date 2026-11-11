@@ -33,6 +33,37 @@ export const LAYOUTS = [
     text: "Blocos de tamanhos diferentes lado a lado, menu em cápsula e depoimentos em carrossel. Atual e cheio de fotos.",
     overlay: false,
   },
+  {
+    id: "cinema",
+    name: "Cinema",
+    text: "Site escuro, fotos em formato de cinema com faixas pretas, categorias numa tira de filme e detalhes dourados. Dramático e sofisticado.",
+    overlay: true,
+    dark: true,
+  },
+  {
+    id: "revista",
+    name: "Revista",
+    text: "Capa de revista: o nome do estúdio enorme, colunas, letra capitular, índice numerado e fios finos. Editorial e cheio de personalidade.",
+    overlay: false,
+  },
+  {
+    id: "polaroid",
+    name: "Polaroid",
+    text: "Fotos instantâneas tortinhas com fita adesiva, depoimentos em bilhetes e contato em cartão-postal. Afetivo, ótimo para família e infantil.",
+    overlay: false,
+  },
+  {
+    id: "minimalista",
+    name: "Minimalista",
+    text: "Muito espaço em branco, textos pequenos e uma foto grande por vez. Deixa as fotos falarem sozinhas.",
+    overlay: false,
+  },
+  {
+    id: "imersivo",
+    name: "Imersivo",
+    text: "Fotos de ponta a ponta em tela cheia, contador de fotos no topo e categorias em faixas gigantes. Para quem quer impressionar.",
+    overlay: true,
+  },
 ];
 
 export const DEFAULT_LAYOUT = "classico";

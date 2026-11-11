@@ -9,6 +9,7 @@ import { useBodyLock } from "../../hooks/useBodyLock.js";
 import { waMessages } from "../../utils/whatsapp.js";
 import { sitePath } from "../../config/tenant.js";
 import { useLayout } from "../../hooks/useLayout.js";
+import { layoutById } from "../../config/siteStyle.js";
 
 export function useNavItems(hasVip) {
   const { settings } = useSettings();
@@ -41,6 +42,7 @@ export default function Header({ overlay = false, hasVip = false }) {
 
   const transparent = overlay && !scrolled && !open;
   const layout = useLayout();
+  const dark = !!layoutById(layout).dark; // modelo de fundo escuro (Cinema)
   const navLink = (it, extra = "") => (
     <NavLink key={it.to} to={it.to} end={it.end}
       className={`link-underline text-[13px] font-medium uppercase tracking-[0.18em] transition-colors ${
@@ -50,7 +52,7 @@ export default function Header({ overlay = false, hasVip = false }) {
   );
   const logo = (cls) => (
     <Link to={sitePath("/")} className="shrink-0" aria-label={`${settings.brandName} — página inicial`}>
-      <Logo tone={transparent ? "light" : "dark"} eager className={`w-auto transition-all duration-500 ${cls}`} />
+      <Logo tone={transparent || dark ? "light" : "dark"} eager className={`w-auto transition-all duration-500 ${cls}`} />
     </Link>
   );
   const waButton = (
@@ -75,7 +77,80 @@ export default function Header({ overlay = false, hasVip = false }) {
 
   // Cabeçalho de cada modelo (no celular, todos ficam com logo + menu).
   let bar;
-  if (layout === "dividido") {
+  if (layout === "revista") {
+    // Fio com o menu em cima, como o topo de uma revista; logo e WhatsApp embaixo.
+    bar = (
+      <>
+        <nav aria-label="Principal" className="hidden border-b border-ink/15 lg:block">
+          <div className="container-x flex h-10 items-center justify-center gap-8">
+            {items.map((it) => (
+              <NavLink key={it.to} to={it.to} end={it.end}
+                className={({ isActive }) => `text-[11px] uppercase tracking-[0.24em] transition ${isActive ? "text-wine-900" : "text-ink-soft hover:text-ink"}`}>{it.label}</NavLink>
+            ))}
+          </div>
+        </nav>
+        <div className="container-x flex h-[72px] items-center justify-between border-b-2 border-ink">
+          {logo("h-11")}
+          <div className="flex items-center gap-2">{waButton}{burger}</div>
+        </div>
+      </>
+    );
+  } else if (layout === "polaroid") {
+    // Menu com sublinhado ondulado, como escrito à mão.
+    bar = (
+      <div className="container-x flex h-[72px] items-center justify-between gap-6">
+        {logo("h-11")}
+        <nav aria-label="Principal" className="hidden items-center gap-7 lg:flex">
+          {items.map((it) => (
+            <NavLink key={it.to} to={it.to} end={it.end}
+              className={({ isActive }) => `font-display text-lg italic underline-offset-8 transition ${isActive ? "text-wine-900 underline decoration-gold decoration-wavy decoration-2" : "text-ink-soft hover:text-wine-900"}`}>{it.label}</NavLink>
+          ))}
+        </nav>
+        <div className="flex items-center gap-2">{waButton}{burger}</div>
+      </div>
+    );
+  } else if (layout === "minimalista") {
+    // Só a logo e os links, pequenos. Sem botão.
+    bar = (
+      <div className="container-x flex h-[72px] items-center justify-between">
+        {logo("h-10")}
+        <nav aria-label="Principal" className="hidden items-center gap-7 lg:flex">
+          {items.map((it) => (
+            <NavLink key={it.to} to={it.to} end={it.end}
+              className={({ isActive }) => `text-[13px] lowercase transition ${isActive ? "text-ink" : "text-ink-muted hover:text-ink"}`}>{it.label}</NavLink>
+          ))}
+        </nav>
+        {burger}
+      </div>
+    );
+  } else if (layout === "imersivo") {
+    // Menu à esquerda, logo no centro, WhatsApp à direita, sobre a foto.
+    bar = (
+      <div className={`container-x grid grid-cols-[1fr_auto_1fr] items-center transition-all duration-500 ${transparent ? "h-24" : "h-[72px]"}`}>
+        <nav aria-label="Principal" className="hidden items-center gap-6 lg:flex">{items.map((it) => navLink(it, "!text-[12px]"))}</nav>
+        <span className="lg:hidden" />
+        {logo(transparent ? "h-12 sm:h-14" : "h-11")}
+        <div className="flex items-center justify-end gap-2">{waButton}{burger}</div>
+      </div>
+    );
+  } else if (layout === "cinema") {
+    // Menu em letras pequenas douradas, separadas por pontos.
+    bar = (
+      <div className={`container-x flex items-center justify-between transition-all duration-500 ${transparent ? "h-24" : "h-[72px]"}`}>
+        {logo(transparent ? "h-12 sm:h-14" : "h-11")}
+        <nav aria-label="Principal" className="hidden items-center gap-5 lg:flex">
+          {items.map((it, i) => (
+            <span key={it.to} className="flex items-center gap-5">
+              {i > 0 && <span className="h-1 w-1 rounded-full bg-gold/60" aria-hidden />}
+              <NavLink to={it.to} end={it.end}
+                className={({ isActive }) => `text-[12px] uppercase tracking-[0.22em] transition ${isActive ? "text-gold" : transparent ? "text-cream/85 hover:text-gold-light" : "text-ink-soft hover:text-gold"}`}>{it.label}</NavLink>
+            </span>
+          ))}
+        </nav>
+        <div className="flex items-center gap-2">{waButton}{burger}</div>
+      </div>
+    );
+  } else if (layout === "dividido") {
     // Logo centralizada em cima, menu centralizado embaixo entre linhas finas.
     bar = (
       <>

@@ -20,23 +20,23 @@ import { track } from "../../services/analyticsService.js";
 import { sitePath } from "../../config/tenant.js";
 
 // ------------------------------------------------------------------ comum
-function useAbout() {
+export function useAbout() {
   const { settings } = useSettings();
   const { about } = settings;
   const photo = about.photoUrl ? { url: about.photoUrl, thumbUrl: about.photoThumbUrl, alt: about.photoAlt || "" } : FALLBACK_IMAGES.about;
   const [first, second] = paragraphs(about.text);
   return { settings, about, photo, first, second };
 }
-const MoreLink = ({ to, children, light = false }) => (
+export const MoreLink = ({ to, children, light = false }) => (
   <Link to={to} className={`link-underline inline-flex items-center gap-2 text-sm font-medium uppercase tracking-[0.18em] ${light ? "text-cream" : "text-ink"}`}>
     {children} <ArrowRight className="h-4 w-4" />
   </Link>
 );
-const useVisibleCats = (n = 8) => {
+export const useVisibleCats = (n = 8) => {
   const { data, loading } = useCategories();
   return { list: (data || []).filter((c) => c.coverUrl).slice(0, n), loading };
 };
-const catLink = (c) => sitePath(`/galeria/${c.slug}`);
+export const catLink = (c) => sitePath(`/galeria/${c.slug}`);
 
 // ================================================================ DIAGONAL
 // Faixas escuras e claras alternadas, cortes em diagonal, números grandes.

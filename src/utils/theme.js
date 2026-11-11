@@ -48,6 +48,27 @@ export function themeVars(theme) {
   };
 }
 
+/**
+ * Versão escura do tema (modelo Cinema): fundo quase preto puxado para a cor
+ * principal, textos claros e o dourado de destaque mantido.
+ */
+export function darkThemeVars(theme) {
+  const p = toRgb(hexOk(theme?.primary) ? theme.primary : DEFAULT_THEME.primary);
+  const light = toRgb(hexOk(theme?.onPrimary) ? theme.onPrimary : DEFAULT_THEME.onPrimary);
+  const K = [10, 9, 10];
+  const bg = mix(K, p, 0.12);
+  return {
+    "--ivory": trip(bg),
+    "--paper": trip(mix(K, p, 0.2)),
+    "--sand": trip(mix(K, p, 0.3)),
+    "--surface": trip(mix(K, p, 0.16)),
+    "--ink": trip(light),
+    "--ink-soft": trip(mix(light, bg, 0.22)),
+    "--ink-muted": trip(mix(light, bg, 0.42)),
+    "--wine-950": trip(mix(K, p, 0.06)),
+  };
+}
+
 export function applyTheme(theme) {
   if (typeof document === "undefined") return;
   const root = document.documentElement;

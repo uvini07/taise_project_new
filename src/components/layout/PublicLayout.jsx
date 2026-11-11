@@ -13,6 +13,7 @@ import { campaignPhase } from "../../services/vipService.js";
 import { stripSiteBase } from "../../config/tenant.js";
 import { endPreview, layoutById, previewLayout } from "../../config/siteStyle.js";
 import { useLayout } from "../../hooks/useLayout.js";
+import { darkThemeVars } from "../../utils/theme.js";
 
 export default function PublicLayout() {
   const { pathname: fullPath, search } = useLocation();
@@ -37,7 +38,7 @@ export default function PublicLayout() {
   }, [campaigns]);
 
   const hasVip = campaigns.some((c) => c.status === "published");
-  // O cabeçalho só fica transparente sobre topos escuros (Clássico e Diagonal).
+  // O cabeçalho só fica transparente sobre topos com foto escura (veja LAYOUTS.overlay).
   const layout = useLayout();
   // As formas (botões, cartões, fotos) seguem o modelo: veja index.css.
   useEffect(() => {
@@ -45,11 +46,15 @@ export default function PublicLayout() {
     return () => { delete document.documentElement.dataset.layout; };
   }, [layout]);
   const preview = previewLayout(search);
+  const dark = !!layoutById(layout).dark;
   const overlay = pathname === "/" && layoutById(layout).overlay;
   const showBar = featured && featured.c.showBanner !== false && settings.display.showVipBanner && !pathname.startsWith("/vip");
+  // Altura do cabeçalho de cada modelo (para o topo da página caber na tela).
+  const headerH = { dividido: 128, arco: 96, revista: 112 }[layout] || 72;
+  const TOP_OFFSET = overlay && !showBar ? "0px" : `${(showBar ? 40 : 0) + headerH}px`;
 
   return (
-    <div className="flex min-h-screen flex-col" style={{ "--top-offset": overlay && !showBar ? "0px" : (showBar ? 40 : 0) + (layout === "dividido" ? 128 : layout === "arco" ? 96 : 72) + "px" }}>
+    <div data-dark={dark || undefined} className={`flex min-h-screen flex-col ${dark ? "bg-ivory text-ink" : ""}`} style={{ ...(dark ? darkThemeVars(settings.theme) : null), "--top-offset": TOP_OFFSET }}>
       {showBar && <VipBar campaign={featured.c} phase={featured.p} />}
       <Header overlay={overlay && !showBar} hasVip={hasVip} />
       <main id="conteudo" className="flex-1">

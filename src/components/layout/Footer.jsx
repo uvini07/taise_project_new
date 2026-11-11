@@ -25,6 +25,95 @@ export default function Footer({ hasVip }) {
   const year = new Date().getFullYear();
   const layout = useLayout();
 
+  const social_ = SOCIAL.filter(([k]) => social[k]);
+  const bottom = (cls) => (
+    <div className={`flex flex-col items-center justify-between gap-2 text-xs sm:flex-row ${cls}`}>
+      <span>© {year} {settings.legalName || settings.brandName}</span>
+      <span className="flex gap-5">
+        <Link to={sitePath("/politicas")} className="hover:underline">Políticas e privacidade</Link>
+        <Link to="/adm" className="hover:underline">Área restrita</Link>
+      </span>
+    </div>
+  );
+
+  // Minimalista: uma linha só.
+  if (layout === "minimalista") {
+    return (
+      <footer className="mt-24 border-t border-ink/10">
+        <div className="container-x flex flex-col gap-6 py-10 text-sm text-ink-muted sm:flex-row sm:items-center sm:justify-between">
+          <span className="font-display text-lg text-ink">{settings.brandName}</span>
+          <nav aria-label="Rodapé" className="flex flex-wrap gap-x-5 gap-y-2 lowercase">{nav.map((n) => <Link key={n.to} to={n.to} className="hover:text-ink">{n.label}</Link>)}</nav>
+          {bottom("text-ink-muted")}
+        </div>
+      </footer>
+    );
+  }
+
+  // Revista: colunas separadas por fios, como o expediente de uma revista.
+  if (layout === "revista") {
+    return (
+      <footer className="container-x mt-24">
+        <div className="border-t-4 border-double border-ink pt-8">
+          <p className="truncate font-display text-[12vw] leading-none text-wine-900 lg:text-[7rem]">{settings.brandName}</p>
+          <div className="mt-8 grid gap-8 border-t border-ink/15 pt-8 text-sm sm:grid-cols-3 sm:divide-x sm:divide-ink/15">
+            <div><p className="text-[11px] uppercase tracking-[0.24em] text-ink-muted">Expediente</p><p className="mt-3 text-ink-soft">{settings.footerText}</p></div>
+            <div className="sm:pl-8"><p className="text-[11px] uppercase tracking-[0.24em] text-ink-muted">Seções</p>
+              <ul className="mt-3 grid grid-cols-2 gap-2">{nav.map((n) => <li key={n.to}><Link to={n.to} className="hover:text-wine-900">{n.label}</Link></li>)}</ul></div>
+            <div className="sm:pl-8"><p className="text-[11px] uppercase tracking-[0.24em] text-ink-muted">Redação</p>
+              <ul className="mt-3 space-y-1 text-ink-soft">{[contact.email, contact.address, contact.city].filter(Boolean).map((l) => <li key={l}>{l}</li>)}</ul></div>
+          </div>
+          {bottom("mt-10 border-t border-ink/15 py-6 text-ink-muted")}
+        </div>
+      </footer>
+    );
+  }
+
+  // Polaroid: papel com borda tracejada, redes em "selos".
+  if (layout === "polaroid") {
+    return (
+      <footer className="mt-24 border-t-2 border-dashed border-ink/20 bg-paper">
+        <div className="container-x py-14 text-center">
+          <Logo className="mx-auto h-14 w-auto" />
+          {settings.footerText && <p className="mx-auto mt-4 max-w-md font-display text-lg italic text-ink-soft">{settings.footerText}</p>}
+          <div className="mt-6 flex justify-center gap-3">
+            {social_.map(([k, label, Icon], i) => (
+              <a key={k} href={social[k]} target="_blank" rel="noopener noreferrer" aria-label={label}
+                className={`border-2 border-dashed border-wine-900/40 bg-surface p-3 text-wine-900 transition hover:rotate-0 ${i % 2 ? "rotate-3" : "-rotate-3"}`}><Icon className="h-4 w-4" /></a>
+            ))}
+            <WhatsAppLink message={waMessages.general(settings.brandName)} context="footer" aria-label="WhatsApp"
+              className="rotate-2 border-2 border-dashed border-wine-900/40 bg-surface p-3 text-wine-900 transition hover:rotate-0"><WhatsAppIcon className="h-4 w-4" /></WhatsAppLink>
+          </div>
+          <nav aria-label="Rodapé" className="mt-8 flex flex-wrap justify-center gap-x-6 gap-y-2 font-display text-lg italic text-ink-soft">
+            {nav.map((n) => <Link key={n.to} to={n.to} className="hover:text-wine-900">{n.label}</Link>)}
+          </nav>
+          {bottom("mt-10 text-ink-muted")}
+        </div>
+      </footer>
+    );
+  }
+
+  // Cinema e Imersivo: escuro, centralizado, com o nome grande.
+  if (layout === "cinema" || layout === "imersivo") {
+    return (
+      <footer className="mt-24 bg-black text-white/70">
+        <div className="container-x py-16 text-center">
+          <p className="font-display text-5xl text-white sm:text-6xl">{settings.brandName}</p>
+          {layout === "cinema" && <span className="mx-auto mt-6 block h-px w-24 bg-gold" aria-hidden />}
+          <nav aria-label="Rodapé" className="mt-8 flex flex-wrap justify-center gap-x-7 gap-y-3 text-[12px] uppercase tracking-[0.22em]">
+            {nav.map((n) => <Link key={n.to} to={n.to} className="hover:text-white">{n.label}</Link>)}
+          </nav>
+          <div className="mt-8 flex justify-center gap-2">
+            {social_.map(([k, label, Icon]) => (
+              <a key={k} href={social[k]} target="_blank" rel="noopener noreferrer" aria-label={label} className="rounded-full border border-white/20 p-2.5 hover:border-gold hover:text-white"><Icon className="h-4 w-4" /></a>
+            ))}
+            <WhatsAppLink message={waMessages.general(settings.brandName)} context="footer" aria-label="WhatsApp" className="rounded-full border border-white/20 p-2.5 hover:border-gold hover:text-white"><WhatsAppIcon className="h-4 w-4" /></WhatsAppLink>
+          </div>
+          {bottom("mt-12 border-t border-white/10 pt-6 text-white/45")}
+        </div>
+      </footer>
+    );
+  }
+
   // Rodapé claro e centralizado (Dividido e Arco).
   if (layout === "dividido" || layout === "arco") {
     const arco = layout === "arco";

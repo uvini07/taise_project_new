@@ -70,6 +70,45 @@ function MiniHero({ id, img, img2, img3 }) {
       {photo("absolute bottom-0 left-1/2 h-[42%] w-[64%] -translate-x-1/2 rounded-t-full")}
     </span>
   );
+  if (id === "cinema") return (
+    <span className={`${wrap} flex flex-col bg-black`}>
+      <span className="h-[14%]" />
+      <span className="relative flex-1">{photo("absolute inset-0")}<span className="absolute inset-0 bg-black/45" /><MiniNav light /><span className="absolute inset-x-0 top-1/2 mx-auto w-2/3 -translate-y-1/2"><TextBlock light center /></span></span>
+      <span className="h-[14%]" />
+    </span>
+  );
+  if (id === "revista") return (
+    <span className={`${wrap} bg-ivory p-2.5`}>
+      <span className="block border-y border-ink/60 py-0.5"><Bar w="100%" h="h-0.5" /></span>
+      <span className="mt-1.5 block text-center font-display text-[26px] leading-none text-wine-900">Aa Aa</span>
+      <span className="mt-2 grid grid-cols-[1.3fr_1fr] gap-2 border-t border-ink/20 pt-2">{photo("aspect-[4/3]")}<TextBlock /></span>
+    </span>
+  );
+  if (id === "polaroid") return (
+    <span className={`${wrap} bg-paper`}>
+      <MiniNav />
+      <span className="absolute left-3 top-1/2 w-[42%] -translate-y-1/2"><TextBlock /></span>
+      <span className="absolute right-[26%] top-[22%] -rotate-6 bg-white p-1 pb-3 shadow">{photo("h-12 w-12", img2)}</span>
+      <span className="absolute right-3 top-[18%] rotate-6 bg-white p-1 pb-3 shadow">{photo("h-12 w-12", img3)}</span>
+      <span className="absolute bottom-3 right-[14%] rotate-1 bg-white p-1 pb-3 shadow">{photo("h-14 w-14")}</span>
+    </span>
+  );
+  if (id === "minimalista") return (
+    <span className={`${wrap} bg-ivory`}>
+      <MiniNav />
+      <span className="absolute inset-x-0 top-8 mx-auto w-1/2"><span className="flex flex-col items-center gap-1"><Bar w="80%" h="h-1.5" /><Bar w="50%" h="h-1" /></span></span>
+      {photo("absolute inset-x-4 bottom-3 top-[46%]")}
+    </span>
+  );
+  if (id === "imersivo") return (
+    <span className={`${wrap} bg-black`}>
+      {photo("absolute inset-0")}
+      <span className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent" />
+      <MiniNav light />
+      <span className="absolute left-3 top-1/2 flex -translate-y-1/2 items-center gap-3"><span className="font-display text-xl leading-none text-white">01</span><span className="w-28"><TextBlock light /></span></span>
+      <span className="absolute inset-x-0 bottom-0 grid grid-cols-3 gap-0.5"><span className="h-1 bg-white" /><span className="h-1 bg-white/30" /><span className="h-1 bg-white/30" /></span>
+    </span>
+  );
   return (
     <span className={`${wrap} bg-ivory`}>
       <MiniNav />
@@ -109,6 +148,31 @@ function MiniBelow({ id, img, img2, img3 }) {
   if (id === "arco") return (
     <span className={`${base} flex items-end justify-center gap-2 bg-paper px-3 pb-2`}>
       {[img, img2, img3, img].map((x, i) => ph("h-14 w-10 rounded-t-full", x))}
+    </span>
+  );
+  if (id === "cinema") return (
+    <span className={`${base} flex items-center gap-1 bg-black px-1`}>
+      {[img, img2, img3].map((x, i) => <span key={i} className="flex h-full flex-1 flex-col justify-between py-1"><span className="flex justify-between px-1">{[0, 1, 2, 3].map((k) => <i key={k} className="h-1 w-1.5 bg-white/70" />)}</span>{ph("h-12", x)}<span className="flex justify-between px-1">{[0, 1, 2, 3].map((k) => <i key={k} className="h-1 w-1.5 bg-white/70" />)}</span></span>)}
+    </span>
+  );
+  if (id === "revista") return (
+    <span className={`${base} grid grid-cols-3 gap-2 border-t-2 border-ink bg-ivory px-2 pt-2`}>
+      {[img, img2, img3].map((x, i) => <span key={i} className="flex flex-col gap-1"><span className="h-px bg-ink/30" />{ph("h-10", x)}<Bar w="70%" h="h-1.5" /></span>)}
+    </span>
+  );
+  if (id === "polaroid") return (
+    <span className={`${base} flex items-center justify-center gap-3 bg-paper`}>
+      {[img, img2, img3].map((x, i) => <span key={i} className={`bg-white p-1 pb-3 shadow ${["-rotate-6", "rotate-3", "-rotate-2"][i]}`}>{ph("h-10 w-10", x)}</span>)}
+    </span>
+  );
+  if (id === "minimalista") return (
+    <span className={`${base} grid grid-cols-3 gap-3 bg-ivory px-4 py-3`}>
+      {[img, img2, img3].map((x, i) => <span key={i} className="flex flex-col gap-1">{ph("aspect-square", x)}<Bar w="40%" h="h-0.5" /></span>)}
+    </span>
+  );
+  if (id === "imersivo") return (
+    <span className={`${base} flex flex-col`}>
+      {[img2, img3].map((x, i) => <span key={i} className="relative flex flex-1 items-center justify-center">{ph("absolute inset-0", x)}<span className="absolute inset-0 bg-black/40" /><span className="relative"><Bar w="48px" light h="h-1.5" /></span></span>)}
     </span>
   );
   return (

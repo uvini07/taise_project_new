@@ -22,6 +22,13 @@ import { waMessages } from "../../utils/whatsapp.js";
 import { track } from "../../services/analyticsService.js";
 import { sitePath } from "../../config/tenant.js";
 import { useLayout } from "../../hooks/useLayout.js";
+import { Dots, HeroText, ScrollCue, Slides, useHeroData } from "../../components/site/heroParts.jsx";
+import {
+  AboutCinema, AboutImersivo, AboutMinimal, AboutPolaroid, AboutRevista, CategoriesBands, CategoriesFilm, CategoriesMinimal,
+  CategoriesPolaroid, CategoriesRevista, ContactCinema, ContactImersivo, ContactMinimal, ContactPostcard, ContactRevista,
+  GalleryCinema, GalleryMinimal, GalleryPolaroid, GalleryRevista, GalleryScroll, HeroCinema, HeroImersivo, HeroMinimal,
+  HeroPolaroid, HeroRevista, TestimonialsCinema, TestimonialsImersivo, TestimonialsMinimal, TestimonialsNotes, TestimonialsRevista,
+} from "../../components/site/HomeVariants2.jsx";
 import {
   AboutArco, AboutDiagonal, AboutDividido, AboutMosaico, CategoriesArco, CategoriesDiagonal, CategoriesDividido, CategoriesMosaico,
   ContactArco, ContactDiagonal, ContactDividido, ContactMosaico, GalleryBento, GalleryDark, GalleryGrid,
@@ -31,91 +38,6 @@ import {
 // ---------------------------------------------------------------------------
 // Topo da página inicial: 5 modelos (aba Estilo do painel). Todos usam os
 // mesmos textos e fotos de Configurações; muda só a estrutura.
-
-function useHeroData() {
-  const { settings } = useSettings();
-  const { hero } = settings;
-  const images = hero.images?.length ? hero.images : FALLBACK_IMAGES.hero;
-  const [active, setActive] = useState(0);
-  useEffect(() => {
-    if (images.length < 2) return undefined;
-    const id = setInterval(() => setActive((i) => (i + 1) % images.length), 7000);
-    return () => clearInterval(id);
-  }, [images.length]);
-  return { settings, hero, images, active, setActive };
-}
-
-/** Fotos em troca suave (crossfade) dentro de uma moldura qualquer. */
-function Slides({ images, active, sizes = "100vw", zoom = true }) {
-  return images.map((img, i) => (
-    <div key={img.url} className={`absolute inset-0 transition-opacity duration-[1600ms] ${i === active ? "opacity-100" : "opacity-0"}`} aria-hidden={i !== active}>
-      <img
-        src={img.url}
-        srcSet={img.thumbUrl ? `${img.thumbUrl} 800w, ${img.url} 1600w` : undefined}
-        sizes={sizes}
-        alt={i === 0 ? img.alt || "" : ""}
-        className={`h-full w-full object-cover ${zoom && i === active ? "animate-slow-zoom" : ""}`}
-        style={{ objectPosition: img.focus || "center 35%" }}
-        loading={i === 0 ? "eager" : "lazy"}
-        fetchpriority={i === 0 ? "high" : undefined}
-        decoding="async"
-      />
-    </div>
-  ));
-}
-
-function Dots({ images, active, setActive, light = true, className = "" }) {
-  if (images.length < 2) return null;
-  return (
-    <div className={`flex gap-2 ${className}`} role="tablist" aria-label="Fotos de destaque">
-      {images.map((img, i) => (
-        <button key={img.url} role="tab" aria-selected={i === active} aria-label={`Foto ${i + 1}`} onClick={() => setActive(i)}
-          className={`h-[3px] rounded-full transition-all duration-500 ${i === active
-            ? `w-10 ${light ? "bg-cream" : "bg-wine-900"}`
-            : `w-5 ${light ? "bg-cream/40 hover:bg-cream/70" : "bg-ink/20 hover:bg-ink/40"}`}`} />
-      ))}
-    </div>
-  );
-}
-
-/** Selo, título, subtítulo e botões. tone="light" sobre foto/cor escura. */
-function HeroText({ settings, hero, tone = "light", align = "left" }) {
-  const light = tone === "light";
-  const center = align === "center";
-  return (
-    <div className={center ? "mx-auto max-w-3xl text-center" : "max-w-3xl"}>
-      {hero.eyebrow && (
-        <p className={`eyebrow flex animate-fade-up items-center gap-2 ${center ? "justify-center" : ""} ${light ? "!text-gold-light" : ""}`}>
-          <Sparkle className="h-2.5 w-2.5" /> {hero.eyebrow}
-        </p>
-      )}
-      <BlurText text={hero.title} className={`display-xl mt-5 text-balance ${light ? "!text-cream" : "!text-ink"}`} delay={150} />
-      {hero.subtitle && (
-        <p className={`mt-6 max-w-xl animate-fade-up text-base leading-relaxed [animation-delay:600ms] sm:text-lg ${center ? "mx-auto" : ""} ${light ? "text-cream/80" : "text-ink-soft"}`}>
-          {hero.subtitle}
-        </p>
-      )}
-      <div className={`mt-9 flex animate-fade-up flex-wrap items-center gap-3 [animation-delay:800ms] ${center ? "justify-center" : ""}`}>
-        <Link to={sitePath("/pacotes")} className={`${light ? "btn-gold" : "btn-primary"} px-7 py-3.5`} onClick={() => track.cta("hero-pacotes")}>
-          {hero.primaryLabel || "Conhecer os pacotes"} <ArrowRight className="h-4 w-4" />
-        </Link>
-        <Link to={sitePath("/galeria")} className={`${light ? "btn-light" : "btn-outline"} px-7 py-3.5`} onClick={() => track.cta("hero-galeria")}>
-          {hero.secondaryLabel || "Ver a galeria"}
-        </Link>
-        <WhatsAppLink message={waMessages.quote(settings.brandName)} context="hero"
-          className={`inline-flex items-center gap-2 px-3 py-3 text-sm underline-offset-4 hover:underline ${light ? "text-cream/85 hover:text-white" : "text-ink-soft hover:text-wine-900"}`}>
-          <WhatsAppIcon className="h-4 w-4" /> Pedir orçamento
-        </WhatsAppLink>
-      </div>
-    </div>
-  );
-}
-
-const ScrollCue = ({ light = true }) => (
-  <a href="#sobre" className={`absolute bottom-6 left-1/2 z-10 -translate-x-1/2 p-2 transition ${light ? "text-cream/60 hover:text-cream" : "text-ink-muted hover:text-ink"}`} aria-label="Rolar para a próxima seção">
-    <ChevronDown className="h-5 w-5 animate-bounce" />
-  </a>
-);
 
 /** 1. Clássico: foto em tela cheia com o texto por cima. */
 function HeroClassico() {
@@ -207,7 +129,10 @@ function HeroMosaico() {
   );
 }
 
-const HEROES = { classico: HeroClassico, diagonal: HeroDiagonal, dividido: HeroDividido, arco: HeroArco, mosaico: HeroMosaico };
+const HEROES = {
+  classico: HeroClassico, diagonal: HeroDiagonal, dividido: HeroDividido, arco: HeroArco, mosaico: HeroMosaico,
+  cinema: HeroCinema, revista: HeroRevista, polaroid: HeroPolaroid, minimalista: HeroMinimal, imersivo: HeroImersivo,
+};
 
 function Hero() {
   const Comp = HEROES[useLayout()] || HeroClassico;
@@ -419,6 +344,16 @@ function sectionsFor(layout, featured) {
       return [promo, <AboutDividido key="sobre" />, pk, <CategoriesDividido key="cat" />, vip, <TestimonialsDividido key="dep" />, <GalleryGrid key="gal" />, <ContactDividido key="ct" />];
     case "arco":
       return [promo, <AboutArco key="sobre" />, <CategoriesArco key="cat" />, <TestimonialsArco key="dep" />, pk, vip, <FeaturedGallery key="gal" />, <ContactArco key="ct" />];
+    case "cinema":
+      return [promo, <AboutCinema key="sobre" />, <CategoriesFilm key="cat" />, pk, vip, <GalleryCinema key="gal" />, <TestimonialsCinema key="dep" />, <ContactCinema key="ct" />];
+    case "revista":
+      return [promo, <AboutRevista key="sobre" />, <CategoriesRevista key="cat" />, pk, vip, <GalleryRevista key="gal" />, <TestimonialsRevista key="dep" />, <ContactRevista key="ct" />];
+    case "polaroid":
+      return [promo, <AboutPolaroid key="sobre" />, <CategoriesPolaroid key="cat" />, pk, vip, <TestimonialsNotes key="dep" />, <GalleryPolaroid key="gal" />, <ContactPostcard key="ct" />];
+    case "minimalista":
+      return [promo, <AboutMinimal key="sobre" />, <CategoriesMinimal key="cat" />, <GalleryMinimal key="gal" />, pk, vip, <TestimonialsMinimal key="dep" />, <ContactMinimal key="ct" />];
+    case "imersivo":
+      return [promo, <AboutImersivo key="sobre" />, <CategoriesBands key="cat" />, pk, vip, <TestimonialsImersivo key="dep" />, <GalleryScroll key="gal" />, <ContactImersivo key="ct" />];
     case "mosaico":
       return [promo, <CategoriesMosaico key="cat" />, <AboutMosaico key="sobre" />, pk, vip, <GalleryBento key="gal" />, <TestimonialsMosaico key="dep" />, <ContactMosaico key="ct" />];
     default:
