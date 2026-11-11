@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
-  BarChart3, CalendarDays, Camera, Crown, Heart, PackageCheck, ExternalLink, ImagePlus, Images, LayoutDashboard, LifeBuoy, LogOut, Menu, Package, Palette, Settings, Sparkles, Wallet, Wand2, X,
+  BarChart3, CalendarDays, Crown, Heart, PackageCheck, ExternalLink, ImagePlus, Images, LayoutDashboard, LifeBuoy, LogOut, Menu, Package, Palette, Settings, Sparkles, Wallet, Wand2, X,
 } from "lucide-react";
 import Logo from "../common/Logo.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { isLegacyStudio } from "../../config/tenant.js";
 import OnboardingTour from "../admin/OnboardingTour.jsx";
 import PolaroidChat from "../admin/PolaroidChat.jsx";
+import PolaroidyMascot from "../admin/PolaroidyMascot.jsx";
 import { confirmLeave } from "../../utils/unsaved.js";
 import { supportLink } from "../../config/support.js";
 import { WhatsAppIcon } from "../common/Icons.jsx";
@@ -120,11 +121,6 @@ export default function AdminLayout() {
   const help = supportLink(admin?.studioName || settings.brandName);
   const footer = (
     <div className="space-y-1 border-t border-ink/5 pt-4">
-      <button type="button" onClick={() => { setOpen(false); setPolaroid(true); }}
-        className="flex w-full items-center gap-3 rounded-xl bg-wine-900/[.06] px-3.5 py-2.5 text-left text-sm font-medium text-wine-900 hover:bg-wine-900/10">
-        <Camera className="h-[18px] w-[18px]" strokeWidth={1.6} aria-hidden />
-        <span className="flex-1">Polaroid <span className="block text-[11px] font-normal text-ink-muted">Sua assistente</span></span>
-      </button>
       <a href={help} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-wine-900 hover:bg-wine-900/5">
         <LifeBuoy className="h-[18px] w-[18px]" strokeWidth={1.6} aria-hidden /> Ajuda pelo WhatsApp
       </a>
@@ -147,6 +143,18 @@ export default function AdminLayout() {
     <div className="min-h-screen bg-paper">
       <OnboardingTour />
       <PolaroidChat open={polaroid} onClose={() => setPolaroid(false)} />
+      {/* Bolinha da Polaroidy (identidade da Revela). Sobe um pouco onde há o
+          botão "Salvar" fixo no rodapé da página. */}
+      {!polaroid && (
+        <button type="button" onClick={() => setPolaroid(true)} aria-label="Abrir a Polaroidy, sua assistente"
+          className={`group fixed right-4 z-40 flex items-center sm:right-6 ${pathname.startsWith("/adm/configuracoes") ? "bottom-24" : "bottom-5 sm:bottom-6"}`}>
+          <span className="pointer-events-none mr-3 hidden translate-x-2 rounded-full bg-[#2B2540] px-3 py-1.5 font-revela text-sm text-white opacity-0 shadow-lift transition group-hover:translate-x-0 group-hover:opacity-100 sm:block">Polaroidy</span>
+          <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#2B2540] shadow-[0_12px_30px_-10px_rgba(43,37,64,.7)] ring-4 ring-[#E6E1F0] transition group-hover:scale-105">
+            <PolaroidyMascot className="h-10 w-10" blink />
+            <span className="absolute right-0.5 top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#C95D63]" aria-hidden />
+          </span>
+        </button>
+      )}
       {/* Ajuda sempre à mão (some no Editor do site, que cobre a tela). */}
       <a href={help} target="_blank" rel="noopener noreferrer" aria-label="Ajuda pelo WhatsApp"
         className="fixed bottom-5 left-4 z-40 flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-sm font-medium text-white shadow-lift transition hover:brightness-105 lg:hidden">
@@ -163,9 +171,6 @@ export default function AdminLayout() {
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-ink/5 bg-ivory/90 px-4 backdrop-blur lg:hidden">
         <AdminBrand compact />
         <div className="flex items-center gap-1">
-          <button onClick={() => setPolaroid(true)} className="flex items-center gap-1.5 rounded-full bg-wine-900/[.07] px-3 py-2 text-sm font-medium text-wine-900" aria-label="Abrir a Polaroid, sua assistente">
-            <Camera className="h-4 w-4" strokeWidth={1.8} /> <span className="hidden min-[400px]:inline">Polaroid</span>
-          </button>
           <button onClick={() => setOpen(true)} className="rounded-full p-2.5 hover:bg-ink/5" aria-label="Abrir menu" aria-expanded={open}>
             <Menu className="h-6 w-6" />
           </button>

@@ -1,7 +1,8 @@
 // Janela da Polaroid, a assistente da fotógrafa. Abre pela lateral do painel.
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUp, Camera, RotateCcw, X } from "lucide-react";
+import { ArrowUp, RotateCcw, X } from "lucide-react";
+import PolaroidyMascot from "./PolaroidyMascot.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { WhatsAppIcon } from "../common/Icons.jsx";
@@ -22,7 +23,7 @@ function Rich({ text, onNavigate }) {
         const parts = parseLine(line).map((p, k) => (
           p.t === "bold" ? <b key={k} className="font-medium">{p.v}</b>
             : p.t === "link" ? (p.href.startsWith("/adm")
-              ? <Link key={k} to={p.href} onClick={onNavigate} className="font-medium text-wine-900 underline underline-offset-2">{p.v}</Link>
+              ? <Link key={k} to={p.href} onClick={onNavigate} className="font-medium text-[#C95D63] underline underline-offset-2">{p.v}</Link>
               : <span key={k}>{p.v}</span>)
               : <span key={k}>{p.v}</span>
         ));
@@ -71,7 +72,7 @@ export default function PolaroidChat({ open, onClose }) {
       setHistory(r.history);
       setChat((c) => [...c, { who: "polaroid", text: r.text, charges: r.ui.charges }]);
     } catch (e) {
-      setChat((c) => [...c, { who: "polaroid", text: e.message || "A Polaroid não respondeu agora.", error: true }]);
+      setChat((c) => [...c, { who: "polaroid", text: e.message || "A Polaroidy não respondeu agora.", error: true }]);
     } finally {
       setBusy(false);
     }
@@ -79,38 +80,39 @@ export default function PolaroidChat({ open, onClose }) {
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[65]" role="dialog" aria-modal="true" aria-label="Polaroid, sua assistente">
-      <div className="absolute inset-0 animate-fade-in bg-ink/30" onClick={onClose} aria-hidden />
-      <section className="absolute inset-y-0 right-0 flex w-full max-w-[420px] animate-fade-in flex-col bg-ivory shadow-lift">
-        <header className="flex items-center gap-3 border-b border-ink/10 px-4 py-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-wine-900 text-cream"><Camera className="h-5 w-5" strokeWidth={1.6} /></span>
+    <div className="fixed inset-0 z-[65]" role="dialog" aria-modal="true" aria-label="Polaroidy, sua assistente">
+      <div className="absolute inset-0 animate-fade-in bg-[#2B2540]/30" onClick={onClose} aria-hidden />
+      {/* Identidade da Revela (não muda com as cores do estúdio). */}
+      <section className="absolute inset-y-0 right-0 flex w-full max-w-[420px] animate-fade-in flex-col bg-[#F7F5FA] text-[#2B2540] shadow-lift">
+        <header className="flex items-center gap-3 bg-[#2B2540] px-4 py-3 text-[#E6E1F0]">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E6E1F0]/10"><PolaroidyMascot className="h-9 w-9" blink /></span>
           <div className="flex-1">
-            <p className="font-display text-xl leading-none">Polaroid</p>
-            <p className="mt-1 text-xs text-ink-muted">Sua assistente. Ela só consulta e sugere.</p>
+            <p className="font-revela text-2xl leading-none text-white">Polaroidy</p>
+            <p className="mt-1 text-xs text-[#E6E1F0]/70">Sua assistente da Revela. Ela só consulta e sugere.</p>
           </div>
           {chat.length > 0 && (
-            <button type="button" onClick={() => { setHistory([]); setChat([]); }} className="rounded-full p-2 text-ink-soft hover:bg-ink/5" aria-label="Nova conversa" title="Nova conversa"><RotateCcw className="h-4 w-4" /></button>
+            <button type="button" onClick={() => { setHistory([]); setChat([]); }} className="rounded-full p-2 text-[#E6E1F0] hover:bg-white/10" aria-label="Nova conversa" title="Nova conversa"><RotateCcw className="h-4 w-4" /></button>
           )}
-          <button type="button" onClick={onClose} className="rounded-full p-2 text-ink-soft hover:bg-ink/5" aria-label="Fechar"><X className="h-5 w-5" /></button>
+          <button type="button" onClick={onClose} className="rounded-full p-2 text-[#E6E1F0] hover:bg-white/10" aria-label="Fechar"><X className="h-5 w-5" /></button>
         </header>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
           {!chat.length && (
             <div>
-              <p className="text-[15px]">Oi{firstName ? `, ${firstName}` : ""}! Sou a Polaroid. Posso olhar sua agenda, ver quem ainda não pagou e mostrar onde fica cada coisa no painel.</p>
-              <p className="mt-5 text-xs uppercase tracking-wider text-ink-muted">Experimente</p>
+              <p className="text-[15px]">Oi{firstName ? `, ${firstName}` : ""}! Sou a <b className="font-medium">Polaroidy</b>. Posso olhar sua agenda, ver quem ainda não pagou e mostrar onde fica cada coisa no painel.</p>
+              <p className="mt-5 text-xs uppercase tracking-wider text-[#8E86A6]">Experimente</p>
               <div className="mt-2 flex flex-col gap-2">
                 {SUGGESTIONS.map((s) => (
-                  <button key={s} type="button" onClick={() => send(s)} className="rounded-2xl border border-ink/10 bg-surface px-4 py-2.5 text-left text-sm hover:border-wine-900/40">{s}</button>
+                  <button key={s} type="button" onClick={() => send(s)} className="rounded-2xl border border-[#E6E1F0] bg-white px-4 py-2.5 text-left text-sm hover:border-[#C95D63]/50">{s}</button>
                 ))}
               </div>
             </div>
           )}
           {chat.map((m, i) => (
             m.who === "eu" ? (
-              <p key={i} className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-wine-900 px-4 py-2.5 text-sm text-cream">{m.text}</p>
+              <p key={i} className="ml-auto w-fit max-w-[85%] rounded-2xl rounded-br-md bg-[#2B2540] px-4 py-2.5 text-sm text-[#F7F5FA]">{m.text}</p>
             ) : (
-              <div key={i} className={`max-w-[92%] rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed ${m.error ? "bg-danger/10 text-danger" : "bg-surface shadow-soft"}`}>
+              <div key={i} className={`max-w-[92%] rounded-2xl rounded-bl-md px-4 py-3 text-sm leading-relaxed ${m.error ? "bg-[#C95D63]/10 text-[#9b3d43]" : "bg-white shadow-soft"}`}>
                 <Rich text={m.text} onNavigate={onClose} />
                 {m.charges?.length > 0 && (
                   <div className="mt-3 flex flex-col gap-2 border-t border-ink/10 pt-3">
@@ -126,16 +128,16 @@ export default function PolaroidChat({ open, onClose }) {
               </div>
             )
           ))}
-          {busy && <p className="flex items-center gap-2 text-sm text-ink-muted"><Spinner className="h-4 w-4" /> Polaroid está olhando…</p>}
+          {busy && <p className="flex items-center gap-2 text-sm text-[#8E86A6]"><Spinner className="h-4 w-4" /> Polaroidy está olhando…</p>}
           {long && <p className="rounded-xl bg-paper px-3 py-2 text-xs text-ink-muted">Esta conversa ficou longa. Toque em <RotateCcw className="inline h-3 w-3" /> para começar uma nova.</p>}
           <div ref={end} />
         </div>
 
-        <form className="flex items-end gap-2 border-t border-ink/10 p-3 pb-safe" onSubmit={(e) => { e.preventDefault(); send(input); }}>
+        <form className="flex items-end gap-2 border-t border-[#E6E1F0] bg-white p-3 pb-safe" onSubmit={(e) => { e.preventDefault(); send(input); }}>
           <textarea ref={field} rows={1} value={input} onChange={(e) => setInput(e.target.value)} maxLength={500}
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
-            placeholder="Pergunte para a Polaroid…" className="field-input max-h-32 min-h-[44px] flex-1 resize-none !py-2.5" disabled={busy || long} />
-          <button type="submit" disabled={busy || long || !input.trim()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-wine-900 text-cream disabled:opacity-40" aria-label="Enviar">
+            placeholder="Pergunte para a Polaroidy…" className="field-input !border-[#E6E1F0] focus:!border-[#C95D63] focus:!ring-[#C95D63]/20 max-h-32 min-h-[44px] flex-1 resize-none !py-2.5" disabled={busy || long} />
+          <button type="submit" disabled={busy || long || !input.trim()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#2B2540] text-white disabled:opacity-40" aria-label="Enviar">
             <ArrowUp className="h-5 w-5" />
           </button>
         </form>

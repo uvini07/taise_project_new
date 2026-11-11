@@ -1,4 +1,4 @@
-// Polaroid: lado do painel. Conversa com /api/polaroid e executa as
+// Polaroidy: lado do painel. Conversa com /api/polaroid e executa as
 // ferramentas aqui, com o login da fotógrafa (as regras do banco garantem que
 // só os dados do estúdio dela aparecem). Nada aqui altera dados.
 import { auth } from "./firebaseAuth.js";
@@ -78,7 +78,7 @@ async function callApi(messages, context) {
     body: JSON.stringify({ messages, context }),
   });
   const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.error || "A Polaroid não respondeu agora.");
+  if (!r.ok) throw new Error(data.error || "A Polaroidy não respondeu agora.");
   return data;
 }
 

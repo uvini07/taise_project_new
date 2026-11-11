@@ -1,4 +1,4 @@
-// Polaroid, a assistente da fotógrafa no painel da Revela.
+// Polaroidy, a assistente da fotógrafa no painel da Revela.
 //
 // Esta função só conversa com a IA (Claude Haiku 5.5). Os dados do estúdio
 // (agenda, financeiro) são lidos pelo próprio painel, com o login da fotógrafa,
@@ -42,7 +42,7 @@ export const TOOLS = [
   },
 ];
 
-const SYSTEM = `Você é a Polaroid, a assistente virtual da fotógrafa dentro do painel da Revela (plataforma de site, agenda, seleção e entrega de fotos).
+const SYSTEM = `Você é a Polaroidy, a assistente virtual da fotógrafa dentro do painel da Revela (plataforma de site, agenda, seleção e entrega de fotos).
 
 Como responder:
 - Português do Brasil, simpático, direto e curto (no máximo uns 6 itens ou linhas). Use **negrito** e listas com "- " quando ajudar.
@@ -90,11 +90,11 @@ const isText = (v, max) => typeof v === "string" && v.length <= max;
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Use POST." });
   if (!process.env.ANTHROPIC_API_KEY) {
-    return res.status(503).json({ error: "A Polaroid ainda não foi ligada: falta a chave da IA (ANTHROPIC_API_KEY) na Vercel." });
+    return res.status(503).json({ error: "A Polaroidy ainda não foi ligada: falta a chave da IA (ANTHROPIC_API_KEY) na Vercel." });
   }
   const user = await userFrom(req);
-  if (!user) return res.status(401).json({ error: "Entre no painel para usar a Polaroid." });
-  if (overLimit(user.sub)) return res.status(429).json({ error: "Limite de perguntas de hoje atingido. Amanhã a Polaroid volta." });
+  if (!user) return res.status(401).json({ error: "Entre no painel para usar a Polaroidy." });
+  if (overLimit(user.sub)) return res.status(429).json({ error: "Limite de perguntas de hoje atingido. Amanhã a Polaroidy volta." });
 
   const { messages, context = {} } = req.body || {};
   if (!Array.isArray(messages) || !messages.length || messages.length > 60 || JSON.stringify(messages).length > 120000) {
@@ -121,10 +121,10 @@ export default async function handler(req, res) {
     });
     return res.status(200).json({ content: response.content, stop_reason: response.stop_reason });
   } catch (err) {
-    if (err instanceof Anthropic.RateLimitError) return res.status(429).json({ error: "A Polaroid está ocupada agora. Tente de novo em instantes." });
+    if (err instanceof Anthropic.RateLimitError) return res.status(429).json({ error: "A Polaroidy está ocupada agora. Tente de novo em instantes." });
     if (err instanceof Anthropic.AuthenticationError) return res.status(503).json({ error: "A chave da IA na Vercel não foi aceita. Confira a ANTHROPIC_API_KEY." });
     if (err instanceof Anthropic.BadRequestError) return res.status(400).json({ error: "Não consegui entender essa conversa. Comece uma nova." });
     if (err instanceof Anthropic.APIError) return res.status(502).json({ error: "A IA não respondeu agora. Tente de novo." });
-    return res.status(500).json({ error: "Erro inesperado na Polaroid." });
+    return res.status(500).json({ error: "Erro inesperado na Polaroidy." });
   }
 }

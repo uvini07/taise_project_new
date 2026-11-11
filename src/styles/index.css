@@ -125,6 +125,11 @@
 [data-dark] .text-wine-900, [data-dark] .hover\:text-wine-900:hover { color: rgb(var(--gold-light)); }
 [data-dark] .border-ink\/10, [data-dark] .border-ink\/\[\.06\] { border-color: rgb(var(--ink) / .12); }
 
+/* Fonte da marca Revela (usada também no painel, na Polaroidy). */
+@font-face { font-family: "Revela"; src: url("/revela/fonts/Revela-Regular-v3.woff2") format("woff2"); font-weight: 400; font-display: swap; }
+/* Polaroidy pisca de vez em quando. */
+@keyframes polaroidy-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+
 /* Barra de progresso das fotos do topo (modelo Imersivo). */
 @keyframes grow { from { width: 0; } to { width: 100%; } }
 
