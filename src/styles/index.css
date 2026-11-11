@@ -159,3 +159,8 @@
     visibility: visible; position: fixed; inset: 40% 0 auto; text-align: center; font: 16px/1.4 serif;
   }
 }
+
+/* iPhone dá zoom ao tocar em campos com letra menor que 16px: no celular, todo campo usa 16px. */
+@media (max-width: 767px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select { font-size: 16px !important; }
+}
