@@ -9,6 +9,7 @@ import { cleanSlugInput, slugProblem, suggestSlug } from "../slug.js";
 import { siteHost, useRevelaMeta } from "../hooks.js";
 import { isValidEmail, normalizePhoneBR } from "../../utils/validation.js";
 import { TRIAL_DAYS, isSlugTaken, signupErrorMessage, signupStudio } from "../../services/authService.js";
+import { supportLink } from "../../config/support.js";
 
 // Cadastro aberto em modo de teste: cria a conta e o estúdio com 30 dias
 // grátis. A cobrança do plano entra depois (Mercado Pago).
@@ -111,7 +112,9 @@ export default function RevelaSignup() {
         <div className="rv-wrap relative z-10">
           <div className="lg w-full min-w-0 max-w-[560px] p-5 sm:p-9" style={{ "--lg-r": "32px", "--lg-bg": "rgba(255,255,255,.58)" }}>
             <h1 className="text-[2.4rem] leading-[1.05] sm:text-[2.7rem]">Criar conta na Revela</h1>
-            <p className="mb-8 mt-3 text-[16px] text-rv-ink2">Já tem conta? <Link to="/entrar" className="rv-link font-medium text-rv-ameixa">Entrar</Link></p>
+            <p className="mb-8 mt-3 text-[16px] text-rv-ink2">Já tem conta? <Link to="/entrar" className="rv-link font-medium text-rv-ameixa">Entrar</Link>
+              <span className="mx-2 text-rv-lilas" aria-hidden>·</span>
+              <a href={supportLink()} target="_blank" rel="noopener noreferrer" className="rv-link font-medium text-rv-ameixa">Precisa de ajuda?</a></p>
             <Progress step={step} />
 
             <div key={step} className="animate-[rv-step-in_.5s_cubic-bezier(.16,1,.3,1)_both]">

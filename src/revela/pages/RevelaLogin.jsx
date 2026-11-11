@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from "../../contexts/AuthContext.jsx";
 import { authErrorMessage, login, logout, resetPassword } from "../../services/authService.js";
 import { isValidEmail } from "../../utils/validation.js";
 import { useRevelaMeta } from "../hooks.js";
+import { supportLink } from "../../config/support.js";
 
 function LoginForm() {
   const { status, user } = useAuth();
@@ -69,6 +70,7 @@ function LoginForm() {
           {isLogin ? "Esqueci minha senha" : "Voltar para o login"}
         </button>
         <Link to="/cadastro" className="rv-link font-medium text-rv-ameixa">Criar conta</Link>
+        <a href={supportLink()} target="_blank" rel="noopener noreferrer" className="rv-link text-rv-ink2 hover:text-rv-ameixa">Precisa de ajuda?</a>
       </div>
     </form>
   );

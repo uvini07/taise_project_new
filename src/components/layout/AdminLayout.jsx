@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
-  BarChart3, CalendarDays, Crown, Heart, PackageCheck, ExternalLink, ImagePlus, Images, LayoutDashboard, LogOut, Menu, Package, Palette, Settings, Sparkles, Wallet, Wand2, X,
+  BarChart3, CalendarDays, Crown, Heart, PackageCheck, ExternalLink, ImagePlus, Images, LayoutDashboard, LifeBuoy, LogOut, Menu, Package, Palette, Settings, Sparkles, Wallet, Wand2, X,
 } from "lucide-react";
 import Logo from "../common/Logo.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { isLegacyStudio } from "../../config/tenant.js";
 import OnboardingTour from "../admin/OnboardingTour.jsx";
 import { confirmLeave } from "../../utils/unsaved.js";
+import { supportLink } from "../../config/support.js";
+import { WhatsAppIcon } from "../common/Icons.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { logout } from "../../services/authService.js";
 import { useBodyLock } from "../../hooks/useBodyLock.js";
@@ -100,6 +102,7 @@ function AdminBrand({ compact = false }) {
 
 export default function AdminLayout() {
   const { admin, user } = useAuth();
+  const { settings } = useSettings();
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
   useBodyLock(open);
@@ -112,8 +115,12 @@ export default function AdminLayout() {
     document.title = `${current?.label || "Painel"} · ${admin?.studioName || "Painel"}`;
   }, [pathname, admin?.studioName]);
 
+  const help = supportLink(admin?.studioName || settings.brandName);
   const footer = (
     <div className="space-y-1 border-t border-ink/5 pt-4">
+      <a href={help} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium text-wine-900 hover:bg-wine-900/5">
+        <LifeBuoy className="h-[18px] w-[18px]" strokeWidth={1.6} aria-hidden /> Ajuda pelo WhatsApp
+      </a>
       <Link to={sitePath("/")} target="_blank" className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm text-ink-soft hover:bg-ink/5">
         <ExternalLink className="h-[18px] w-[18px]" strokeWidth={1.6} aria-hidden /> Ver o site
       </Link>
@@ -132,11 +139,17 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-paper">
       <OnboardingTour />
+      {/* Ajuda sempre à mão (some no Editor do site, que cobre a tela). */}
+      <a href={help} target="_blank" rel="noopener noreferrer" aria-label="Ajuda pelo WhatsApp"
+        className="fixed bottom-5 left-4 z-40 flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-sm font-medium text-white shadow-lift transition hover:brightness-105 lg:hidden">
+        <WhatsAppIcon className="h-5 w-5" /> Ajuda
+      </a>
       <TrialBanner />
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-ink/5 bg-ivory p-5 lg:flex">
+      {/* O menu inteiro rola junto em telas baixas (nada fica escondido atrás do rodapé). */}
+      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col overflow-y-auto overscroll-contain border-r border-ink/5 bg-ivory p-5 lg:flex">
         <AdminBrand />
-        <div className="flex-1 overflow-y-auto"><NavList /></div>
-        {footer}
+        <div className="flex-1"><NavList /></div>
+        <div className="mt-5">{footer}</div>
       </aside>
 
       <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-ink/5 bg-ivory/90 px-4 backdrop-blur lg:hidden">
