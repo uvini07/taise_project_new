@@ -149,8 +149,8 @@ export default function AdminLayout() {
         <button type="button" onClick={() => setPolaroid(true)} aria-label="Abrir a Polaroidy, sua assistente"
           className={`group fixed right-4 z-40 flex items-center sm:right-6 ${pathname.startsWith("/adm/configuracoes") ? "bottom-24" : "bottom-5 sm:bottom-6"}`}>
           <span className="pointer-events-none mr-3 hidden translate-x-2 rounded-full bg-[#2B2540] px-3 py-1.5 font-revela text-sm text-white opacity-0 shadow-lift transition group-hover:translate-x-0 group-hover:opacity-100 sm:block">Polaroidy</span>
-          <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-[#2B2540] shadow-[0_12px_30px_-10px_rgba(43,37,64,.7)] ring-4 ring-[#E6E1F0] transition group-hover:scale-105">
-            <PolaroidyMascot className="h-10 w-10" blink />
+          <span className="relative flex h-14 w-14 items-center justify-center rounded-full shadow-[0_12px_30px_-10px_rgba(43,37,64,.7)] ring-4 ring-[#E6E1F0] transition group-hover:scale-105">
+            <PolaroidyMascot className="h-14 w-14" blink />
             <span className="absolute right-0.5 top-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#C95D63]" aria-hidden />
           </span>
         </button>

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowUp, RotateCcw, X } from "lucide-react";
-import PolaroidyMascot from "./PolaroidyMascot.jsx";
+import PolaroidyMascot, { PolaroidyWaving } from "./PolaroidyMascot.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { WhatsAppIcon } from "../common/Icons.jsx";
@@ -85,7 +85,7 @@ export default function PolaroidChat({ open, onClose }) {
       {/* Identidade da Revela (não muda com as cores do estúdio). */}
       <section className="absolute inset-y-0 right-0 flex w-full max-w-[420px] animate-fade-in flex-col bg-[#F7F5FA] text-[#2B2540] shadow-lift">
         <header className="flex items-center gap-3 bg-[#2B2540] px-4 py-3 text-[#E6E1F0]">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#E6E1F0]/10"><PolaroidyMascot className="h-9 w-9" blink /></span>
+          <PolaroidyMascot className="h-11 w-11 rounded-full ring-2 ring-[#E6E1F0]/30" blink />
           <div className="flex-1">
             <p className="font-revela text-2xl leading-none text-white">Polaroidy</p>
             <p className="mt-1 text-xs text-[#E6E1F0]/70">Sua assistente da Revela. Ela só consulta e sugere.</p>
@@ -99,6 +99,7 @@ export default function PolaroidChat({ open, onClose }) {
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
           {!chat.length && (
             <div>
+              <PolaroidyWaving className="mx-auto mb-3 h-36 w-auto" />
               <p className="text-[15px]">Oi{firstName ? `, ${firstName}` : ""}! Sou a <b className="font-medium">Polaroidy</b>. Posso olhar sua agenda, ver quem ainda não pagou e mostrar onde fica cada coisa no painel.</p>
               <p className="mt-5 text-xs uppercase tracking-wider text-[#8E86A6]">Experimente</p>
               <div className="mt-2 flex flex-col gap-2">
