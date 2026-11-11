@@ -11,7 +11,8 @@ import { useCampaigns } from "../../hooks/useCampaigns.js";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { campaignPhase } from "../../services/vipService.js";
 import { stripSiteBase } from "../../config/tenant.js";
-import { effectiveLayout, layoutById } from "../../config/siteStyle.js";
+import { endPreview, layoutById, previewLayout } from "../../config/siteStyle.js";
+import { useLayout } from "../../hooks/useLayout.js";
 
 export default function PublicLayout() {
   const { pathname: fullPath, search } = useLocation();
@@ -37,12 +38,18 @@ export default function PublicLayout() {
 
   const hasVip = campaigns.some((c) => c.status === "published");
   // O cabeçalho só fica transparente sobre topos escuros (Clássico e Diagonal).
-  const layout = effectiveLayout(settings.layout, search);
+  const layout = useLayout();
+  // As formas (botões, cartões, fotos) seguem o modelo: veja index.css.
+  useEffect(() => {
+    document.documentElement.dataset.layout = layout;
+    return () => { delete document.documentElement.dataset.layout; };
+  }, [layout]);
+  const preview = previewLayout(search);
   const overlay = pathname === "/" && layoutById(layout).overlay;
   const showBar = featured && featured.c.showBanner !== false && settings.display.showVipBanner && !pathname.startsWith("/vip");
 
   return (
-    <div className="flex min-h-screen flex-col" style={{ "--top-offset": overlay && !showBar ? "0px" : showBar ? "112px" : "72px" }}>
+    <div className="flex min-h-screen flex-col" style={{ "--top-offset": overlay && !showBar ? "0px" : (showBar ? 40 : 0) + (layout === "dividido" ? 128 : layout === "arco" ? 96 : 72) + "px" }}>
       {showBar && <VipBar campaign={featured.c} phase={featured.p} />}
       <Header overlay={overlay && !showBar} hasVip={hasVip} />
       <main id="conteudo" className="flex-1">
@@ -53,6 +60,13 @@ export default function PublicLayout() {
       <Footer hasVip={hasVip} />
       <WhatsAppFab />
       <CookieBanner />
+      {preview && (
+        <div className="fixed bottom-5 left-1/2 z-[60] flex -translate-x-1/2 items-center gap-3 whitespace-nowrap rounded-full bg-black/85 py-2 pl-5 pr-2 text-sm text-white shadow-lift backdrop-blur">
+          Prévia do modelo <b className="font-medium">{layoutById(preview).name}</b>
+          <button type="button" onClick={() => { endPreview(); window.close(); window.location.search = ""; }}
+            className="rounded-full bg-white/15 px-3 py-1.5 text-xs hover:bg-white/25">Fechar prévia</button>
+        </div>
+      )}
     </div>
   );
 }

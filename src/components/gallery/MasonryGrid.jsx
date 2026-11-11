@@ -6,7 +6,7 @@ export default function MasonryGrid({ photos, onOpen, columns = "columns-2 md:co
     <div className={`${columns} gap-3 sm:gap-4 [column-fill:_balance]`}>
       {photos.map((p, i) => (
         <button key={p.id} type="button" onClick={() => onOpen(i)}
-          className="group mb-3 block w-full break-inside-avoid overflow-hidden rounded-2xl sm:mb-4"
+          className="group mb-3 block w-full break-inside-avoid overflow-hidden r-small sm:mb-4"
           aria-label={`Ampliar foto${p.title ? `: ${p.title}` : ""}`}>
           <SmartImage
             src={p.url}

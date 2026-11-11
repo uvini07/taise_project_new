@@ -83,6 +83,44 @@ function MiniHero({ id, img, img2, img3 }) {
   );
 }
 
+/** Faixa com o "meio" da página de cada modelo (seções e rodapé). */
+function MiniBelow({ id, img, img2, img3 }) {
+  const ph = (cls, src = img, style) => <span className={`block bg-cover bg-center ${cls}`} style={{ backgroundImage: `url(${src})`, ...style }} />;
+  const base = "relative mt-1.5 block h-20 overflow-hidden rounded-xl";
+  if (id === "classico") return (
+    <span className={`${base} flex items-center gap-1.5 bg-paper px-3`}>
+      {[img, img2, img3, img].map((x, i) => ph("h-14 flex-1 rounded-lg", x))}
+    </span>
+  );
+  if (id === "diagonal") return (
+    <span className={`${base} bg-wine-950`} style={{ clipPath: "polygon(0 12%,100% 0,100% 88%,0 100%)" }}>
+      <span className="absolute inset-y-3 left-3 flex w-[44%] flex-col justify-center gap-1"><Bar w="70%" light h="h-2" /><Bar w="90%" light h="h-1" /><Bar w="60%" light h="h-1" /></span>
+      {ph("absolute inset-y-2 right-3 w-[42%]", img3, { clipPath: "polygon(14% 0,100% 0,86% 100%,0 100%)" })}
+    </span>
+  );
+  if (id === "dividido") return (
+    <span className={`${base} grid grid-cols-2 bg-ivory`}>
+      <span className="flex flex-col justify-center gap-0 px-3">
+        {[0, 1, 2, 3].map((i) => <span key={i} className="flex items-center gap-2 border-b border-ink/15 py-[5px]"><span className="h-1 w-2 bg-ink/30" /><Bar w="60%" h="h-1.5" /></span>)}
+      </span>
+      {ph("h-full", img2)}
+    </span>
+  );
+  if (id === "arco") return (
+    <span className={`${base} flex items-end justify-center gap-2 bg-paper px-3 pb-2`}>
+      {[img, img2, img3, img].map((x, i) => ph("h-14 w-10 rounded-t-full", x))}
+    </span>
+  );
+  return (
+    <span className={`${base} grid grid-cols-4 grid-rows-2 gap-1 bg-ivory p-1.5`}>
+      {ph("col-span-2 row-span-2 rounded-lg", img)}
+      {ph("rounded-lg", img2)}
+      <span className="rounded-lg bg-wine-900" />
+      {ph("col-span-2 rounded-lg", img3)}
+    </span>
+  );
+}
+
 // ------------------------------------------------------------------ página
 export default function StyleAdmin() {
   const { settings, loading } = useSettings();
@@ -131,7 +169,7 @@ export default function StyleAdmin() {
 
   return (
     <>
-      <AdminHeader title="Estilo" text="A cara do seu site: o modelo da página inicial, as fontes e as cores. Os textos e as fotos ficam em Configurações."
+      <AdminHeader title="Estilo" text="A cara do seu site: o modelo (estrutura do site inteiro), as fontes e as cores. Os textos e as fotos ficam em Configurações."
         actions={(
           <div className="flex flex-wrap gap-2">
             <button type="button" className="btn-outline" onClick={() => window.dispatchEvent(new Event("revela:tour"))}>
@@ -142,7 +180,7 @@ export default function StyleAdmin() {
         )} />
 
       <div className="space-y-6">
-        <Section title="1. Modelo do site" text="Escolha como o topo da página inicial é montado. Abra a prévia para ver o modelo com as suas fotos e textos antes de decidir.">
+        <Section title="1. Modelo do site" text="O modelo muda a estrutura do site inteiro: cabeçalho, ordem e desenho das seções, topo das páginas, rodapé e o formato de botões, cartões e fotos. Abra a prévia e navegue pelo site antes de decidir.">
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {LAYOUTS.map((l) => {
               const on = form.layout === l.id;
@@ -150,6 +188,7 @@ export default function StyleAdmin() {
                 <div key={l.id} className={`flex flex-col rounded-2xl border bg-surface p-3 transition ${on ? "border-wine-900 ring-4 ring-wine-900/10" : "border-ink/10 hover:border-ink/25"}`}>
                   <button type="button" onClick={() => setForm((f) => ({ ...f, layout: l.id }))} className="block text-left" aria-pressed={on}>
                     <MiniHero id={l.id} img={imgAt(0)} img2={imgAt(1)} img3={about} />
+                    <MiniBelow id={l.id} img={imgAt(1)} img2={imgAt(2)} img3={about} />
                   </button>
                   <div className="flex flex-1 flex-col px-1 pb-1 pt-4">
                     <p className="flex items-center justify-between gap-2 font-display text-2xl">
@@ -168,7 +207,7 @@ export default function StyleAdmin() {
               );
             })}
           </div>
-          <p className="mt-4 text-xs text-ink-muted">A prévia mostra o que já está publicado (textos, fotos e cores salvos). Depois de escolher, clique em Salvar estilo.</p>
+          <p className="mt-4 text-xs text-ink-muted">Na prévia dá para navegar por todas as páginas com o modelo. Ela mostra o que já está publicado (textos, fotos e cores salvos). Depois de escolher, clique em Salvar estilo.</p>
         </Section>
 
         <Section title="2. Fontes" text="Uma fonte para os títulos e outra para os textos e menus. A mudança aparece aqui na hora como prévia.">

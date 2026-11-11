@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation, useOutletContext } from "react-router-dom";
+import { Link, useOutletContext } from "react-router-dom";
 import { ArrowRight, ChevronDown, MapPin, Quote } from "lucide-react";
 import BlurText from "../../components/common/BlurText.jsx";
 import Reveal from "../../components/common/Reveal.jsx";
@@ -21,7 +21,12 @@ import { paragraphs } from "../../utils/text.js";
 import { waMessages } from "../../utils/whatsapp.js";
 import { track } from "../../services/analyticsService.js";
 import { sitePath } from "../../config/tenant.js";
-import { effectiveLayout, layoutById } from "../../config/siteStyle.js";
+import { useLayout } from "../../hooks/useLayout.js";
+import {
+  AboutArco, AboutDiagonal, AboutDividido, AboutMosaico, CategoriesArco, CategoriesDiagonal, CategoriesDividido, CategoriesMosaico,
+  ContactArco, ContactDiagonal, ContactDividido, ContactMosaico, GalleryBento, GalleryDark, GalleryGrid,
+  TestimonialsArco, TestimonialsDiagonal, TestimonialsDividido, TestimonialsMosaico,
+} from "../../components/site/HomeVariants.jsx";
 
 // ---------------------------------------------------------------------------
 // Topo da página inicial: 5 modelos (aba Estilo do painel). Todos usam os
@@ -183,7 +188,7 @@ function HeroMosaico() {
   const d = useHeroData();
   const pick = (k) => d.images[k % d.images.length];
   const tile = (img, cls, sizes) => (
-    <div className={`relative overflow-hidden rounded-[28px] shadow-soft ${cls}`}>
+    <div className={`relative overflow-hidden r-card shadow-soft ${cls}`}>
       <img src={img.thumbUrl || img.url} srcSet={img.thumbUrl ? `${img.thumbUrl} 800w, ${img.url} 1600w` : undefined} sizes={sizes}
         alt="" className="h-full w-full object-cover" style={{ objectPosition: img.focus || "center 35%" }} loading="eager" decoding="async" />
     </div>
@@ -205,24 +210,8 @@ function HeroMosaico() {
 const HEROES = { classico: HeroClassico, diagonal: HeroDiagonal, dividido: HeroDividido, arco: HeroArco, mosaico: HeroMosaico };
 
 function Hero() {
-  const { settings } = useSettings();
-  const { search } = useLocation();
-  const Comp = HEROES[effectiveLayout(settings.layout, search)] || HeroClassico;
+  const Comp = HEROES[useLayout()] || HeroClassico;
   return <Comp />;
-}
-
-/** Faixa que aparece quando a fotógrafa abre a prévia de um modelo pela aba Estilo. */
-function PreviewBadge() {
-  const { search } = useLocation();
-  const q = new URLSearchParams(search).get("modelo");
-  if (!q) return null;
-  const l = layoutById(q);
-  return (
-    <div className="fixed bottom-5 left-1/2 z-[60] flex -translate-x-1/2 items-center gap-3 rounded-full bg-ink/90 py-2 pl-5 pr-2 text-sm text-white shadow-lift backdrop-blur">
-      Prévia do modelo <b className="font-medium">{l.name}</b>
-      <button type="button" onClick={() => window.close()} className="rounded-full bg-white/15 px-3 py-1.5 text-xs hover:bg-white/25">Fechar prévia</button>
-    </div>
-  );
 }
 
 function AboutTeaser() {
@@ -271,7 +260,7 @@ function Categories() {
           {loading && Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="aspect-[3/4] w-[70vw] shrink-0 sm:w-auto" />)}
           {list.map((c, i) => (
             <Reveal key={c.id} delay={i * 60} className="w-[70vw] shrink-0 snap-start sm:w-auto">
-              <Link to={sitePath(`/galeria/${c.slug}`)} className="group relative block overflow-hidden rounded-[24px]" onClick={() => track.galleryCategory(c.id)}>
+              <Link to={sitePath(`/galeria/${c.slug}`)} className="group relative block overflow-hidden r-img" onClick={() => track.galleryCategory(c.id)}>
                 <SmartImage src={c.coverUrl} thumb={c.coverThumbUrl} placeholder={c.coverPlaceholder} alt="" sizes="(min-width:1024px) 25vw, 70vw"
                   className="aspect-[3/4]" imgClassName="transition-transform duration-[1.2s] ease-soft group-hover:scale-[1.05]" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent" aria-hidden />
@@ -301,7 +290,7 @@ function FeaturedPackages() {
       <SectionHeading eyebrow="Pacotes" title="Escolha a experiência ideal" align="center"
         text="Valores, o que está incluso e as condições de cada ensaio, sem letras miúdas." />
       <div className={`mx-auto mt-14 grid gap-6 md:grid-cols-2 ${list.length === 1 ? "max-w-md md:grid-cols-1" : list.length === 2 ? "max-w-4xl" : "lg:grid-cols-3"}`}>
-        {loading && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-[520px] rounded-[28px]" />)}
+        {loading && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-[520px] r-card" />)}
         {list.map((p, i) => (
           <Reveal key={p.id} delay={i * 80}><PackageCard pkg={p} categoryName={catName[p.categoryId]} featured={p.featured} /></Reveal>
         ))}
@@ -335,7 +324,7 @@ function VipCallout({ featured }) {
   const { c, p } = featured;
   return (
     <section className="container-x py-12">
-      <Reveal className="relative overflow-hidden rounded-[32px] bg-wine-900 text-cream grain">
+      <Reveal className="relative overflow-hidden r-box bg-wine-900 text-cream grain">
         <div className="grid items-center gap-10 p-8 sm:p-12 lg:grid-cols-2 lg:p-16">
           <div>
             <p className="eyebrow flex items-center gap-2 !text-gold-light"><Sparkle className="h-2.5 w-2.5" /> Lista VIP</p>
@@ -387,7 +376,7 @@ function ContactStrip() {
   const { contact } = settings;
   return (
     <section className="container-x pt-12">
-      <Reveal className="grid gap-10 rounded-[32px] border border-ink/[.06] bg-surface p-8 shadow-soft sm:p-12 lg:grid-cols-2 lg:items-center">
+      <Reveal className="grid gap-10 r-box border border-ink/[.06] bg-surface p-8 shadow-soft sm:p-12 lg:grid-cols-2 lg:items-center">
         <div>
           <p className="eyebrow">Vamos conversar</p>
           <h2 className="display-md mt-3 text-balance">Conte o que você imagina para o seu ensaio</h2>
@@ -400,7 +389,7 @@ function ContactStrip() {
           </div>
         </div>
         {contact.address && (
-          <div className="rounded-[24px] bg-paper p-7">
+          <div className="r-img bg-paper p-7">
             <MapPin className="h-5 w-5 text-gold" aria-hidden />
             <p className="mt-3 font-display text-2xl leading-snug">{contact.address}</p>
             {contact.addressLine2 && <p className="text-ink-muted">{contact.addressLine2}</p>}
@@ -418,22 +407,34 @@ function ContactStrip() {
   );
 }
 
+// Ordem e desenho das seções em cada modelo (aba Estilo).
+function sectionsFor(layout, featured) {
+  const vip = <VipCallout key="vip" featured={featured} />;
+  const promo = <PromoEvent key="promo" />;
+  const pk = <FeaturedPackages key="pacotes" />;
+  switch (layout) {
+    case "diagonal":
+      return [promo, <AboutDiagonal key="sobre" />, <CategoriesDiagonal key="cat" />, pk, vip, <GalleryDark key="gal" />, <TestimonialsDiagonal key="dep" />, <ContactDiagonal key="ct" />];
+    case "dividido":
+      return [promo, <AboutDividido key="sobre" />, pk, <CategoriesDividido key="cat" />, vip, <TestimonialsDividido key="dep" />, <GalleryGrid key="gal" />, <ContactDividido key="ct" />];
+    case "arco":
+      return [promo, <AboutArco key="sobre" />, <CategoriesArco key="cat" />, <TestimonialsArco key="dep" />, pk, vip, <FeaturedGallery key="gal" />, <ContactArco key="ct" />];
+    case "mosaico":
+      return [promo, <CategoriesMosaico key="cat" />, <AboutMosaico key="sobre" />, pk, vip, <GalleryBento key="gal" />, <TestimonialsMosaico key="dep" />, <ContactMosaico key="ct" />];
+    default:
+      return [promo, <AboutTeaser key="sobre" />, <Categories key="cat" />, pk, vip, <FeaturedGallery key="gal" />, <Testimonials key="dep" />,
+        <div key="div" className="container-x"><Divider className="my-4" /></div>, <ContactStrip key="ct" />];
+  }
+}
+
 export default function Home() {
   useDocumentMeta({});
   const { featuredCampaign } = useOutletContext() || {};
+  const layout = useLayout();
   return (
     <>
-      <PreviewBadge />
       <Hero />
-      <PromoEvent />
-      <AboutTeaser />
-      <Categories />
-      <FeaturedPackages />
-      <VipCallout featured={featuredCampaign} />
-      <FeaturedGallery />
-      <Testimonials />
-      <div className="container-x"><Divider className="my-4" /></div>
-      <ContactStrip />
+      {sectionsFor(layout, featuredCampaign)}
     </>
   );
 }

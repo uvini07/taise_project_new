@@ -8,6 +8,7 @@ import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { waMessages } from "../../utils/whatsapp.js";
 import { useNavItems } from "./Header.jsx";
 import { sitePath } from "../../config/tenant.js";
+import { useLayout } from "../../hooks/useLayout.js";
 
 const SOCIAL = [
   ["instagram", "Instagram", InstagramIcon],
@@ -22,9 +23,52 @@ export default function Footer({ hasVip }) {
   const { contact, social } = settings;
   const nav = useNavItems(hasVip);
   const year = new Date().getFullYear();
+  const layout = useLayout();
+
+  // Rodapé claro e centralizado (Dividido e Arco).
+  if (layout === "dividido" || layout === "arco") {
+    const arco = layout === "arco";
+    return (
+      <footer className={`mt-24 ${arco ? "bg-paper" : "border-t border-ink/10 bg-ivory"}`}>
+        <div className="container-x py-16 text-center">
+          <Logo className="mx-auto h-16 w-auto" />
+          {settings.footerText && <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-ink-muted">{settings.footerText}</p>}
+          <nav aria-label="Rodapé" className="mt-8 flex flex-wrap justify-center gap-x-7 gap-y-3 text-[13px] uppercase tracking-[0.16em] text-ink-soft">
+            {nav.map((n) => <Link key={n.to} className="link-underline hover:text-wine-900" to={n.to}>{n.label}</Link>)}
+          </nav>
+          <div className="mt-8 flex justify-center gap-2">
+            {SOCIAL.filter(([k]) => social[k]).map(([k, label, Icon]) => (
+              <a key={k} href={social[k]} target="_blank" rel="noopener noreferrer" aria-label={label}
+                className="rounded-full border border-ink/15 p-2.5 text-ink-soft transition hover:border-wine-900 hover:text-wine-900"><Icon className="h-4 w-4" /></a>
+            ))}
+            <WhatsAppLink message={waMessages.general(settings.brandName)} context="footer" aria-label="WhatsApp"
+              className="rounded-full border border-ink/15 p-2.5 text-ink-soft transition hover:border-wine-900 hover:text-wine-900"><WhatsAppIcon className="h-4 w-4" /></WhatsAppLink>
+          </div>
+          {(contact.address || contact.email) && (
+            <p className="mt-8 text-sm text-ink-muted">
+              {[contact.address, contact.city, contact.email].filter(Boolean).join(" · ")}
+            </p>
+          )}
+          <div className={`mt-10 flex flex-col items-center justify-between gap-2 pt-6 text-xs text-ink-muted sm:flex-row ${arco ? "" : "border-t border-ink/10"}`}>
+            <span>© {year} {settings.legalName || settings.brandName}</span>
+            <span className="flex gap-5">
+              <Link to={sitePath("/politicas")} className="hover:text-ink">Políticas e privacidade</Link>
+              <Link to="/adm" className="hover:text-ink">Área restrita</Link>
+            </span>
+          </div>
+        </div>
+      </footer>
+    );
+  }
+
+  const wrap = layout === "diagonal"
+    ? "relative mt-24 overflow-hidden bg-wine-950 pt-10 text-cream/80 [clip-path:polygon(0_8%,100%_0,100%_100%,0_100%)]"
+    : layout === "mosaico"
+      ? "relative mx-3 mb-3 mt-24 overflow-hidden r-box bg-wine-900 text-cream/80 sm:mx-5 sm:mb-5"
+      : "relative mt-24 overflow-hidden bg-wine-900 text-cream/80 grain";
 
   return (
-    <footer className="relative mt-24 overflow-hidden bg-wine-900 text-cream/80 grain">
+    <footer className={wrap}>
       <div className="container-x relative py-16 sm:py-20">
         <div className="grid gap-12 md:grid-cols-12">
           <div className="md:col-span-4">
@@ -84,6 +128,9 @@ export default function Footer({ hasVip }) {
           <span>© {year} {settings.legalName || settings.brandName}. Todos os direitos reservados.</span>
           <Link to="/adm" className="hover:text-cream/80">Área restrita</Link>
         </div>
+        {layout === "diagonal" && (
+          <p className="mt-10 select-none truncate font-display text-[16vw] leading-none text-cream/[.06] lg:text-[11rem]" aria-hidden>{settings.brandName}</p>
+        )}
       </div>
     </footer>
   );

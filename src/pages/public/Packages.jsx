@@ -39,7 +39,7 @@ export default function Packages() {
         )}
         {error && <ErrorState error={error} onRetry={reload} />}
         <div className={`grid gap-6 md:grid-cols-2 ${list.length === 1 ? "mx-auto max-w-md md:grid-cols-1" : list.length === 2 ? "mx-auto max-w-4xl" : "lg:grid-cols-3"}`}>
-          {loading && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-[520px] rounded-[28px]" />)}
+          {loading && Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-[520px] r-card" />)}
           {list.map((p, i) => (
             <Reveal key={p.id} delay={i * 70}><PackageCard pkg={p} categoryName={catName[p.categoryId]} featured={p.featured} /></Reveal>
           ))}

@@ -24,7 +24,7 @@ export function Carousel({ images }) {
   if (!images.length) return null;
   return (
     <div className="relative">
-      <div ref={ref} className="scrollbar-none flex snap-x snap-mandatory overflow-x-auto rounded-[28px]"
+      <div ref={ref} className="scrollbar-none flex snap-x snap-mandatory overflow-x-auto r-card"
         onScroll={(e) => setI(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}>
         {images.map((img, k) => (
           <img key={img.url + k} src={img.url} srcSet={img.thumbUrl ? `${img.thumbUrl} 720w, ${img.url} 2048w` : undefined} sizes="(min-width:1280px) 1200px, 100vw"

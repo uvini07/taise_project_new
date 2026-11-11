@@ -110,7 +110,7 @@ export default function Gallery() {
         )}
 
         {category && state.items.length > 0 && (
-          <div className="mt-16 flex flex-col items-center gap-4 rounded-[28px] bg-paper px-6 py-10 text-center">
+          <div className="mt-16 flex flex-col items-center gap-4 r-card bg-paper px-6 py-10 text-center">
             <p className="font-display text-3xl">Gostou deste estilo?</p>
             <WhatsAppLink message={waMessages.category(category.name)} context={`galeria-${category.slug}`} className="btn-primary">
               <WhatsAppIcon className="h-4 w-4" /> Quero um ensaio assim

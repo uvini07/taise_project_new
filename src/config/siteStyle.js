@@ -1,35 +1,36 @@
-// Estilo do site do estúdio: a estrutura (modelo do topo da página inicial) e
+// Estilo do site do estúdio: o modelo (estrutura do site inteiro: cabeçalho,
+// seções da página inicial, topo das páginas internas, rodapé e formas) e
 // as fontes. As cores ficam em utils/theme.js. Tudo é escolhido na aba Estilo.
 
 export const LAYOUTS = [
   {
     id: "classico",
     name: "Clássico",
-    text: "Foto em tela cheia, texto por cima no canto. Impactante e emocional.",
+    text: "Foto em tela cheia no topo, seções em cartões arredondados e rodapé escuro. Emocional e acolhedor.",
     overlay: true,
   },
   {
     id: "diagonal",
     name: "Diagonal",
-    text: "Texto sobre a sua cor principal e a foto cortada em diagonal. Moderno e marcante.",
+    text: "Cortes em diagonal, faixas escuras, categorias numeradas, cantos retos e depoimento em destaque. Moderno e marcante.",
     overlay: true,
   },
   {
     id: "dividido",
     name: "Dividido",
-    text: "Foto de um lado e texto do outro, em fundo claro. Limpo e direto.",
+    text: "Estilo revista: logo centralizada, blocos meio a meio, índice de ensaios em lista e galeria em grade. Limpo e elegante.",
     overlay: false,
   },
   {
     id: "arco",
     name: "Arco",
-    text: "Título centralizado e a foto numa moldura em arco. Delicado, ótimo para gestante e newborn.",
+    text: "Tudo centralizado, fotos em arco, menu dos dois lados da logo e muito respiro. Delicado, ótimo para gestante e newborn.",
     overlay: false,
   },
   {
     id: "mosaico",
     name: "Mosaico",
-    text: "Texto ao lado de uma composição com três fotos. Mostra variedade logo de cara.",
+    text: "Blocos de tamanhos diferentes lado a lado, menu em cápsula e depoimentos em carrossel. Atual e cheio de fotos.",
     overlay: false,
   },
 ];
@@ -37,11 +38,25 @@ export const LAYOUTS = [
 export const DEFAULT_LAYOUT = "classico";
 export const layoutById = (id) => LAYOUTS.find((l) => l.id === id) || LAYOUTS[0];
 
-/** Modelo em uso: o salvo, ou o da prévia (?modelo=diagonal) aberta pela aba Estilo. */
-export function effectiveLayout(saved, search = typeof window !== "undefined" ? window.location.search : "") {
+// A prévia (?modelo=diagonal) vale para a aba inteira: dá para navegar por
+// todas as páginas do site vendo o modelo, até fechar a prévia.
+const PREVIEW_KEY = "tf-preview-layout";
+const valid = (id) => LAYOUTS.some((l) => l.id === id);
+
+/** Modelo em prévia nesta aba do navegador, ou null. */
+export function previewLayout(search = typeof window !== "undefined" ? window.location.search : "") {
   const q = new URLSearchParams(search).get("modelo");
-  if (q && LAYOUTS.some((l) => l.id === q)) return q;
-  return layoutById(saved).id;
+  if (valid(q)) {
+    try { sessionStorage.setItem(PREVIEW_KEY, q); } catch { /* sem armazenamento */ }
+    return q;
+  }
+  try { const s = sessionStorage.getItem(PREVIEW_KEY); return valid(s) ? s : null; } catch { return null; }
+}
+export function endPreview() { try { sessionStorage.removeItem(PREVIEW_KEY); } catch { /* sem armazenamento */ } }
+
+/** Modelo em uso: o da prévia aberta pela aba Estilo, ou o salvo. */
+export function effectiveLayout(saved, search) {
+  return previewLayout(search) || layoutById(saved).id;
 }
 
 // Fontes do Google Fonts. "display" = títulos; "body" = textos e menus.

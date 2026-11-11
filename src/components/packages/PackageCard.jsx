@@ -4,6 +4,7 @@ import SmartImage from "../common/SmartImage.jsx";
 import Badge from "../common/Badge.jsx";
 import { formatBRL } from "../../utils/format.js";
 import { lotRemaining, packageAvailability } from "../../utils/lots.js";
+import { sitePath } from "../../config/tenant.js";
 
 export function AvailabilityBadge({ av }) {
   if (av.state === "soldout") return <Badge tone="danger">Esgotado</Badge>;
@@ -28,9 +29,9 @@ export function PriceTag({ pkg, av, size = "md" }) {
 export default function PackageCard({ pkg, categoryName, featured = false }) {
   const av = packageAvailability(pkg, pkg.lots);
   const remaining = av.lot ? lotRemaining(av.lot) : null;
-  const href = `/pacotes/${pkg.slug || pkg.id}`;
+  const href = sitePath(`/pacotes/${pkg.slug || pkg.id}`);
   return (
-    <article className={`group relative flex h-full flex-col overflow-hidden rounded-[28px] border bg-surface transition-all duration-500 ease-soft hover:-translate-y-1 hover:shadow-lift ${
+    <article className={`group relative flex h-full flex-col overflow-hidden r-card border bg-surface transition-all duration-500 ease-soft hover:-translate-y-1 hover:shadow-lift ${
       featured ? "border-gold/40 shadow-soft" : "border-ink/[.06]"}`}>
       <Link to={href} className="block overflow-hidden" tabIndex={-1} aria-hidden>
         {pkg.coverUrl ? (
