@@ -54,7 +54,25 @@ function StudioGate() {
   }
   if (!/^[a-z0-9][a-z0-9-]{1,38}[a-z0-9]$/.test(studio) || RESERVED_SLUGS.includes(studio)) return revela(RevelaNotFound);
   setCurrentStudio(studio);
-  return <StudioShell key={studio} studio={studio} />;
+  return (
+    <Routes>
+      <Route element={<StudioShell key={studio} studio={studio} />}>
+        <Route index element={<Home />} />
+        <Route path="sobre" element={<About />} />
+        <Route path="pacotes" element={<Packages />} />
+        <Route path="pacotes/:id" element={<PackageDetail />} />
+        <Route path="galeria" element={<Gallery />} />
+        <Route path="galeria/:slug" element={<Gallery />} />
+        <Route path="agenda" element={<Booking />} />
+        <Route path="agendar" element={<Navigate to="../agenda" replace />} />
+        <Route path="vip" element={<VIP />} />
+        <Route path="vip/:slug" element={<VIP />} />
+        <Route path="contato" element={<Contact />} />
+        <Route path="politicas" element={<Policies />} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
+  );
 }
 
 export default function App() {
@@ -69,21 +87,9 @@ export default function App() {
             <Route path="/entrar" element={revela(RevelaLogin)} />
             <Route path="/cadastro" element={revela(RevelaSignup)} />
             <Route path="/adm/*" element={<AdminApp />} />
-            <Route path="/:studio" element={<StudioGate />}>
-              <Route index element={<Home />} />
-              <Route path="sobre" element={<About />} />
-              <Route path="pacotes" element={<Packages />} />
-              <Route path="pacotes/:id" element={<PackageDetail />} />
-              <Route path="galeria" element={<Gallery />} />
-              <Route path="galeria/:slug" element={<Gallery />} />
-              <Route path="agenda" element={<Booking />} />
-              <Route path="agendar" element={<Navigate to="../agenda" replace />} />
-              <Route path="vip" element={<VIP />} />
-              <Route path="vip/:slug" element={<VIP />} />
-              <Route path="contato" element={<Contact />} />
-              <Route path="politicas" element={<Policies />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
+            {/* "/:studio/*" (e não "/:studio" com filhos): assim "/adm/pacotes",
+                "/adm/agenda"… continuam no painel, porque a rota fixa /adm/* vence. */}
+            <Route path="/:studio/*" element={<StudioGate />} />
             <Route path="*" element={<RootFallback />} />
           </Routes>
         </Suspense>
