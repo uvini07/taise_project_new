@@ -130,6 +130,9 @@
 /* Polaroidy pisca de vez em quando. */
 @keyframes polaroidy-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
 @keyframes polaroidy-wave { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-14deg); } }
+.pl-svg > svg { width: 100%; height: 100%; display: block; }
+.pl-svg .pl-eyes { transform-box: fill-box; transform-origin: center; animation: polaroidy-blink 4s ease-in-out infinite; }
+.pl-svg .pl-wave { animation: polaroidy-wave 1.6s ease-in-out infinite; }
 
 /* Barra de progresso das fotos do topo (modelo Imersivo). */
 @keyframes grow { from { width: 0; } to { width: 100%; } }

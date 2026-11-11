@@ -6,7 +6,6 @@ import PolaroidyMascot, { PolaroidyWaving } from "./PolaroidyMascot.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { WhatsAppIcon } from "../common/Icons.jsx";
-import Spinner from "../common/Spinner.jsx";
 import { askPolaroid, parseLine } from "../../services/polaroid.js";
 import { todayKey } from "../../utils/format.js";
 
@@ -85,7 +84,7 @@ export default function PolaroidChat({ open, onClose }) {
       {/* Identidade da Revela (não muda com as cores do estúdio). */}
       <section className="absolute inset-y-0 right-0 flex w-full max-w-[420px] animate-fade-in flex-col bg-[#F7F5FA] text-[#2B2540] shadow-lift">
         <header className="flex items-center gap-3 bg-[#2B2540] px-4 py-3 text-[#E6E1F0]">
-          <PolaroidyMascot className="h-11 w-11 rounded-full ring-2 ring-[#E6E1F0]/30" blink />
+          <PolaroidyMascot className="h-11 w-11 overflow-hidden rounded-full ring-2 ring-[#E6E1F0]/30" />
           <div className="flex-1">
             <p className="font-revela text-2xl leading-none text-white">Polaroidy</p>
             <p className="mt-1 text-xs text-[#E6E1F0]/70">Sua assistente da Revela. Ela só consulta e sugere.</p>
@@ -99,7 +98,7 @@ export default function PolaroidChat({ open, onClose }) {
         <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
           {!chat.length && (
             <div>
-              <PolaroidyWaving className="mx-auto mb-3 h-36 w-auto" />
+              <PolaroidyWaving className="mx-auto mb-2 !block h-40 w-40" />
               <p className="text-[15px]">Oi{firstName ? `, ${firstName}` : ""}! Sou a <b className="font-medium">Polaroidy</b>. Posso olhar sua agenda, ver quem ainda não pagou e mostrar onde fica cada coisa no painel.</p>
               <p className="mt-5 text-xs uppercase tracking-wider text-[#8E86A6]">Experimente</p>
               <div className="mt-2 flex flex-col gap-2">
@@ -129,7 +128,7 @@ export default function PolaroidChat({ open, onClose }) {
               </div>
             )
           ))}
-          {busy && <p className="flex items-center gap-2 text-sm text-[#8E86A6]"><Spinner className="h-4 w-4" /> Polaroidy está olhando…</p>}
+          {busy && <p className="flex items-center gap-2 text-sm text-[#8E86A6]"><PolaroidyMascot mood="pensando" className="h-8 w-8 animate-pulse overflow-hidden rounded-full" /> Polaroidy está olhando…</p>}
           {long && <p className="rounded-xl bg-paper px-3 py-2 text-xs text-ink-muted">Esta conversa ficou longa. Toque em <RotateCcw className="inline h-3 w-3" /> para começar uma nova.</p>}
           <div ref={end} />
         </div>
