@@ -26,7 +26,7 @@ function Rich({ text, onNavigate }) {
               : <span key={k}>{p.v}</span>)
               : <span key={k}>{p.v}</span>
         ));
-        return bullet ? <p key={i} className="flex gap-2"><span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-current opacity-60" />{parts}</p> : <p key={i}>{parts}</p>;
+        return bullet ? <p key={i} className="flex gap-2"><span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-current opacity-60" /><span className="min-w-0">{parts}</span></p> : <p key={i}>{parts}</p>;
       })}
     </div>
   );
