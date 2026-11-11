@@ -62,11 +62,13 @@ export async function deleteCampaign(c) {
 }
 
 export async function listRegistrations(campaignId = null) {
+  // Filtro de igualdade sem orderBy: não precisa de índice composto. Ordena aqui.
   const q = campaignId
-    ? query(sCol("vipRegistrations"), where("campaignId", "==", campaignId), orderBy("createdAt", "desc"))
+    ? query(sCol("vipRegistrations"), where("campaignId", "==", campaignId))
     : query(sCol("vipRegistrations"), orderBy("createdAt", "desc"));
   const s = await getDocs(q);
-  return s.docs.map(withId);
+  const ms = (d) => d.createdAt?.toMillis?.() ?? 0;
+  return s.docs.map(withId).sort((a, b) => ms(b) - ms(a));
 }
 
 export async function updateRegistration(id, patch) {
