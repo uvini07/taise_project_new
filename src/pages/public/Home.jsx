@@ -36,7 +36,7 @@ import {
 } from "../../components/site/HomeVariants.jsx";
 
 // ---------------------------------------------------------------------------
-// Topo da página inicial: 5 modelos (aba Estilo do painel). Todos usam os
+// Topo da página inicial: um por modelo (aba Estilo / Editor do site). Todos usam os
 // mesmos textos e fotos de Configurações; muda só a estrutura.
 
 /** 1. Clássico: foto em tela cheia com o texto por cima. */
@@ -362,14 +362,28 @@ function sectionsFor(layout, featured) {
   }
 }
 
+// Partes que o Editor do site destaca e abre ao clicar (chave da seção → painel).
+const ZONES = {
+  sobre: ["sobre", "Editar o Sobre"],
+  cat: ["galeria", "Editar a galeria"],
+  gal: ["galeria", "Editar a galeria"],
+  pacotes: ["pacotes", "Editar os pacotes"],
+  dep: ["depoimentos", "Editar depoimentos"],
+  ct: ["contato", "Editar o contato"],
+  promo: ["evento", "Editar o evento"],
+};
+
 export default function Home() {
   useDocumentMeta({});
   const { featuredCampaign } = useOutletContext() || {};
   const layout = useLayout();
   return (
     <>
-      <Hero />
-      {sectionsFor(layout, featuredCampaign)}
+      <div data-edit-zone="topo" data-edit-label="Editar o topo"><Hero /></div>
+      {sectionsFor(layout, featuredCampaign).map((el) => {
+        const zone = ZONES[el.key];
+        return zone ? <div key={el.key} data-edit-zone={zone[0]} data-edit-label={zone[1]}>{el}</div> : el;
+      })}
     </>
   );
 }

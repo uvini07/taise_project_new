@@ -65,13 +65,13 @@ export function HeroText({ settings, hero, tone = "light", align = "left" }) {
   return (
     <div className={center ? "mx-auto max-w-3xl text-center" : "max-w-3xl"}>
       {hero.eyebrow && (
-        <p className={`eyebrow flex animate-fade-up items-center gap-2 ${center ? "justify-center" : ""} ${light ? "!text-gold-light" : ""}`}>
+        <p data-edit="hero.eyebrow" className={`eyebrow flex animate-fade-up items-center gap-2 ${center ? "justify-center" : ""} ${light ? "!text-gold-light" : ""}`}>
           <Sparkle className="h-2.5 w-2.5" /> {hero.eyebrow}
         </p>
       )}
-      <BlurText text={hero.title} className={`display-xl mt-5 text-balance ${light ? "!text-cream" : "!text-ink"}`} delay={150} />
+      <div data-edit="hero.title"><BlurText text={hero.title} className={`display-xl mt-5 text-balance ${light ? "!text-cream" : "!text-ink"}`} delay={150} /></div>
       {hero.subtitle && (
-        <p className={`mt-6 max-w-xl animate-fade-up text-base leading-relaxed [animation-delay:600ms] sm:text-lg ${center ? "mx-auto" : ""} ${light ? "text-cream/80" : "text-ink-soft"}`}>
+        <p data-edit="hero.subtitle" className={`mt-6 max-w-xl animate-fade-up text-base leading-relaxed [animation-delay:600ms] sm:text-lg ${center ? "mx-auto" : ""} ${light ? "text-cream/80" : "text-ink-soft"}`}>
           {hero.subtitle}
         </p>
       )}

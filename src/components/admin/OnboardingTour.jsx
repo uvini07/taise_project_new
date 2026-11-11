@@ -21,7 +21,7 @@ const SLIDES = (name) => [
   {
     icon: Palette,
     title: "Um site com a sua cara",
-    text: "Escolha entre 5 modelos de site e mude fontes, cores, textos e fotos. Tudo é editável, sem precisar de designer.",
+    text: "Escolha entre 10 modelos e mude fontes, cores, textos e fotos vendo o site mudar na hora. Tudo editável, sem precisar de designer.",
   },
   {
     icon: CalendarDays,
@@ -69,7 +69,7 @@ export default function OnboardingTour() {
     setOpen(false);
     try { localStorage.setItem(seenKey(admin?.studio), "1"); } catch { /* sem armazenamento */ }
     if (!settings.onboardingDone) saveSettings({ onboardingDone: true }).catch(() => {});
-    if (goToStyle) navigate("/adm/estilo");
+    if (goToStyle) navigate("/adm/editor?painel=modelo");
   }, [admin?.studio, settings.onboardingDone, navigate]);
 
   const last = i === slides.length - 1;
@@ -123,7 +123,7 @@ export default function OnboardingTour() {
             </button>
             {last ? (
               <button type="button" onClick={() => close(true)} className="btn-primary">
-                Escolher o estilo do site <ArrowRight className="h-4 w-4" />
+                Montar meu site <ArrowRight className="h-4 w-4" />
               </button>
             ) : (
               <button type="button" onClick={() => setI((x) => x + 1)} aria-label="Próximo"

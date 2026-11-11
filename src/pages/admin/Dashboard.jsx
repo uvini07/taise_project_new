@@ -79,10 +79,10 @@ export default function Dashboard() {
   const [sawSite, setSawSite] = useState(() => { try { return localStorage.getItem(`revela-viu-site:${admin?.studio}`) === "1"; } catch { return false; } });
   const markSawSite = () => { setSawSite(true); try { localStorage.setItem(`revela-viu-site:${admin?.studio}`, "1"); } catch { /* sem armazenamento */ } };
   const steps = data ? [
-    [legacy || !!settings.logoUrl, "Envie a sua logo", "/adm/configuracoes?aba=identidade#logo"],
-    [legacy || !!settings.styleChosen, "Escolha o modelo, as fontes e as cores do site", "/adm/estilo"],
-    [!!settings.hero?.images?.length, "Coloque as suas fotos no topo do site", "/adm/configuracoes?aba=inicio"],
-    [legacy ? !settings.isDefault : !!settings.contentSaved, "Revise os textos e o contato do site", "/adm/configuracoes"],
+    [legacy || !!settings.logoUrl, "Envie a sua logo", "/adm/editor?painel=identidade"],
+    [legacy || !!settings.styleChosen, "Escolha o modelo, as fontes e as cores do site", "/adm/editor?painel=modelo"],
+    [!!settings.hero?.images?.length, "Coloque as suas fotos no topo do site", "/adm/editor?painel=topo"],
+    [legacy ? !settings.isDefault : !!settings.contentSaved, "Revise os textos e o contato do site", "/adm/editor?painel=sobre"],
     [data.categories.length > 0 && data.categories.some((c) => c.visible), "Monte a galeria com as suas fotos", "/adm/galeria"],
     [data.packages.some((p) => isPublicStatus(p.status)), "Publique o primeiro pacote", "/adm/pacotes"],
     [data.hasAvailability, "Configure os dias e horários da agenda", "/adm/agenda"],

@@ -3,6 +3,7 @@
 // escrita. O Google Analytics (Firebase Analytics) é opcional e só é ativado
 // depois que o visitante aceita os cookies.
 import { doc, increment, setDoc } from "firebase/firestore";
+import { isEditorPreview } from "../utils/editorMode.js";
 import { db, app, useEmulators } from "./firebase.js";
 import { toDayKey } from "../utils/format.js";
 import { sDoc } from "./studioDb.js";
@@ -42,7 +43,8 @@ const clean = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9_-]+/g, "-")
 
 /** Soma 1 ao contador `key` do dia. */
 export function bump(key) {
-  if (isBot() || isAdminPath()) return;
+  // Prévia do Editor do site não conta como visita.
+  if (isBot() || isAdminPath() || isEditorPreview()) return;
   const day = toDayKey(new Date());
   setDoc(sDoc("analyticsDaily", day), { [key]: increment(1), _k: key }, { merge: true })
     .catch(() => { /* métrica nunca pode quebrar o site */ });

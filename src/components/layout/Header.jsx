@@ -51,7 +51,7 @@ export default function Header({ overlay = false, hasVip = false }) {
     </NavLink>
   );
   const logo = (cls) => (
-    <Link to={sitePath("/")} className="shrink-0" aria-label={`${settings.brandName} — página inicial`}>
+    <Link to={sitePath("/")} data-edit="identidade.logo" className="shrink-0" aria-label={`${settings.brandName} — página inicial`}>
       <Logo tone={transparent || dark ? "light" : "dark"} eager className={`w-auto transition-all duration-500 ${cls}`} />
     </Link>
   );

@@ -14,6 +14,7 @@ import { stripSiteBase } from "../../config/tenant.js";
 import { endPreview, layoutById, previewLayout } from "../../config/siteStyle.js";
 import { useLayout } from "../../hooks/useLayout.js";
 import { darkThemeVars } from "../../utils/theme.js";
+import EditorBridge from "../site/EditorBridge.jsx";
 
 export default function PublicLayout() {
   const { pathname: fullPath, search } = useLocation();
@@ -62,7 +63,8 @@ export default function PublicLayout() {
           <Outlet context={{ featuredCampaign: featured }} />
         </Suspense>
       </main>
-      <Footer hasVip={hasVip} />
+      <div data-edit-zone="rodape" data-edit-label="Editar o rodapé"><Footer hasVip={hasVip} /></div>
+      <EditorBridge />
       <WhatsAppFab />
       <CookieBanner />
       {preview && (

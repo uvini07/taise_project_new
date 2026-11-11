@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
-  BarChart3, CalendarDays, Crown, Heart, PackageCheck, ExternalLink, ImagePlus, Images, LayoutDashboard, LogOut, Menu, Package, Palette, Settings, Sparkles, Wallet, X,
+  BarChart3, CalendarDays, Crown, Heart, PackageCheck, ExternalLink, ImagePlus, Images, LayoutDashboard, LogOut, Menu, Package, Palette, Settings, Sparkles, Wallet, Wand2, X,
 } from "lucide-react";
 import Logo from "../common/Logo.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
@@ -19,6 +19,7 @@ export const ADMIN_GROUPS = [
     { to: "/adm/dashboard", label: "Visão geral", icon: LayoutDashboard },
   ] },
   { title: "Meu site", items: [
+    { to: "/adm/editor", label: "Editar meu site", icon: Wand2, hint: "Editor visual: veja o site mudando enquanto edita", highlight: true },
     { to: "/adm/estilo", label: "Estilo do site", icon: Palette, hint: "Modelo, fontes e cores" },
     { to: "/adm/configuracoes", label: "Conteúdo do site", icon: Settings, hint: "Textos, fotos e contato" },
     { to: "/adm/pacotes", label: "Pacotes", icon: Package },
@@ -84,7 +85,7 @@ function AdminBrand({ compact = false }) {
     return <Link to="/adm/dashboard" className={compact ? "" : "mb-5 block px-2"}><Logo className={compact ? "h-10 w-auto" : "h-14 w-auto"} eager /></Link>;
   }
   return (
-    <Link to="/adm/configuracoes?aba=identidade#logo"
+    <Link to="/adm/editor?painel=identidade"
       className={`group flex items-center gap-2.5 rounded-2xl border-2 border-dashed border-wine-900/25 text-wine-900 transition hover:border-wine-900/60 hover:bg-wine-900/5 ${compact ? "px-3 py-1.5" : "mb-5 px-3 py-3"}`}>
       <span className={`flex shrink-0 items-center justify-center rounded-xl bg-wine-900/10 ${compact ? "h-7 w-7" : "h-9 w-9"}`}>
         <ImagePlus className="h-4 w-4" strokeWidth={1.8} aria-hidden />

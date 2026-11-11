@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getConsent, initGoogleAnalytics, setConsent } from "../../services/analyticsService.js";
 import { sitePath } from "../../config/tenant.js";
+import { isEditorPreview } from "../../utils/editorMode.js";
 
 /**
  * Consentimento (LGPD). O Google Analytics só é carregado depois do "aceitar".
@@ -11,6 +12,7 @@ import { sitePath } from "../../config/tenant.js";
 export default function CookieBanner() {
   const [show, setShow] = useState(false);
   useEffect(() => {
+    if (isEditorPreview()) return; // nada de aviso dentro do Editor do site
     const c = getConsent();
     if (!c) setShow(true);
     else if (c === "accepted") initGoogleAnalytics();

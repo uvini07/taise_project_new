@@ -1,6 +1,7 @@
 // Estilo do site do estúdio: o modelo (estrutura do site inteiro: cabeçalho,
 // seções da página inicial, topo das páginas internas, rodapé e formas) e
 // as fontes. As cores ficam em utils/theme.js. Tudo é escolhido na aba Estilo.
+import { isEditorPreview } from "../utils/editorMode.js";
 
 export const LAYOUTS = [
   {
@@ -76,6 +77,7 @@ const valid = (id) => LAYOUTS.some((l) => l.id === id);
 
 /** Modelo em prévia nesta aba do navegador, ou null. */
 export function previewLayout(search = typeof window !== "undefined" ? window.location.search : "") {
+  if (isEditorPreview()) return null; // no Editor, vale o modelo escolhido no painel
   const q = new URLSearchParams(search).get("modelo");
   if (valid(q)) {
     try { sessionStorage.setItem(PREVIEW_KEY, q); } catch { /* sem armazenamento */ }

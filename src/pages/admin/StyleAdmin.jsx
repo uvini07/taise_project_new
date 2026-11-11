@@ -39,7 +39,7 @@ const MiniNav = ({ light }) => (
   </span>
 );
 
-function MiniHero({ id, img, img2, img3 }) {
+export function MiniHero({ id, img, img2, img3 }) {
   const photo = (cls, src = img, style) => <span className={`block bg-cover bg-center ${cls}`} style={{ backgroundImage: `url(${src})`, ...style }} />;
   const wrap = "relative block aspect-[4/3] overflow-hidden rounded-xl";
   if (id === "classico") return (

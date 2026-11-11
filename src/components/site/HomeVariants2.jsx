@@ -172,7 +172,11 @@ export function HeroRevista() {
         <div className="flex items-center justify-between border-y-2 border-ink py-2 text-[11px] uppercase tracking-[0.24em] text-ink-soft">
           <span>{hero.eyebrow || "Fotografia"}</span><span className="hidden sm:inline">Edição de {new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</span><span>Nº {String(new Date().getMonth() + 1).padStart(2, "0")}</span>
         </div>
-        <p className="mt-4 truncate text-center font-display text-[17vw] font-medium leading-[0.85] tracking-tight text-wine-900 lg:text-[11rem]">{settings.brandName}</p>
+        {/* Título de capa: o tamanho acompanha o comprimento do nome, sem cortar. */}
+        <p className={`mt-4 text-balance break-words text-center font-display font-medium leading-[0.9] tracking-tight text-wine-900 ${
+          (settings.brandName || "").length <= 10 ? "text-[17vw] lg:text-[11rem]"
+            : (settings.brandName || "").length <= 16 ? "text-[12vw] lg:text-[8rem]"
+              : (settings.brandName || "").length <= 24 ? "text-[9vw] lg:text-[6rem]" : "text-[7vw] lg:text-[4.5rem]"}`}>{settings.brandName}</p>
         <div className="mt-8 grid gap-8 border-t border-ink/15 pt-8 lg:grid-cols-12">
           <div className="relative overflow-hidden lg:col-span-7"><div className="relative aspect-[4/3]"><Slides images={images} active={d.active} sizes="(min-width:1024px) 58vw, 100vw" zoom={false} /></div></div>
           <div className="flex flex-col lg:col-span-5">
