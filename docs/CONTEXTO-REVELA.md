@@ -13,7 +13,7 @@
   - financeiro e visitas;
   - **Polaroidy**, a assistente com IA.
 - **Repositório:** `uvini07/taise_project_new` (React + Vite + Tailwind + Firebase + GSAP).
-- **Deploy:** Vercel, em taise-project-new.vercel.app.
+- **Deploy:** Vercel, em revela-eta.vercel.app (antes: taise-project-new.vercel.app).
 - **Regra:** tudo é commitado e enviado direto na **`main`**. Não usar outras branches.
 - **Primeira cliente:** a fotógrafa Taíse, com o site em `/tarufino`.
 - **Sociedade:** Markfy 20%, Marcelo 40%, João 40%.
