@@ -105,7 +105,7 @@
   - publicar o `firestore.rules`.
 - **Próximos passos possíveis:**
   - seleção e entrega funcionando de verdade com o R2 (hoje estão em modo de teste);
-  - avisos de novo agendamento e de seleção finalizada;
+  - **sistema de avisos** (próximo passo combinado): notificação no celular, e-mail e resumo da Polaroidy ao abrir o painel, todos grátis; WhatsApp só nos planos maiores. Avisos de novo pedido, sinal pago, seleção finalizada, download da entrega, pagamento vencido, novos na lista VIP e ensaios do dia seguinte;
   - assinatura pelo Mercado Pago (precisa de CNPJ);
   - domínio próprio por estúdio;
   - mostrar, ocultar e reordenar seções no editor.
@@ -113,3 +113,6 @@
 ## Como testar
 - `npm run build`, `npx vitest run` (45 testes) e os emuladores do Firebase para as regras.
 - Prints com Playwright em `npx vite preview`.
+
+## Conta de teste da Polaroidy
+- E-mail `polaroidy.teste@example.com`, estúdio `estudio-teste`, com pacotes, agenda e pagamentos de exemplo. A senha foi passada no chat e não fica salva aqui.
