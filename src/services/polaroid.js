@@ -43,7 +43,7 @@ async function openIncomeOf(nome) {
 
 const MESSAGES = {
   confirmacao: (n, a, studio) => `Oi, ${n}! Tudo certo? Seu ${a.packageName || "ensaio"} está confirmado para ${weekdayBR(a.date)}, ${dayBR(a.date)}, às ${a.time}. Qualquer dúvida, é só me chamar. ${studio}`,
-  lembrete: (n, a, studio) => `Oi, ${n}! Passando para lembrar do seu ${a.packageName || "ensaio"} ${a.date === addDays(todayKey(), 1) ? "amanhã" : `em ${dayBR(a.date)}`}, às ${a.time}. Estou te esperando! ${studio}`,
+  lembrete: (n, a, studio) => `Oi, ${n}! Passando para lembrar do seu ${a.packageName || "ensaio"} ${a.date === todayKey() ? "hoje" : a.date === addDays(todayKey(), 1) ? "amanhã" : `em ${dayBR(a.date)}`}, às ${a.time}. Estou te esperando! ${studio}`,
   fotos_prontas: (n, _a, studio) => `Oi, ${n}! Suas fotos estão prontas! Vou te enviar o link para você ver e baixar. Espero que ame tanto quanto eu amei fazer. ${studio}`,
   depoimento: (n, _a, studio) => `Oi, ${n}! Foi um prazer fotografar vocês. Se puder, me conta em poucas palavras como foi a experiência? Seu depoimento ajuda muito o meu trabalho. ${studio}`,
 };
@@ -77,7 +77,8 @@ const TOOLS = {
       forModel: {
         de: dayBR(from), ate: dayBR(to),
         contratado: brl(s.grossCents), receitas: s.incomeCount,
-        recebido: brl(s.receivedCents), a_receber: brl(s.pendingCents), vencido_total: brl(s.overdueCents),
+        recebido: brl(s.receivedCents), a_receber_do_periodo: brl(s.pendingCents),
+        vencido_geral_ate_hoje: brl(s.overdueCents), obs_vencido: "Total geral de tudo que já venceu e não foi pago, de qualquer mês. Não é do período: cite só uma vez, sem comparar.",
         despesas: brl(s.expensesCents), despesas_pagas: brl(s.expensesPaidCents),
         resultado_caixa: brl(s.resultCents), ticket_medio: s.avgTicketCents != null ? brl(s.avgTicketCents) : "poucos dados",
         por_pacote: porPacote,

@@ -26,6 +26,10 @@ function Rich({ text, onNavigate }) {
   return (
     <div className="space-y-1.5">
       {text.split("\n").filter((l, i, a) => l.trim() || (i > 0 && a[i - 1].trim())).map((raw, i) => {
+        if (/^\s*>\s?/.test(raw)) {
+          const q = raw.replace(/^\s*>\s?/, "").replace(/^"|"$/g, "");
+          return <p key={i} className="rounded-xl border-l-2 border-[#C95D63] bg-[#F7F5FA] px-3 py-2 italic text-[#4A4360]">{parseLine(q).map((p, k) => <span key={k}>{p.v}</span>)}</p>;
+        }
         const bullet = /^\s*[-•*]\s+/.test(raw);
         const line = raw.replace(/^\s*[-•*]\s+/, "");
         if (!line.trim()) return <div key={i} className="h-1" />;
