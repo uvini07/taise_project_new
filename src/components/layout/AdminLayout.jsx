@@ -8,6 +8,7 @@ import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { isLegacyStudio } from "../../config/tenant.js";
 import OnboardingTour from "../admin/OnboardingTour.jsx";
 import PolaroidChat from "../admin/PolaroidChat.jsx";
+import { dailySummary } from "../../services/polaroid.js";
 import PolaroidyMascot from "../admin/PolaroidyMascot.jsx";
 import { confirmLeave } from "../../utils/unsaved.js";
 import { supportLink } from "../../config/support.js";
@@ -107,6 +108,14 @@ export default function AdminLayout() {
   const { settings } = useSettings();
   const [open, setOpen] = useState(false);
   const [polaroid, setPolaroid] = useState(false);
+  // Resumo do dia (sem IA): número na bolinha e mensagem ao abrir a Polaroidy.
+  const [summary, setSummary] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    dailySummary().then((s) => alive && setSummary(s)).catch(() => {});
+    return () => { alive = false; };
+  }, [polaroid]);
+  const badge = summary ? summary.requests + summary.overdueCount : 0;
   const { pathname } = useLocation();
   useBodyLock(open);
   useEffect(() => setOpen(false), [pathname]);
@@ -142,7 +151,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-paper">
       <OnboardingTour />
-      <PolaroidChat open={polaroid} onClose={() => setPolaroid(false)} />
+      <PolaroidChat open={polaroid} onClose={() => setPolaroid(false)} summary={summary} />
       {/* Bolinha da Polaroidy (identidade da Revela). Sobe um pouco onde há o
           botão "Salvar" fixo no rodapé da página. */}
       {!polaroid && (
@@ -151,6 +160,7 @@ export default function AdminLayout() {
           <span className="pointer-events-none mr-3 hidden translate-x-2 rounded-full bg-[#2B2540] px-3 py-1.5 font-revela text-sm text-white opacity-0 shadow-lift transition group-hover:translate-x-0 group-hover:opacity-100 sm:block">Polaroidy</span>
           <span className="relative flex h-14 w-14 items-center justify-center rounded-full shadow-[0_12px_30px_-10px_rgba(43,37,64,.7)] ring-4 ring-[#E6E1F0] transition group-hover:scale-105">
             <PolaroidyMascot className="h-14 w-14 overflow-hidden rounded-full" />
+            {badge > 0 && <span className="absolute -right-1 -top-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-[#C95D63] px-1.5 text-[12px] font-semibold text-white ring-2 ring-white" aria-label={`${badge} coisas precisam de você`}>{badge}</span>}
           </span>
         </button>
       )}

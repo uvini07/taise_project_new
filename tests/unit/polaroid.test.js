@@ -34,7 +34,7 @@ describe("api/polaroid", () => {
     expect(r.code).toBe(405);
   });
   it("ferramentas só de leitura, com esquema estrito", () => {
-    expect(TOOLS.map((t) => t.name)).toEqual(["agenda", "pedidos_aguardando", "faturamento", "pagamentos_pendentes"]);
+    expect(TOOLS.map((t) => t.name)).toEqual(["agenda", "pedidos_aguardando", "faturamento", "pagamentos_pendentes", "cliente", "horarios_livres", "selecoes_entregas", "visitas", "lista_vip", "mensagem_whatsapp", "preparar_confirmacao", "preparar_pagamento"]);
     for (const t of TOOLS) {
       expect(t.strict).toBe(true);
       expect(t.input_schema.additionalProperties).toBe(false);
