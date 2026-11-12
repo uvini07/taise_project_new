@@ -9,7 +9,7 @@ import { WhatsAppIcon } from "../common/Icons.jsx";
 import { askPolaroid, parseLine } from "../../services/polaroid.js";
 import { todayKey } from "../../utils/format.js";
 
-const SUGGESTIONS = ["Quais são minhas agendas hoje?", "Quem ainda não me pagou?", "Tem pedido esperando confirmação?", "Onde eu troco a foto do topo do site?"];
+const SUGGESTIONS = ["Quais são minhas agendas hoje?", "Quem ainda não me pagou?", "Quanto faturei este mês?", "Tem pedido esperando confirmação?", "Onde eu troco a foto do topo do site?"];
 
 /** Texto da IA com **negrito**, listas e links internos do painel. */
 function Rich({ text, onNavigate }) {

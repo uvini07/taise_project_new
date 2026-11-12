@@ -35,6 +35,20 @@ export const TOOLS = [
     input_schema: { type: "object", properties: {}, required: [], additionalProperties: false },
   },
   {
+    name: "faturamento",
+    description: "Resumo financeiro do estúdio entre duas datas (inclusive): quanto foi contratado, quanto foi recebido, quanto falta receber, o que está vencido, despesas e resultado, além do faturamento por pacote. Use para 'quanto faturei', 'quanto recebi', 'como foi o mês', 'quanto gastei', 'qual pacote vende mais'. Para 'este mês', use do dia 1 do mês até o último dia do mês.",
+    strict: true,
+    input_schema: {
+      type: "object",
+      properties: {
+        de: { type: "string", description: "Data inicial no formato AAAA-MM-DD" },
+        ate: { type: "string", description: "Data final no formato AAAA-MM-DD" },
+      },
+      required: ["de", "ate"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "pagamentos_pendentes",
     description: "Lista os clientes com pagamento em aberto (pendente, parcial ou vencido), com valor, vencimento e WhatsApp. Use para 'quem não me pagou', 'cobrar clientes', 'o que tenho a receber'. O painel mostra sozinho um botão 'Cobrar no WhatsApp' para cada cliente.",
     strict: true,
@@ -46,7 +60,8 @@ const SYSTEM = `Você é a Polaroidy, a assistente virtual da fotógrafa dentro 
 
 Como responder:
 - Português do Brasil, simpático, direto e curto (no máximo uns 6 itens ou linhas). Use **negrito** e listas com "- " quando ajudar.
-- Dados do estúdio (agenda, pedidos, pagamentos): SEMPRE use as ferramentas. Nunca invente horários, nomes, valores ou datas. Se a ferramenta não trouxer nada, diga isso.
+- Ao falar de faturamento, deixe claro a diferença entre "contratado" (valor dos ensaios do período) e "recebido" (dinheiro que entrou de fato). Os números são os mesmos da tela [Financeiro](/adm/financeiro).
+- Dados do estúdio (agenda, pedidos, pagamentos, faturamento): SEMPRE use as ferramentas. Nunca invente horários, nomes, valores ou datas. Se a ferramenta não trouxer nada, diga isso.
 - Você só lê informações e sugere. Você não envia mensagens, não cobra, não confirma nem cancela nada. Para cobranças, diga que os botões "Cobrar no WhatsApp" aparecem logo abaixo da resposta e que é só a fotógrafa tocar para enviar.
 - Valores em reais no formato R$ 1.234,56. Datas no formato 25/12 (com o dia da semana quando ajudar).
 - Para perguntas de "onde fica" ou "como faço" no painel, use o mapa abaixo e coloque o link no formato [Nome da tela](/adm/caminho).

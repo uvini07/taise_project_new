@@ -4,7 +4,7 @@
 import { auth } from "./firebaseAuth.js";
 import { getAppointment, listAppointments, listOpenRequests } from "./admin/agendaAdmin.js";
 import { listTransactions } from "./admin/financeAdmin.js";
-import { txBalance, txState } from "../utils/finance.js";
+import { groupIncome, summarize, txBalance, txState } from "../utils/finance.js";
 import { todayKey } from "../utils/format.js";
 import { APPOINTMENT_STATUS } from "../config/constants.js";
 
@@ -33,6 +33,25 @@ const TOOLS = {
   async pedidos_aguardando() {
     const list = (await listOpenRequests()).slice(0, 50).map(appt);
     return { forModel: { total: list.length, pedidos: list } };
+  },
+
+  async faturamento({ de, ate }) {
+    const from = okDay(de) ? de : `${todayKey().slice(0, 8)}01`;
+    const to = okDay(ate) && ate >= from ? ate : todayKey();
+    const all = await listTransactions({ from, to });
+    const s = summarize(all, { from, to, today: todayKey() });
+    const porPacote = groupIncome(all, (t) => (t.description || "").split(" — ")[0] || t.category, { from, to })
+      .slice(0, 8).map((g) => ({ pacote: g.key, ensaios: g.count, contratado: brl(g.contractedCents), recebido: brl(g.receivedCents) }));
+    return {
+      forModel: {
+        de: dayBR(from), ate: dayBR(to),
+        contratado: brl(s.grossCents), receitas: s.incomeCount,
+        recebido: brl(s.receivedCents), a_receber: brl(s.pendingCents), vencido_total: brl(s.overdueCents),
+        despesas: brl(s.expensesCents), despesas_pagas: brl(s.expensesPaidCents),
+        resultado_caixa: brl(s.resultCents), ticket_medio: s.avgTicketCents != null ? brl(s.avgTicketCents) : "poucos dados",
+        por_pacote: porPacote,
+      },
+    };
   },
 
   async pagamentos_pendentes(_input, { studioName }) {
