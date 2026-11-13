@@ -75,21 +75,39 @@ function loadSaved(uid) {
   return { history: [], chat: [] };
 }
 
-/** Microfone (ditado do navegador, em português). */
+/** Microfone (ditado do navegador, em português). Mostra o texto enquanto fala e explica quando falha. */
+const MIC_ERRORS = {
+  "not-allowed": "O microfone está bloqueado. Libere em Ajustes do celular → Safari (ou navegador) → Microfone.",
+  "service-not-allowed": "O ditado está desligado. No iPhone: Ajustes → Geral → Teclado → Ativar Ditado.",
+  "audio-capture": "Não encontrei um microfone neste aparelho.",
+  "network": "Sem conexão para entender o áudio. Tente de novo.",
+  "no-speech": "Não ouvi nada. Toque no microfone e fale de novo.",
+};
 function useDictation(onText) {
   const rec = useRef(null);
+  const base = useRef("");
   const [on, setOn] = useState(false);
+  const [error, setError] = useState("");
   const Speech = typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
-  function toggle() {
+  function toggle(current = "") {
+    setError("");
     if (on) { rec.current?.stop(); return; }
-    const r = new Speech();
-    r.lang = "pt-BR"; r.interimResults = false; r.maxAlternatives = 1;
-    r.onresult = (e) => onText(e.results[0][0].transcript);
-    r.onend = () => setOn(false);
-    r.onerror = () => setOn(false);
-    rec.current = r; setOn(true); r.start();
+    try {
+      const r = new Speech();
+      r.lang = "pt-BR"; r.interimResults = true; r.continuous = false; r.maxAlternatives = 1;
+      base.current = current ? `${current.trim()} ` : "";
+      r.onresult = (e) => {
+        const said = Array.from(e.results).map((x) => x[0].transcript).join(" ");
+        onText(`${base.current}${said}`.trimStart());
+      };
+      r.onend = () => setOn(false);
+      r.onerror = (e) => { setOn(false); if (e.error !== "aborted") setError(MIC_ERRORS[e.error] || "Não consegui usar o microfone. Use o 🎤 do teclado."); };
+      rec.current = r; setOn(true); r.start();
+    } catch {
+      setOn(false); setError("Não consegui usar o microfone. Use o 🎤 do teclado do celular.");
+    }
   }
-  return { supported: !!Speech, on, toggle };
+  return { supported: !!Speech, on, toggle, error };
 }
 
 /**
@@ -136,7 +154,7 @@ export default function PolaroidChat({ open, onClose, summary }) {
   const [cool, setCool] = useState(false); // pausa curta entre perguntas
   const end = useRef(null);
   const field = useRef(null);
-  const mic = useDictation((t) => setInput((v) => (v ? `${v} ${t}` : t)));
+  const mic = useDictation((t) => setInput(t));
   const box = useKeyboardSafeBox(open, () => end.current?.scrollIntoView({ block: "end" }));
 
   useEffect(() => {
@@ -271,7 +289,7 @@ export default function PolaroidChat({ open, onClose, summary }) {
             onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }}
             placeholder={mic.on ? "Pode falar…" : "Pergunte para a Polaroidy…"} className="field-input !border-[#E6E1F0] focus:!border-[#C95D63] focus:!ring-[#C95D63]/20 max-h-32 min-h-[44px] flex-1 resize-none !py-2.5" disabled={busy || long} />
           {mic.supported && (
-            <button type="button" onClick={mic.toggle} disabled={busy || long}
+            <button type="button" onClick={() => mic.toggle(input)} disabled={busy || long}
               className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full disabled:opacity-40 ${mic.on ? "animate-pulse bg-[#C95D63] text-white" : "bg-[#E6E1F0] text-[#2B2540]"}`}
               aria-label={mic.on ? "Parar de ouvir" : "Falar a pergunta"}>
               {mic.on ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
@@ -281,6 +299,7 @@ export default function PolaroidChat({ open, onClose, summary }) {
             <ArrowUp className="h-5 w-5" />
           </button>
         </form>
+        {mic.error && <p className="bg-white px-4 pb-2 text-center text-[12px] text-[#9b3d43]">{mic.error}</p>}
         {quota && quota.remaining <= 10 && (
           <p className="bg-white px-4 pb-2 text-center text-[11px] text-[#8E86A6]">{quota.remaining ? `${quota.remaining} pergunta${quota.remaining > 1 ? "s" : ""} restante${quota.remaining > 1 ? "s" : ""} hoje` : "Você usou todas as perguntas de hoje."}</p>
         )}
