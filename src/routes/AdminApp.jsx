@@ -12,6 +12,7 @@ const GalleryAdmin = lazy(() => import("../pages/admin/GalleryAdmin.jsx"));
 const AgendaAdmin = lazy(() => import("../pages/admin/AgendaAdmin.jsx"));
 const AnalyticsAdmin = lazy(() => import("../pages/admin/AnalyticsAdmin.jsx"));
 const FinanceAdmin = lazy(() => import("../pages/admin/FinanceAdmin.jsx"));
+const SubscriptionAdmin = lazy(() => import("../pages/admin/SubscriptionAdmin.jsx"));
 const VIPAdmin = lazy(() => import("../pages/admin/VIPAdmin.jsx"));
 const EventAdmin = lazy(() => import("../pages/admin/EventAdmin.jsx"));
 const SettingsAdmin = lazy(() => import("../pages/admin/SettingsAdmin.jsx"));
@@ -45,6 +46,7 @@ export default function AdminApp() {
           <Route path="agenda" element={<Suspense fallback={<PageLoader />}><AgendaAdmin /></Suspense>} />
           <Route path="analytics" element={<Suspense fallback={<PageLoader />}><AnalyticsAdmin /></Suspense>} />
           <Route path="financeiro" element={<Suspense fallback={<PageLoader />}><FinanceAdmin /></Suspense>} />
+          <Route path="assinatura" element={<Suspense fallback={<PageLoader />}><SubscriptionAdmin /></Suspense>} />
           <Route path="vip" element={<Suspense fallback={<PageLoader />}><VIPAdmin /></Suspense>} />
           <Route path="evento" element={<Suspense fallback={<PageLoader />}><EventAdmin /></Suspense>} />
           <Route path="editor" element={<Suspense fallback={<PageLoader />}><SiteEditor /></Suspense>} />

@@ -3,6 +3,7 @@ import { ShieldAlert } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import PageLoader from "../components/common/PageLoader.jsx";
 import { logout } from "../services/authService.js";
+import PlanPicker from "../components/admin/PlanPicker.jsx";
 
 /**
  * Só deixa entrar quem está logado E tem registro ativo em adminUsers.
@@ -16,13 +17,14 @@ export default function ProtectedRoute({ children }) {
   if (status === "signedOut") return <Navigate to="/entrar" replace state={{ from: location.pathname }} />;
   if (status === "expired") {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 py-12 text-center">
         <ShieldAlert className="h-10 w-10 text-danger" strokeWidth={1.4} />
         <h1 className="display-md">O teste grátis terminou</h1>
         <p className="max-w-md text-sm text-ink-muted">
           Os 30 dias de teste de <b>{admin?.studioName}</b> acabaram. Seus dados continuam guardados:
-          fale com a Revela para escolher um plano e voltar a usar o painel.
+          escolha um plano para voltar a usar o painel na hora.
         </p>
+        <div className="w-full max-w-5xl"><PlanPicker onError={(m) => window.alert(m)} /></div>
         <button className="btn-outline" onClick={logout}>Sair</button>
       </div>
     );

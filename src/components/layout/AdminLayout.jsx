@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
-  BarChart3, CalendarDays, Crown, Heart, PackageCheck, ExternalLink, ImagePlus, Images, LayoutDashboard, LifeBuoy, LogOut, Menu, Package, Settings, Sparkles, Wallet, Wand2, X,
+  BarChart3, CalendarDays, CreditCard, Crown, Heart, PackageCheck, ExternalLink, ImagePlus, Images, LayoutDashboard, LifeBuoy, LogOut, Menu, Package, Settings, Sparkles, Wallet, Wand2, X,
 } from "lucide-react";
 import Logo from "../common/Logo.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
@@ -39,6 +39,7 @@ export const ADMIN_GROUPS = [
   { title: "Gestão", items: [
     { to: "/adm/financeiro", label: "Financeiro", icon: Wallet },
     { to: "/adm/analytics", label: "Visitas do site", icon: BarChart3 },
+    { to: "/adm/assinatura", label: "Minha assinatura", icon: CreditCard },
   ] },
 ];
 export const ADMIN_NAV = ADMIN_GROUPS.flatMap((g) => g.items);
@@ -74,7 +75,7 @@ function TrialBanner() {
   return (
     <div className="sticky top-0 z-50 bg-wine-900 px-4 py-2.5 text-center text-sm text-cream lg:pl-64">
       {days <= 0 ? "Seu teste grátis termina hoje." : `Seu teste grátis termina em ${days} ${days === 1 ? "dia" : "dias"}.`}{" "}
-      Para continuar sem perder nada, <a href="/planos" target="_blank" rel="noopener noreferrer" className="font-medium underline underline-offset-2">escolha um plano</a>.
+      Para continuar sem perder nada, <Link to="/adm/assinatura" className="font-medium underline underline-offset-2">assine agora</Link>.
     </div>
   );
 }
