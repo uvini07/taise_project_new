@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
-  BarChart3, CalendarDays, Crown, Heart, PackageCheck, ExternalLink, ImagePlus, Images, LayoutDashboard, LifeBuoy, LogOut, Menu, Package, Palette, Settings, Sparkles, Wallet, Wand2, X,
+  BarChart3, CalendarDays, Crown, Heart, PackageCheck, ExternalLink, ImagePlus, Images, LayoutDashboard, LifeBuoy, LogOut, Menu, Package, Settings, Sparkles, Wallet, Wand2, X,
 } from "lucide-react";
 import Logo from "../common/Logo.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
@@ -25,7 +25,6 @@ export const ADMIN_GROUPS = [
   ] },
   { title: "Meu site", items: [
     { to: "/adm/editor", label: "Editar meu site", icon: Wand2, hint: "Editor visual: veja o site mudando enquanto edita", highlight: true },
-    { to: "/adm/estilo", label: "Estilo do site", icon: Palette, hint: "Modelo, fontes e cores" },
     { to: "/adm/configuracoes", label: "Conteúdo do site", icon: Settings, hint: "Textos, fotos e contato" },
     { to: "/adm/pacotes", label: "Pacotes", icon: Package },
     { to: "/adm/galeria", label: "Galeria", icon: Images },

@@ -22,6 +22,7 @@ import { FALLBACK_IMAGES } from "../../config/defaults.js";
 import { EDITOR_FRAME } from "../../utils/editorMode.js";
 import { confirmLeave, useUnsavedGuard } from "../../utils/unsaved.js";
 import { MiniHero } from "./StyleAdmin.jsx";
+import { ThemeEditor } from "./SettingsAdmin.jsx";
 
 const set = (obj, path, value) => {
   const [k, ...rest] = path.split(".");
@@ -204,7 +205,10 @@ export default function SiteEditor() {
             <input className="field-input !w-28 !py-2 font-mono text-xs" value={theme[k]} onChange={(e) => setForm((f) => ({ ...f, theme: { ...theme, [k]: e.target.value } }))} />
           </label>
         ))}
-        <p className="text-xs text-ink-muted">Mais opções de cor (texto, cartões) ficam em Estilo do site.</p>
+        <details className="rounded-xl border border-ink/10 bg-white/60 px-3 py-2">
+          <summary className="cursor-pointer text-sm font-medium text-ink">Mais opções de cor (texto, cartões, salvar paleta)</summary>
+          <div className="mt-3 space-y-3"><ThemeEditor form={form} setForm={setForm} /></div>
+        </details>
       </>
     ),
     fontes: (

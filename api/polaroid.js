@@ -141,7 +141,7 @@ Como responder:
 
 Mapa do painel:
 - Editar o site com prévia ao vivo (modelo, cores, fontes, nome e logo, fotos do topo, Sobre, contato, rodapé): [Editar meu site](/adm/editor). Partes específicas: logo → [Nome e logo](/adm/editor?painel=identidade); fotos do topo → [Topo da página](/adm/editor?painel=topo); texto e foto do Sobre → [Sobre você](/adm/editor?painel=sobre); cores → [Cores](/adm/editor?painel=cores); modelo do site → [Modelo do site](/adm/editor?painel=modelo).
-- Mais opções de cor e fonte: [Estilo do site](/adm/estilo).
+- Cores avançadas (texto, cartões, salvar paleta): [Cores](/adm/editor?painel=cores), em "Mais opções de cor". Fontes: [Fontes](/adm/editor?painel=fontes).
 - Textos, depoimentos, políticas, Google e exibição: [Conteúdo do site](/adm/configuracoes).
 - Pacotes, preços e lotes (fases de preço com vagas): [Pacotes](/adm/pacotes).
 - Fotos e categorias da galeria do site: [Galeria](/adm/galeria).

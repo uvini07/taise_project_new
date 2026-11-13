@@ -110,7 +110,7 @@ export default function SettingsAdmin() {
 
   return (
     <>
-      <AdminHeader title="Conteúdo do site" text="Os textos, as fotos e o contato que aparecem no seu site. O modelo, as fontes e as cores ficam em Estilo do site."
+      <AdminHeader title="Conteúdo do site" text="Os textos, as fotos e o contato que aparecem no seu site. O modelo, as fontes e as cores ficam em Editar meu site."
         actions={(
           <div className="flex flex-wrap gap-2">
             <a href={sitePath("/")} target="_blank" rel="noopener noreferrer" className="btn-outline"><ExternalLink className="h-4 w-4" /> Ver no site</a>
