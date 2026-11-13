@@ -2,7 +2,7 @@
 // Se o estúdio já tem assinatura ativa, devolve o portal para trocar de plano.
 import { FieldValue } from "firebase-admin/firestore";
 import { adminDb, studioOfUser, userFrom } from "../../lib/admin.js";
-import { PLAN_KEYS, ensurePrice, fail, siteUrl, stripeClient } from "../../lib/stripe.js";
+import { PLAN_KEYS, canUseTestPlan, ensurePrice, fail, siteUrl, stripeClient } from "../../lib/stripe.js";
 
 const TRIAL_DAYS = 30;
 
@@ -13,6 +13,7 @@ export default async function handler(req, res) {
     if (!user) return res.status(401).json({ error: "Entre no painel para assinar." });
     const plan = String(req.body?.plan || "");
     if (!PLAN_KEYS[plan]) return res.status(400).json({ error: "Plano inválido." });
+    if (plan === "teste" && !canUseTestPlan(user.email)) return res.status(403).json({ error: "Plano não disponível." });
     const mine = await studioOfUser(user.uid);
     if (!mine) return res.status(403).json({ error: "Esta conta não tem um estúdio para assinar." });
 
@@ -45,7 +46,7 @@ export default async function handler(req, res) {
     // Quem assina durante o teste não perde os dias que faltam: a cobrança começa no fim do teste.
     const created = mine.studio.createdAt?.toDate?.() || new Date();
     const trialEnd = Math.floor((created.getTime() + TRIAL_DAYS * 86400000) / 1000);
-    const keepTrial = trialEnd - Date.now() / 1000 > 2 * 86400; // a Stripe pede pelo menos 2 dias
+    const keepTrial = plan !== "teste" && trialEnd - Date.now() / 1000 > 2 * 86400; // a Stripe pede pelo menos 2 dias; o plano teste cobra na hora
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",

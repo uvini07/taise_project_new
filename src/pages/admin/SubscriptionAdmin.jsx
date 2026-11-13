@@ -8,7 +8,7 @@ import PlanPicker from "../../components/admin/PlanPicker.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
 import { db } from "../../services/firebase.js";
-import { openPortal } from "../../services/billing.js";
+import { openPortal, startCheckout } from "../../services/billing.js";
 import { planById } from "../../revela/data.js";
 import { isLegacyStudio } from "../../config/tenant.js";
 
@@ -32,7 +32,8 @@ export default function SubscriptionAdmin() {
     return <><AdminHeader title="Minha assinatura" text="Este estúdio é parceiro da Revela e não tem cobrança." /></>;
   }
   const active = studio?.status === "active";
-  const plan = planById(studio?.plan);
+  const plan = studio?.plan === "teste" ? { name: "Teste interno (R$ 5)" } : planById(studio?.plan);
+  const showTest = params.get("teste") === "1";
   const daysLeft = admin?.trialEndsAt ? Math.max(0, Math.ceil((admin.trialEndsAt.getTime() - Date.now()) / 86400000)) : null;
 
   async function portal() {
@@ -51,7 +52,14 @@ export default function SubscriptionAdmin() {
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />} Gerenciar assinatura
           </button>
         ) : (
-          <PlanPicker current={studio?.plan} onError={(m) => toast.error(m)} />
+          <>
+            <PlanPicker current={studio?.plan} onError={(m) => toast.error(m)} />
+            {showTest && (
+              <button type="button" className="btn-outline mt-4" onClick={() => startCheckout("teste").catch((e) => toast.error(e.message))}>
+                Assinar plano de teste interno (R$ 5/mês, cobra na hora)
+              </button>
+            )}
+          </>
         )}
       </Section>
       <p className="mt-4 text-xs text-ink-muted">Pagamento processado pela Stripe. A Revela não guarda os dados do seu cartão.</p>
