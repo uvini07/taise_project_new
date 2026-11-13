@@ -1,6 +1,6 @@
 // Portal da Stripe: trocar cartão, mudar de plano, cancelar e ver as faturas.
-import { adminDb, studioOfUser, userFrom } from "../_lib/admin.js";
-import { fail, siteUrl, stripeClient } from "../_lib/stripe.js";
+import { adminDb, studioOfUser, userFrom } from "../../lib/admin.js";
+import { fail, siteUrl, stripeClient } from "../../lib/stripe.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Use POST." });

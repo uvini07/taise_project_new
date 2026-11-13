@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { accessFor } from "../../api/billing/webhook.js";
-import { PLAN_KEYS, planOfLookupKey } from "../../api/_lib/stripe.js";
+import { PLAN_KEYS, planOfLookupKey } from "../../lib/stripe.js";
 import checkout from "../../api/billing/checkout.js";
 
 const res = () => { const r = { code: 0, body: null }; r.status = (c) => { r.code = c; return r; }; r.json = (b) => { r.body = b; return r; }; return r; };

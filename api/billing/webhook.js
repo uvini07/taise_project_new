@@ -2,8 +2,8 @@
 // de novo na Stripe (estado atual), então eventos repetidos ou fora de ordem
 // não estragam nada. Libera ou bloqueia o estúdio em studios/{slug}.status.
 import { FieldValue } from "firebase-admin/firestore";
-import { adminDb } from "../_lib/admin.js";
-import { fail, planOfLookupKey, stripeClient } from "../_lib/stripe.js";
+import { adminDb } from "../../lib/admin.js";
+import { fail, planOfLookupKey, stripeClient } from "../../lib/stripe.js";
 
 export const config = { api: { bodyParser: false } };
 

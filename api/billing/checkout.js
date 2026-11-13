@@ -1,8 +1,8 @@
 // Começa (ou retoma) a assinatura: abre o Checkout da Stripe no plano escolhido.
 // Se o estúdio já tem assinatura ativa, devolve o portal para trocar de plano.
 import { FieldValue } from "firebase-admin/firestore";
-import { adminDb, studioOfUser, userFrom } from "../_lib/admin.js";
-import { PLAN_KEYS, ensurePrice, fail, siteUrl, stripeClient } from "../_lib/stripe.js";
+import { adminDb, studioOfUser, userFrom } from "../../lib/admin.js";
+import { PLAN_KEYS, ensurePrice, fail, siteUrl, stripeClient } from "../../lib/stripe.js";
 
 const TRIAL_DAYS = 30;
 
