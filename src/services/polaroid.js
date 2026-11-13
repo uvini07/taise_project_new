@@ -230,7 +230,7 @@ export async function askPolaroid(history, question, context) {
     if (res.stop_reason === "refusal") return { history: messages, text: "Não consigo ajudar com isso. Tente perguntar de outro jeito.", ui };
     if (res.stop_reason !== "tool_use") {
       const text = res.content.filter((b) => b.type === "text").map((b) => b.text).join("\n").trim();
-      return { history: messages, text: text || "Pronto.", ui };
+      return { history: messages, text: text || "Pronto.", ui, remaining: res.remaining, limit: res.limit };
     }
     const calls = res.content.filter((b) => b.type === "tool_use");
     const results = await Promise.all(calls.map(async (c) => {

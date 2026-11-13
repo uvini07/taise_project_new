@@ -50,3 +50,26 @@ describe("parseLine", () => {
     ]);
   });
 });
+
+import { guard } from "../../api/polaroid.js";
+describe("Polaroidy: limites contra abuso", () => {
+  it("bloqueia perguntas seguidas e respeita o limite do plano", () => {
+    const t0 = Date.UTC(2026, 0, 1, 12);
+    expect(guard("u1", 3, true, t0).remaining).toBe(2);
+    expect(guard("u1", 3, true, t0 + 1000).error).toMatch(/Espere alguns segundos/);
+    expect(guard("u1", 3, true, t0 + 5000).remaining).toBe(1);
+    expect(guard("u1", 3, true, t0 + 10000).remaining).toBe(0);
+    expect(guard("u1", 3, true, t0 + 20000).error).toMatch(/perguntas de hoje/);
+  });
+  it("limita perguntas por minuto", () => {
+    const t0 = Date.UTC(2026, 0, 2, 12);
+    for (let i = 0; i < 5; i += 1) expect(guard("u2", 100, true, t0 + i * 5000).error).toBeUndefined();
+    expect(guard("u2", 100, true, t0 + 26000).error).toMatch(/minutinho/);
+  });
+  it("limita voltas de consulta numa mesma pergunta", () => {
+    const t0 = Date.UTC(2026, 0, 3, 12);
+    guard("u3", 100, true, t0);
+    for (let i = 0; i < 5; i += 1) expect(guard("u3", 100, false, t0 + 100).error).toBeUndefined();
+    expect(guard("u3", 100, false, t0 + 200).error).toMatch(/complicada/);
+  });
+});

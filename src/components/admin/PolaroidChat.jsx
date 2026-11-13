@@ -132,6 +132,8 @@ export default function PolaroidChat({ open, onClose, summary }) {
   const [chat, setChat] = useState(() => loadSaved(uid).chat); // o que aparece na tela
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [quota, setQuota] = useState(null); // { remaining, limit }
+  const [cool, setCool] = useState(false); // pausa curta entre perguntas
   const end = useRef(null);
   const field = useRef(null);
   const mic = useDictation((t) => setInput((v) => (v ? `${v} ${t}` : t)));
@@ -162,18 +164,21 @@ export default function PolaroidChat({ open, onClose, summary }) {
 
   async function send(text) {
     const q = String(text || "").trim();
-    if (!q || busy || long) return;
+    if (!q || busy || long || cool) return;
     setInput("");
     setChat((c) => [...c, { who: "eu", text: q }]);
     setBusy(true);
     try {
       const r = await askPolaroid(history, q, context);
       setHistory(r.history);
+      if (r.remaining != null) setQuota({ remaining: r.remaining, limit: r.limit });
       setChat((c) => [...c, { who: "polaroid", text: r.text, q, charges: r.ui.charges, links: r.ui.links, actions: r.ui.actions }]);
     } catch (e) {
       setChat((c) => [...c, { who: "polaroid", text: e.message || "A Polaroidy não respondeu agora.", error: true }]);
     } finally {
       setBusy(false);
+      setCool(true);
+      setTimeout(() => setCool(false), 3000);
     }
   }
   function rate(i, good) {
@@ -272,10 +277,13 @@ export default function PolaroidChat({ open, onClose, summary }) {
               {mic.on ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
             </button>
           )}
-          <button type="submit" disabled={busy || long || !input.trim()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#2B2540] text-white disabled:opacity-40" aria-label="Enviar">
+          <button type="submit" disabled={busy || long || cool || !input.trim()} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#2B2540] text-white disabled:opacity-40" aria-label="Enviar">
             <ArrowUp className="h-5 w-5" />
           </button>
         </form>
+        {quota && quota.remaining <= 10 && (
+          <p className="bg-white px-4 pb-2 text-center text-[11px] text-[#8E86A6]">{quota.remaining ? `${quota.remaining} pergunta${quota.remaining > 1 ? "s" : ""} restante${quota.remaining > 1 ? "s" : ""} hoje` : "Você usou todas as perguntas de hoje."}</p>
+        )}
       </section>
     </div>
   );
