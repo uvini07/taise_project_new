@@ -27,7 +27,7 @@
 | `STRIPE_SECRET_KEY` | Chave secreta (`sk_test_...` primeiro, `sk_live_...` depois) | Stripe → Desenvolvedores → Chaves de API |
 | `STRIPE_WEBHOOK_SECRET` | Segredo do webhook (`whsec_...`) | Stripe → Desenvolvedores → Webhooks → seu endpoint |
 | `FIREBASE_SERVICE_ACCOUNT` | O JSON inteiro da conta de serviço do Firebase | Firebase → Configurações do projeto → Contas de serviço → Gerar nova chave privada |
-| `SITE_URL` (opcional) | Ex.: `https://revela-eta.vercel.app` | Endereço do site |
+| `SITE_URL` (opcional) | Ex.: `https://studiorevela.vercel.app` | Endereço do site |
 | `STRIPE_PORTAL_CONFIG` (opcional) | Configuração própria do portal (`bpc_...`) | Saída de `scripts/stripe-setup.mjs` |
 | `STRIPE_TAX` (opcional) | `on` liga o cálculo automático de imposto no Checkout | Só se o Stripe Tax estiver ativo na conta |
 
@@ -35,7 +35,7 @@ Depois de salvar as variáveis: **Deployments → ⋯ → Redeploy**.
 
 ## Webhook
 Stripe → Desenvolvedores → Webhooks → **Adicionar endpoint**:
-- **URL:** `https://revela-eta.vercel.app/api/billing/webhook`
+- **URL:** `https://revela-eta.vercel.app/api/billing/webhook (o endereço antigo continua ativo só para o webhook)`
 - **Eventos:**
   - `checkout.session.completed`
   - `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `customer.subscription.paused`, `customer.subscription.resumed`

@@ -13,7 +13,7 @@
   - financeiro e visitas;
   - **Polaroidy**, a assistente com IA.
 - **Repositório:** `uvini07/taise_project_new` (React + Vite + Tailwind + Firebase + GSAP).
-- **Deploy:** Vercel, em revela-eta.vercel.app (antes: taise-project-new.vercel.app).
+- **Deploy:** Vercel, em studiorevela.vercel.app (antes: revela-eta.vercel.app, que continua ligado ao projeto para o webhook da Stripe).
 - **Regra:** tudo é commitado e enviado direto na **`main`**. Não usar outras branches.
 - **Primeira cliente:** a fotógrafa Taíse, com o site em `/tarufino`.
 - **Sociedade:** Markfy 20%, Marcelo 40%, João 40%.
@@ -121,4 +121,4 @@
 - Conta Stripe real (BR, BRL) ativa: cobranças e repasses liberados. Chave restrita `rk_live_` na Vercel (STRIPE_SECRET_KEY), webhook live em /api/billing/webhook, portal do cliente configurado (STRIPE_PORTAL_CONFIG), FIREBASE_SERVICE_ACCOUNT na Vercel.
 - Planos (lookup keys): revela_essencial_mensal R$ 89, revela_profissional_mensal R$ 149, revela_eventos_mensal R$ 229.
 - Código: api/billing/{checkout,portal,webhook}.js, lib/{admin,stripe}.js, painel /adm/assinatura. Detalhes em docs/STRIPE.md.
-- Projeto Vercel: time vini-31b8, projeto "revela" (revela-eta.vercel.app). Node 22.
+- Projeto Vercel: time vini-31b8, projeto "revela" (studiorevela.vercel.app; revela-eta.vercel.app também aponta para ele). Node 22.
