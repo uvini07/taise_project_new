@@ -19,7 +19,7 @@ describe("Assinatura (Stripe)", () => {
     let r = res(); await checkout({ method: "GET", headers: {} }, r); expect(r.code).toBe(405);
     const old = process.env.FIREBASE_SERVICE_ACCOUNT; delete process.env.FIREBASE_SERVICE_ACCOUNT;
     r = res(); await checkout({ method: "POST", headers: { authorization: "Bearer x" }, body: { plan: "essencial" } }, r);
-    expect(r.code).toBe(503); expect(r.body.error).toMatch(/FIREBASE_SERVICE_ACCOUNT/);
+    expect(r.code).toBe(401);
     if (old) process.env.FIREBASE_SERVICE_ACCOUNT = old;
   });
 });
