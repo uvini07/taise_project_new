@@ -1,10 +1,11 @@
-import { useState } from "react";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import GoogleButton from "../components/GoogleButton.jsx";
 import RevelaLayout from "../components/RevelaLayout.jsx";
 import AuthScene from "../components/AuthScene.jsx";
 import { PasswordInput, TextInput } from "../components/Field.jsx";
 import { AuthProvider, useAuth } from "../../contexts/AuthContext.jsx";
-import { authErrorMessage, login, logout, resetPassword } from "../../services/authService.js";
+import { authErrorMessage, googleRedirectResult, hasStudio, isAllowedEmail, login, loginWithGoogle, logout, resetPassword } from "../../services/authService.js";
 import { isValidEmail } from "../../utils/validation.js";
 import { useRevelaMeta } from "../hooks.js";
 import { supportLink } from "../../config/support.js";
@@ -17,6 +18,18 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState(null);
+  const navigate = useNavigate();
+
+  // Conta Google sem estúdio: segue para o cadastro, já com nome e e-mail.
+  async function afterGoogle(u) {
+    if (!u) return;
+    if (!isAllowedEmail(u.email) && !(await hasStudio(u.uid))) navigate("/cadastro?google=1", { replace: true });
+  }
+  useEffect(() => { googleRedirectResult().then((r) => afterGoogle(r?.user)); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  async function google() {
+    setMsg(null); setBusy(true);
+    try { await afterGoogle(await loginWithGoogle()); } catch (err) { setMsg({ type: "error", text: authErrorMessage(err) }); } finally { setBusy(false); }
+  }
 
   // Conta com estúdio ativo: vai direto para o painel (ou para onde ia antes do login).
   if (status === "admin" || status === "expired") return <Navigate to={location.state?.from || "/adm/dashboard"} replace />;
@@ -47,14 +60,21 @@ function LoginForm() {
       <p className="mt-3 text-[16px] leading-relaxed text-rv-ink2">
         {isLogin ? "Acesse o painel do seu estúdio: agenda, seleções, entregas e financeiro." : "Enviamos um link para o seu e-mail. A senha antiga deixa de valer."}
       </p>
-      <div className="mt-8 space-y-5">
+      {isLogin && (
+        <div className="mt-8">
+          <GoogleButton onClick={google} disabled={busy || status === "loading"} />
+          <p className="my-6 flex items-center gap-3 text-[13px] text-rv-ink2"><span className="h-px flex-1 bg-rv-ameixa/15" />ou com e-mail<span className="h-px flex-1 bg-rv-ameixa/15" /></p>
+        </div>
+      )}
+      <div className={`${isLogin ? "" : "mt-8 "}space-y-5`}>
         <TextInput label="E-mail" type="email" autoComplete="username" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@seuestudio.com.br" required />
         {isLogin && <PasswordInput autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />}
       </div>
 
       {status === "notAdmin" && (
         <div role="alert" className="mt-5 rounded-2xl bg-rv-rosa/10 px-4 py-3 text-[14px] leading-relaxed text-rv-ameixa">
-          A conta <b className="font-medium">{user?.email}</b> entrou, mas ainda não tem um estúdio ativo na Revela.{" "}
+          A conta <b className="font-medium">{user?.email}</b> entrou, mas ainda não tem um estúdio na Revela.{" "}
+          <Link to="/cadastro?google=1" className="font-medium text-rv-rosa underline underline-offset-2">Criar meu estúdio</Link>{" · "}
           <button type="button" className="font-medium text-rv-rosa underline underline-offset-2" onClick={logout}>Sair</button>
         </div>
       )}

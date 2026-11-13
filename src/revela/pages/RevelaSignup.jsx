@@ -8,7 +8,9 @@ import { PLANS, planById } from "../data.js";
 import { cleanSlugInput, slugProblem, suggestSlug } from "../slug.js";
 import { siteHost, useRevelaMeta } from "../hooks.js";
 import { isValidEmail, normalizePhoneBR } from "../../utils/validation.js";
-import { TRIAL_DAYS, isSlugTaken, signupErrorMessage, signupStudio } from "../../services/authService.js";
+import { TRIAL_DAYS, authErrorMessage, hasStudio, isSlugTaken, loginWithGoogle, googleRedirectResult, signupErrorMessage, signupStudio } from "../../services/authService.js";
+import { auth } from "../../services/firebaseAuth.js";
+import GoogleButton from "../components/GoogleButton.jsx";
 import { supportLink } from "../../config/support.js";
 
 // Cadastro aberto em modo de teste: cria a conta e o estúdio com 30 dias
@@ -47,6 +49,21 @@ export default function RevelaSignup() {
   const navigate = useNavigate();
 
   const set = (k) => (e) => setF((v) => ({ ...v, [k]: e.target.value }));
+  // Cadastro com Google: sem senha; nome e e-mail vêm da conta Google.
+  const [google, setGoogle] = useState(null); // { email, name }
+  async function applyGoogleUser(u) {
+    if (!u) return;
+    if (await hasStudio(u.uid)) { navigate("/adm/dashboard", { replace: true }); return; }
+    setGoogle({ email: u.email, name: u.displayName || "" });
+    setF((v) => ({ ...v, email: u.email || v.email, name: v.name || u.displayName || "" }));
+  }
+  useEffect(() => {
+    googleRedirectResult().then((r) => applyGoogleUser(r?.user || (params.get("google") ? auth.currentUser : null)));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  async function googleSignup() {
+    setSubmitErr("");
+    try { await applyGoogleUser(await loginWithGoogle()); } catch (e) { setSubmitErr(authErrorMessage(e)); }
+  }
   const autoSlug = suggestSlug(f.studio || f.name);
   const address = slugTouched ? slug : autoSlug;
   // Confere no banco se o endereço está livre (espera a pessoa parar de digitar).
@@ -65,7 +82,7 @@ export default function RevelaSignup() {
     if (f.studio.trim().length < 2) e.studio = "Informe o nome do estúdio.";
     if (!isValidEmail(f.email)) e.email = "Informe um e-mail válido.";
     if (!normalizePhoneBR(f.phone)) e.phone = "Informe um WhatsApp com DDD.";
-    if (f.password.length < 8) e.password = "Use pelo menos 8 caracteres.";
+    if (!google && f.password.length < 8) e.password = "Use pelo menos 8 caracteres.";
     return e;
   }
 
@@ -95,7 +112,7 @@ export default function RevelaSignup() {
     setSubmitErr("");
     try {
       if (await isSlugTaken(address)) { setTaken(true); setStep(2); throw Object.assign(new Error(), { code: "permission-denied" }); }
-      await signupStudio({ name: f.name, studio: f.studio, email: f.email, phone: normalizePhoneBR(f.phone), password: f.password, slug: address, plan });
+      await signupStudio({ name: f.name, studio: f.studio, email: google ? google.email : f.email, phone: normalizePhoneBR(f.phone), password: f.password, slug: address, plan });
       navigate("/adm/dashboard", { replace: true });
     } catch (e) {
       setSubmitErr(signupErrorMessage(e));
@@ -142,11 +159,18 @@ export default function RevelaSignup() {
 
               {step === 1 && (
                 <div className="grid gap-5 sm:grid-cols-2">
+                  {!google && (
+                    <div className="sm:col-span-2">
+                      <GoogleButton onClick={googleSignup}>Continuar com Google</GoogleButton>
+                      <p className="mt-4 flex items-center gap-3 text-[13px] text-rv-ink2"><span className="h-px flex-1 bg-rv-ameixa/15" />ou preencha<span className="h-px flex-1 bg-rv-ameixa/15" /></p>
+                    </div>
+                  )}
+                  {google && <p className="sm:col-span-2 rounded-2xl bg-white/70 px-4 py-3 text-[14px] text-rv-ameixa">Conectado com Google: <b className="font-medium">{google.email}</b>. Você vai entrar sempre com o Google, sem senha.</p>}
                   <TextInput className="sm:col-span-2" label="Seu nome" autoComplete="name" value={f.name} onChange={set("name")} error={errors.name} />
                   <TextInput className="sm:col-span-2" label="Nome do estúdio" autoComplete="organization" value={f.studio} onChange={set("studio")} error={errors.studio} placeholder="Ana Lima Fotografia" />
-                  <TextInput label="E-mail" type="email" autoComplete="email" inputMode="email" value={f.email} onChange={set("email")} error={errors.email} />
+                  <TextInput label="E-mail" type="email" autoComplete="email" inputMode="email" value={f.email} onChange={set("email")} error={errors.email} readOnly={!!google} />
                   <TextInput label="WhatsApp" type="tel" autoComplete="tel" inputMode="tel" value={f.phone} onChange={set("phone")} error={errors.phone} placeholder="(11) 90000-0000" />
-                  <PasswordInput className="sm:col-span-2" autoComplete="new-password" value={f.password} onChange={set("password")} error={errors.password} hint="Pelo menos 8 caracteres." />
+{!google && <PasswordInput className="sm:col-span-2" autoComplete="new-password" value={f.password} onChange={set("password")} error={errors.password} hint="Pelo menos 8 caracteres." />}
                 </div>
               )}
 

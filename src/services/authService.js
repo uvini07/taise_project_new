@@ -1,6 +1,6 @@
 import {
-  createUserWithEmailAndPassword, onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut,
-  updateProfile,
+  GoogleAuthProvider, createUserWithEmailAndPassword, getRedirectResult, onAuthStateChanged, sendPasswordResetEmail,
+  signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, signOut, updateProfile,
 } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, setDoc, writeBatch } from "firebase/firestore";
 import { auth } from "./firebaseAuth.js";
@@ -95,6 +95,11 @@ const AUTH_ERRORS = {
   "auth/too-many-requests": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
   "auth/network-request-failed": "Sem conexão com a internet.",
   "auth/user-disabled": "Este acesso foi desativado.",
+  "auth/popup-closed-by-user": "A janela do Google foi fechada antes de terminar.",
+  "auth/cancelled-popup-request": "A janela do Google foi fechada antes de terminar.",
+  "auth/account-exists-with-different-credential": "Este e-mail já tem conta com senha. Entre com e-mail e senha.",
+  "auth/unauthorized-domain": "Entrar com Google ainda não está liberado neste endereço.",
+  "auth/operation-not-allowed": "Entrar com Google ainda não foi ativado.",
 };
 
 export function authErrorMessage(e) {
@@ -102,6 +107,28 @@ export function authErrorMessage(e) {
 }
 
 export const login = (email, password) => signInWithEmailAndPassword(auth, email.trim(), password);
+
+/** Entrar com Google: janela própria do Google; se o navegador bloquear, vai por redirecionamento. */
+export async function loginWithGoogle() {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  try {
+    return (await signInWithPopup(auth, provider)).user;
+  } catch (e) {
+    if (e?.code === "auth/popup-blocked" || e?.code === "auth/operation-not-supported-in-this-environment") {
+      await signInWithRedirect(auth, provider);
+      return null;
+    }
+    throw e;
+  }
+}
+/** Volta do redirecionamento do Google (quando a janela foi bloqueada). */
+export const googleRedirectResult = () => getRedirectResult(auth).catch(() => null);
+
+/** A conta logada já tem estúdio na Revela? */
+export async function hasStudio(uid) {
+  try { return (await getDoc(doc(db, "owners", uid))).exists(); } catch { return false; }
+}
 export const logout = () => signOut(auth);
 export const resetPassword = (email) => sendPasswordResetEmail(auth, email.trim());
 export const currentUser = () => auth.currentUser;
