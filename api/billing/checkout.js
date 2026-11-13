@@ -51,6 +51,7 @@ export default async function handler(req, res) {
       subscription_data: { metadata: { slug: mine.slug, plan }, ...(keepTrial ? { trial_end: trialEnd } : {}) },
       metadata: { slug: mine.slug, plan },
       allow_promotion_codes: true,
+      adaptive_pricing: { enabled: false }, // cobra sempre em reais
       billing_address_collection: "auto",
       locale: "pt-BR",
       ...(process.env.STRIPE_TAX === "on" ? { automatic_tax: { enabled: true }, customer_update: { address: "auto", name: "auto" } } : {}),
