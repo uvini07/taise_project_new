@@ -28,7 +28,20 @@ export function useSectionLink() {
   };
 }
 
+/** Há alguém logado neste navegador? (marca gravada pelo painel no login). */
+function useSessionHint() {
+  const read = () => { try { return JSON.parse(localStorage.getItem("revela:sessao") || "null"); } catch { return null; } };
+  const [s, setS] = useState(read);
+  useEffect(() => {
+    const on = () => setS(read());
+    window.addEventListener("storage", on); window.addEventListener("focus", on);
+    return () => { window.removeEventListener("storage", on); window.removeEventListener("focus", on); };
+  }, []);
+  return s;
+}
+
 export default function Nav() {
+  const session = useSessionHint();
   const [compact, setCompact] = useState(false);
   const [open, setOpen] = useState(false);
   const { pathname } = useLocation();
@@ -87,8 +100,16 @@ export default function Nav() {
               </li>
             ))}
           </ul>
-          <Link to="/entrar" className="hidden rounded-full px-4 py-2.5 text-[15px] font-medium text-rv-ameixa transition-colors hover:bg-white/50 sm:inline-flex">Entrar</Link>
-          <Link to="/cadastro" className="rv-btn rv-btn-primary rv-btn-sm"><span className="rv-btn-dot" aria-hidden />Criar conta</Link>
+          {session ? (
+            <Link to="/adm/dashboard" className="rv-btn rv-btn-primary rv-btn-sm" title={session.studio || undefined}>
+              <span className="rv-btn-dot" aria-hidden />{session.name ? <>Meu painel<span className="hidden sm:inline">&nbsp;· {session.name}</span></> : "Meu painel"}
+            </Link>
+          ) : (
+            <>
+              <Link to="/entrar" className="hidden rounded-full px-4 py-2.5 text-[15px] font-medium text-rv-ameixa transition-colors hover:bg-white/50 sm:inline-flex">Entrar</Link>
+              <Link to="/cadastro" className="rv-btn rv-btn-primary rv-btn-sm"><span className="rv-btn-dot" aria-hidden />Criar conta</Link>
+            </>
+          )}
           <button type="button" className="inline-flex h-11 w-11 items-center justify-center rounded-full text-rv-ameixa hover:bg-white/50 lg:hidden"
             aria-expanded={open} aria-controls="rv-menu" aria-label={open ? "Fechar menu" : "Abrir menu"} onClick={() => setOpen((v) => !v)}>
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -106,8 +127,14 @@ export default function Nav() {
             ))}
           </ul>
           <div className="mt-auto grid gap-3">
-            <Link to="/cadastro" className="rv-btn rv-btn-primary w-full"><span className="rv-btn-dot" aria-hidden />Criar conta</Link>
-            <Link to="/entrar" className="rv-btn lg lg-pill rv-btn-glass w-full">Entrar</Link>
+            {session ? (
+              <Link to="/adm/dashboard" className="rv-btn rv-btn-primary w-full"><span className="rv-btn-dot" aria-hidden />Ir para o meu painel</Link>
+            ) : (
+              <>
+                <Link to="/cadastro" className="rv-btn rv-btn-primary w-full"><span className="rv-btn-dot" aria-hidden />Criar conta</Link>
+                <Link to="/entrar" className="rv-btn lg lg-pill rv-btn-glass w-full">Entrar</Link>
+              </>
+            )}
           </div>
         </div>
       )}

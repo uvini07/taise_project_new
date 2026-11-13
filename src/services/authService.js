@@ -18,7 +18,18 @@ export const isAllowedEmail = (e) => ADMIN_EMAILS.includes((e || "").toLowerCase
  * adminUsers/{uid} ativo). A checagem aqui só decide o que mostrar: quem
  * realmente bloqueia o acesso aos dados são as regras do Firestore.
  */
-export function watchAdminSession(cb) {
+/** Marca leve para o site da Revela saber que há alguém logado (sem carregar o Firebase lá). */
+export const SESSION_HINT = "revela:sessao";
+function rememberSession(info) {
+  try { if (info) localStorage.setItem(SESSION_HINT, JSON.stringify(info)); else localStorage.removeItem(SESSION_HINT); } catch { /* sem armazenamento */ }
+}
+
+export function watchAdminSession(cb0) {
+  const cb = (r) => {
+    if (r.status === "admin" || r.status === "expired") rememberSession({ name: (r.admin?.name || r.user?.displayName || "").split(" ")[0], studio: r.admin?.studioName || "" });
+    else if (r.status === "signedOut") rememberSession(null);
+    cb0(r);
+  };
   return onAuthStateChanged(auth, async (user) => {
     if (!user) return cb({ user: null, admin: null, status: "signedOut" });
     // Conta criada pela Revela: o estúdio vem de owners/{uid}.
@@ -129,7 +140,7 @@ export const googleRedirectResult = () => getRedirectResult(auth).catch(() => nu
 export async function hasStudio(uid) {
   try { return (await getDoc(doc(db, "owners", uid))).exists(); } catch { return false; }
 }
-export const logout = () => signOut(auth);
+export const logout = () => { rememberSession(null); return signOut(auth); };
 export const resetPassword = (email) => sendPasswordResetEmail(auth, email.trim());
 export const currentUser = () => auth.currentUser;
 
