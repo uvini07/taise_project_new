@@ -116,3 +116,9 @@
 
 ## Conta de teste da Polaroidy
 - E-mail `polaroidy.teste@example.com`, estúdio `estudio-teste`, com pacotes, agenda e pagamentos de exemplo. A senha foi passada no chat e não fica salva aqui.
+
+## Assinaturas (Stripe) — EM PRODUÇÃO
+- Conta Stripe real (BR, BRL) ativa: cobranças e repasses liberados. Chave restrita `rk_live_` na Vercel (STRIPE_SECRET_KEY), webhook live em /api/billing/webhook, portal do cliente configurado (STRIPE_PORTAL_CONFIG), FIREBASE_SERVICE_ACCOUNT na Vercel.
+- Planos (lookup keys): revela_essencial_mensal R$ 89, revela_profissional_mensal R$ 149, revela_eventos_mensal R$ 229.
+- Código: api/billing/{checkout,portal,webhook}.js, lib/{admin,stripe}.js, painel /adm/assinatura. Detalhes em docs/STRIPE.md.
+- Projeto Vercel: time vini-31b8, projeto "revela" (revela-eta.vercel.app). Node 22.
