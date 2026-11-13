@@ -92,6 +92,38 @@ function useDictation(onText) {
   return { supported: !!Speech, on, toggle };
 }
 
+/**
+ * No celular, o teclado não pode empurrar a página: a janela acompanha a área
+ * visível (visualViewport), então a caixa de mensagem sobe junto com o teclado
+ * e o fundo fica parado. Também trava a rolagem da página enquanto está aberta.
+ */
+function useKeyboardSafeBox(open, onResize) {
+  const [box, setBox] = useState(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const vv = window.visualViewport;
+    const body = document.body;
+    const y = window.scrollY;
+    const prev = { position: body.style.position, top: body.style.top, width: body.style.width, overflow: body.style.overflow };
+    Object.assign(body.style, { position: "fixed", top: `-${y}px`, width: "100%", overflow: "hidden" });
+    const update = () => {
+      if (!vv) return;
+      setBox({ top: vv.offsetTop, height: vv.height });
+      onResize?.();
+    };
+    update();
+    vv?.addEventListener("resize", update);
+    vv?.addEventListener("scroll", update);
+    return () => {
+      vv?.removeEventListener("resize", update);
+      vv?.removeEventListener("scroll", update);
+      Object.assign(body.style, prev);
+      window.scrollTo(0, y);
+    };
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  return box;
+}
+
 export default function PolaroidChat({ open, onClose, summary }) {
   const { admin, user } = useAuth();
   const { settings } = useSettings();
@@ -103,6 +135,7 @@ export default function PolaroidChat({ open, onClose, summary }) {
   const end = useRef(null);
   const field = useRef(null);
   const mic = useDictation((t) => setInput((v) => (v ? `${v} ${t}` : t)));
+  const box = useKeyboardSafeBox(open, () => end.current?.scrollIntoView({ block: "end" }));
 
   useEffect(() => {
     try { localStorage.setItem(storeKey(uid), JSON.stringify({ day: todayKey(), history: history.slice(-40), chat: chat.slice(-30) })); } catch { /* sem espaço */ }
@@ -150,7 +183,8 @@ export default function PolaroidChat({ open, onClose, summary }) {
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[65]" role="dialog" aria-modal="true" aria-label="Polaroidy, sua assistente">
+    <div className="fixed inset-x-0 top-0 z-[65] h-[100dvh] overscroll-none" role="dialog" aria-modal="true" aria-label="Polaroidy, sua assistente"
+      style={box ? { top: box.top, height: box.height } : undefined}>
       <div className="absolute inset-0 animate-fade-in bg-[#2B2540]/30" onClick={onClose} aria-hidden />
       {/* Identidade da Revela (não muda com as cores do estúdio). */}
       <section className="absolute inset-y-0 right-0 flex w-full max-w-[420px] animate-fade-in flex-col bg-[#F7F5FA] text-[#2B2540] shadow-lift">
@@ -166,7 +200,7 @@ export default function PolaroidChat({ open, onClose, summary }) {
           <button type="button" onClick={onClose} className="rounded-full p-2 text-[#E6E1F0] hover:bg-white/10" aria-label="Fechar"><X className="h-5 w-5" /></button>
         </header>
 
-        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-5">
+        <div className="flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-5">
           {!chat.length && (
             <div>
               <PolaroidyWaving className="mx-auto mb-2 !block h-36 w-36" />
