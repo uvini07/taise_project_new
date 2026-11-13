@@ -21,16 +21,20 @@ export default async function handler(req, res) {
     const billingRef = adminDb().doc(`billing/${mine.slug}`);
     const billing = (await billingRef.get()).data() || {};
 
-    if (billing.subscriptionId && ["active", "trialing", "past_due"].includes(billing.subStatus)) {
+    if (billing.subscriptionId && ["active", "trialing", "past_due"].includes(billing.subStatus) && await stripe.subscriptions.retrieve(billing.subscriptionId).then(() => true, () => false)) {
       const portal = await stripe.billingPortal.sessions.create({ ...(process.env.STRIPE_PORTAL_CONFIG ? { configuration: process.env.STRIPE_PORTAL_CONFIG } : {}), customer: billing.customerId, return_url: `${base}/adm/assinatura` });
       return res.status(200).json({ url: portal.url, portal: true });
     }
 
     let customerId = billing.customerId;
+    // Cliente salvo em outro modo (teste x real) ou apagado na Stripe: cria outro.
+    if (customerId) {
+      try { const c = await stripe.customers.retrieve(customerId); if (c.deleted) customerId = null; } catch { customerId = null; }
+    }
     if (!customerId) {
       const customer = await stripe.customers.create(
         { email: user.email || undefined, name: mine.studio.name, metadata: { slug: mine.slug, uid: user.uid } },
-        { idempotencyKey: `customer-${mine.slug}` },
+        { idempotencyKey: `customer-${mine.slug}-${process.env.STRIPE_SECRET_KEY?.startsWith("sk_test") || process.env.STRIPE_SECRET_KEY?.startsWith("rk_test") ? "test" : "live"}` },
       );
       customerId = customer.id;
       await billingRef.set({ customerId, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
