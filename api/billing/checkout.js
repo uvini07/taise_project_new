@@ -14,7 +14,9 @@ export default async function handler(req, res) {
     const plan = String(req.body?.plan || "");
     if (!PLAN_KEYS[plan]) return res.status(400).json({ error: "Plano inválido." });
     if (plan === "teste" && !canUseTestPlan(user.email)) return res.status(403).json({ error: "Plano não disponível." });
-    const mine = await studioOfUser(user.uid);
+    let mine = await studioOfUser(user.uid);
+    // Teste interno da equipe numa conta sem estúdio (ex.: painel da Taíse): assinatura avulsa, sem liberar nada.
+    if (!mine && plan === "teste") mine = { slug: `interno-${user.uid}`, studio: { name: `Teste interno (${user.email})`, createdAt: null } };
     if (!mine) return res.status(403).json({ error: "Esta conta não tem um estúdio para assinar." });
 
     const stripe = stripeClient();

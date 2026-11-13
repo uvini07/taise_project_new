@@ -29,7 +29,19 @@ export default function SubscriptionAdmin() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isLegacyStudio(admin?.studio)) {
-    return <><AdminHeader title="Minha assinatura" text="Este estúdio é parceiro da Revela e não tem cobrança." /></>;
+    return (
+      <>
+        <AdminHeader title="Minha assinatura" text="Este estúdio é parceiro da Revela e não tem cobrança." />
+        {params.get("teste") === "1" && (
+          <Section title="Teste interno" text="Cobrança real de R$ 5 por mês, na hora, só para testar a Stripe. Não muda nada no site da Taíse. Depois, cancele em Gerenciar assinatura e reembolse no painel da Stripe.">
+            <div className="flex flex-wrap gap-3">
+              <button type="button" className="btn-primary" onClick={() => startCheckout("teste").catch((e) => toast.error(e.message))}>Assinar teste de R$ 5</button>
+              <button type="button" className="btn-outline" onClick={() => openPortal().catch((e) => toast.error(e.message))}>Gerenciar assinatura de teste</button>
+            </div>
+          </Section>
+        )}
+      </>
+    );
   }
   const active = studio?.status === "active";
   const plan = studio?.plan === "teste" ? { name: "Teste interno (R$ 5)" } : planById(studio?.plan);

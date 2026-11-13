@@ -33,7 +33,8 @@ async function sync(stripe, subscriptionId) {
   const db = adminDb();
   const access = accessFor(sub.status);
   const studioPatch = { ...(access ? { status: access } : {}), ...(plan ? { plan } : {}) };
-  if (Object.keys(studioPatch).length) await db.doc(`studios/${slug}`).set(studioPatch, { merge: true });
+  // Assinatura interna de teste (conta sem estúdio): só registra em billing/.
+  if (!slug.startsWith("interno-") && Object.keys(studioPatch).length) await db.doc(`studios/${slug}`).set(studioPatch, { merge: true });
   await db.doc(`billing/${slug}`).set({
     customerId: typeof sub.customer === "string" ? sub.customer : sub.customer?.id,
     subscriptionId: sub.id,
