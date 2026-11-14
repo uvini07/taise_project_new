@@ -73,7 +73,14 @@ function VerifyBanner() {
   const { user } = useAuth();
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
-  const [left, setLeft] = useState(0); // segundos restantes para reenviar
+  // Segundos restantes para reenviar. Guarda o horário do último envio, então
+  // recarregar a página não zera a contagem.
+  const key = `revela:verificacao:${user?.uid || ""}`;
+  const remaining = () => {
+    try { return Math.max(0, Math.ceil((Number(localStorage.getItem(key) || 0) + RESEND_WAIT * 1000 - Date.now()) / 1000)); } catch { return 0; }
+  };
+  const [left, setLeft] = useState(remaining);
+  useEffect(() => { setLeft(remaining()); }, [key]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (left <= 0) return undefined;
     const t = setInterval(() => setLeft((s) => Math.max(0, s - 1)), 1000);
@@ -82,8 +89,13 @@ function VerifyBanner() {
   if (!user || user.emailVerified || isLegacyStudio()) return null;
   async function resend() {
     setBusy(true);
-    try { await resendVerification(); setMsg("E-mail enviado ✓ Veja a caixa de entrada e o spam."); setLeft(RESEND_WAIT); }
-    catch { setMsg("Não deu para enviar agora. Tente de novo em instantes."); }
+    try {
+      await resendVerification();
+      try { localStorage.setItem(key, String(Date.now())); } catch { /* sem armazenamento */ }
+      setMsg("E-mail enviado ✓ Veja a caixa de entrada e o spam."); setLeft(RESEND_WAIT);
+    } catch (e) {
+      setMsg(e?.code === "auth/too-many-requests" ? "Muitos envios seguidos. Espere alguns minutos e tente de novo." : "Não deu para enviar agora. Tente de novo em instantes.");
+    }
     finally { setBusy(false); }
   }
   return (
