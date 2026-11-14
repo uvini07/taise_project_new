@@ -68,20 +68,31 @@ function NavList({ onNavigate }) {
 }
 
 /** Pede para a pessoa confirmar o e-mail (só cadastro por senha; Google já vem confirmado). */
+const RESEND_WAIT = 60; // segundos de espera antes de poder reenviar
 function VerifyBanner() {
   const { user } = useAuth();
-  const [sent, setSent] = useState(false);
+  const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [left, setLeft] = useState(0); // segundos restantes para reenviar
+  useEffect(() => {
+    if (left <= 0) return undefined;
+    const t = setInterval(() => setLeft((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(t);
+  }, [left]);
   if (!user || user.emailVerified || isLegacyStudio()) return null;
   async function resend() {
     setBusy(true);
-    try { await resendVerification(); setSent(true); } catch { /* ignora */ } finally { setBusy(false); }
+    try { await resendVerification(); setMsg("E-mail enviado ✓ Veja a caixa de entrada e o spam."); setLeft(RESEND_WAIT); }
+    catch { setMsg("Não deu para enviar agora. Tente de novo em instantes."); }
+    finally { setBusy(false); }
   }
   return (
     <div className="sticky top-0 z-50 bg-gold px-4 py-2.5 text-center text-sm text-wine-950 lg:pl-64">
       Confirme seu e-mail para proteger sua conta. Enviamos um link para <b className="font-medium">{user.email}</b>.{" "}
-      {sent ? <span className="font-medium">E-mail reenviado ✓</span>
-        : <button type="button" onClick={resend} disabled={busy} className="font-medium underline underline-offset-2 disabled:opacity-60">{busy ? "Enviando…" : "Reenviar"}</button>}
+      {msg && <span className="font-medium">{msg} </span>}
+      {left > 0
+        ? <span className="opacity-70">Reenviar em {left}s</span>
+        : <button type="button" onClick={resend} disabled={busy} className="font-medium underline underline-offset-2 disabled:opacity-60">{busy ? "Enviando…" : "Reenviar link"}</button>}
     </div>
   );
 }
