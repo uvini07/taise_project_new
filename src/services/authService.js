@@ -1,6 +1,6 @@
 import {
   GoogleAuthProvider, createUserWithEmailAndPassword, getRedirectResult, onAuthStateChanged, sendPasswordResetEmail,
-  signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, signOut, updateProfile,
+  sendEmailVerification, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, signOut, updateProfile,
 } from "firebase/auth";
 import { doc, getDoc, serverTimestamp, setDoc, writeBatch } from "firebase/firestore";
 import { auth } from "./firebaseAuth.js";
@@ -72,6 +72,8 @@ export async function signupStudio({ name, studio, email, phone, password, slug,
   const same = auth.currentUser && auth.currentUser.email?.toLowerCase() === email.trim().toLowerCase();
   const user = same ? auth.currentUser : (await createUserWithEmailAndPassword(auth, email.trim(), password)).user;
   try { await updateProfile(user, { displayName: name.trim() }); } catch { /* opcional */ }
+  // E-mail de confirmação (grátis). Quem entra com Google já vem confirmado.
+  if (!user.emailVerified) try { await sendEmailVerification(user); } catch { /* sem rede: segue, dá pra reenviar depois */ }
   const uid = user.uid;
   const batch = writeBatch(db);
   batch.set(doc(db, "studios", slug), { ownerUid: uid, name: studio.trim(), plan, status: "trial", createdAt: serverTimestamp() });
@@ -142,5 +144,7 @@ export async function hasStudio(uid) {
 }
 export const logout = () => { rememberSession(null); return signOut(auth); };
 export const resetPassword = (email) => sendPasswordResetEmail(auth, email.trim());
+/** Reenvia o e-mail de confirmação para quem está logado. */
+export const resendVerification = () => (auth.currentUser ? sendEmailVerification(auth.currentUser) : Promise.reject(new Error("Entre primeiro.")));
 export const currentUser = () => auth.currentUser;
 

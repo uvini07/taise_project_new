@@ -9,6 +9,7 @@ import { isLegacyStudio } from "../../config/tenant.js";
 import OnboardingTour from "../admin/OnboardingTour.jsx";
 import PolaroidChat from "../admin/PolaroidChat.jsx";
 import { dailySummary } from "../../services/polaroid.js";
+import { resendVerification } from "../../services/authService.js";
 import PolaroidyMascot from "../admin/PolaroidyMascot.jsx";
 import { confirmLeave } from "../../utils/unsaved.js";
 import { supportLink } from "../../config/support.js";
@@ -63,6 +64,25 @@ function NavList({ onNavigate }) {
         </div>
       ))}
     </nav>
+  );
+}
+
+/** Pede para a pessoa confirmar o e-mail (só cadastro por senha; Google já vem confirmado). */
+function VerifyBanner() {
+  const { user } = useAuth();
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  if (!user || user.emailVerified || isLegacyStudio()) return null;
+  async function resend() {
+    setBusy(true);
+    try { await resendVerification(); setSent(true); } catch { /* ignora */ } finally { setBusy(false); }
+  }
+  return (
+    <div className="sticky top-0 z-50 bg-gold px-4 py-2.5 text-center text-sm text-wine-950 lg:pl-64">
+      Confirme seu e-mail para proteger sua conta. Enviamos um link para <b className="font-medium">{user.email}</b>.{" "}
+      {sent ? <span className="font-medium">E-mail reenviado ✓</span>
+        : <button type="button" onClick={resend} disabled={busy} className="font-medium underline underline-offset-2 disabled:opacity-60">{busy ? "Enviando…" : "Reenviar"}</button>}
+    </div>
   );
 }
 
@@ -169,6 +189,7 @@ export default function AdminLayout() {
         className="fixed bottom-5 left-4 z-40 flex items-center gap-2 rounded-full bg-[#25D366] px-4 py-3 text-sm font-medium text-white shadow-lift transition hover:brightness-105 lg:hidden">
         <WhatsAppIcon className="h-5 w-5" /> Ajuda
       </a>
+      <VerifyBanner />
       <TrialBanner />
       {/* O menu inteiro rola junto em telas baixas (nada fica escondido atrás do rodapé). */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col overflow-y-auto overscroll-contain border-r border-ink/5 bg-ivory p-5 lg:flex">
