@@ -88,7 +88,8 @@ export default async function handler(req, res) {
           return { id: f.id, name: f.name, size: f.size, width: f.width || null, height: f.height || null, thumb, image: img };
         }));
         const cover = files.find((f) => f.id === d.coverId && f.thumb) || files.find((f) => f.thumb) || null;
-        return res.status(200).json({ studioName: await studioName(studio), clientName: d.clientName || "", title: d.title || "", total: files.length, files, coverId: cover?.id || null, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null });
+        const coverUrl = d.cover?.key ? await getUrl(BUCKETS.entrega, d.cover.key, { expiresIn: 3600 }) : null;
+        return res.status(200).json({ coverUrl, studioName: await studioName(studio), clientName: d.clientName || "", title: d.title || "", total: files.length, files, coverId: cover?.id || null, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null });
       }
       if (d.status === "draft") return res.status(403).json({ error: "Esta seleção ainda não foi liberada." });
       if (expired) return res.status(410).json({ error: "O prazo para escolher as fotos já encerrou." });
@@ -98,7 +99,7 @@ export default async function handler(req, res) {
         full: await getUrl(BUCKETS.selecao, p.key, { expiresIn: 3600 }),
         thumbScramble: p.thumbScramble || null, fullScramble: p.previewScramble || null,
       })));
-      return res.status(200).json({ studioName: await studioName(studio), coverId: (photos.find((p) => p.id === d.coverId) || photos[0])?.id || null, clientName: d.clientName || "", title: d.title || "", message: d.message || "", photoLimit: d.photoLimit || null, allowExtras: !!d.allowExtras, extraPriceCents: d.extraPriceCents || null, status: d.status, selectedIds: d.selectedIds || [], finished: d.status === "finished", copyProtection: d.copyProtection !== false, total: photos.length, photos, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null });
+      return res.status(200).json({ coverUrl: d.cover?.key ? await getUrl(BUCKETS.selecao, d.cover.key, { expiresIn: 3600 }) : null, studioName: await studioName(studio), coverId: (photos.find((p) => p.id === d.coverId) || photos[0])?.id || null, clientName: d.clientName || "", title: d.title || "", message: d.message || "", photoLimit: d.photoLimit || null, allowExtras: !!d.allowExtras, extraPriceCents: d.extraPriceCents || null, status: d.status, selectedIds: d.selectedIds || [], finished: d.status === "finished", copyProtection: d.copyProtection !== false, total: photos.length, photos, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null });
     }
 
     if (action === "pick") {

@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { StatCard } from "../../components/admin/AdminUI.jsx";
 import { ActivityLog, ClientEditor, ClientLink, ReleasedModal, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
+import CoverPicker from "../../components/admin/CoverPicker.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import PageLoader from "../../components/common/PageLoader.jsx";
 import Spinner from "../../components/common/Spinner.jsx";
@@ -245,6 +246,7 @@ export default function SelectionDetail() {
       </div>
 
       {st !== "draft" && <ActivityLog item={s} />}
+      <CoverPicker kind="selection" item={s} />
 
       {st !== "finished" && (
         <div className="mb-6 space-y-3">

@@ -26,6 +26,16 @@ export default function ClientSelection() {
   const saveTimer = useRef(null);
   // O aviso de proteção espera a abertura da capa terminar.
   const [introDone, setIntroDone] = useState(false);
+  // A barra de baixo só aparece depois que o cliente sai da capa.
+  const [pastCover, setPastCover] = useState(false);
+  useEffect(() => {
+    const on = () => setPastCover(window.scrollY > window.innerHeight * 0.6);
+    on(); window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
+  // Aviso quando passa do limite do pacote (uma vez) ou tenta passar sem extras.
+  const [limitAlert, setLimitAlert] = useState(null);
+  const warned = useRef(false);
   useEffect(() => { const t = setTimeout(() => setIntroDone(true), 3400); return () => clearTimeout(t); }, []);
 
   const load = useCallback(async () => {
@@ -78,7 +88,11 @@ export default function ClientSelection() {
     setPicked((s) => {
       const n = new Set(s);
       if (n.has(pid)) n.delete(pid);
-      else { if (limit && !allowExtras && n.size >= limit) return s; n.add(pid); }
+      else {
+        if (limit && !allowExtras && n.size >= limit) { setLimitAlert("block"); return s; }
+        n.add(pid);
+        if (allowExtras && n.size === limit + 1 && !warned.current) { warned.current = true; setLimitAlert("extra"); }
+      }
       persist(n);
       return n;
     });
@@ -128,7 +142,8 @@ export default function ClientSelection() {
       <GalleryCover studioName={data.studioName} title={data.clientName || data.title || "Sua seleção"}
         subtitle={data.clientName && data.title ? data.title : null}
         hint={done ? "Ver suas fotos" : "Role para escolher suas fotos"}
-        image={cover ? <ProtectedImg src={cover.full} scramble={cover.fullScramble} overlay={overlay} className="h-full w-full" fit="cover" /> : null} />
+        image={data.coverUrl ? <img src={data.coverUrl} alt="" className="object-cover" draggable={false} onContextMenu={(e) => e.preventDefault()} />
+          : cover ? <ProtectedImg src={cover.full} scramble={cover.fullScramble} className="h-full w-full" fit="cover" /> : null} />
       <header id="fotos" className="sticky top-0 z-30 scroll-mt-0 flex flex-wrap items-center gap-3 border-b border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur sm:px-8">
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-2xl sm:text-3xl">{data.clientName || "Sua seleção"}</h1>
@@ -182,12 +197,40 @@ export default function ClientSelection() {
             </ul>
           </div>
 
-          <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur sm:px-8">
-            <p className="text-xs text-ink-muted">{saving ? "Salvando…" : !allowExtras && data.photoLimit && picked.size >= limit ? `Você chegou ao limite de ${limit} fotos. Desmarque uma para trocar.` : "Suas escolhas são salvas automaticamente."}</p>
-            <button type="button" onClick={finish} disabled={!picked.size || saving}
-              className="btn-primary disabled:opacity-50">Finalizar escolha ({picked.size})</button>
+          <div className={`fixed inset-x-0 bottom-0 z-30 border-t border-ink/10 bg-paper/95 px-4 py-2 backdrop-blur transition-transform duration-300 sm:px-8 ${pastCover ? "translate-y-0" : "translate-y-full"}`}
+            style={{ paddingBottom: "max(.5rem, env(safe-area-inset-bottom))" }}>
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1 leading-tight">
+                <p className={`truncate text-sm font-medium ${extras ? "text-warning" : "text-ink"}`}>
+                  <Heart className="mr-1 inline h-3.5 w-3.5 fill-current align-[-2px] text-rose" />
+                  {picked.size}{data.photoLimit ? ` de ${limit}` : ""}{extras ? ` · +${extras} extra${extras > 1 ? "s" : ""}` : ""}
+                </p>
+                <p className="truncate text-[11px] text-ink-muted">
+                  {saving ? "Salvando…"
+                    : extras ? (data.extraPriceCents ? `Extras: ${brl(extras * data.extraPriceCents)} (${brl(data.extraPriceCents)} cada)` : "Fotos extras são cobradas à parte")
+                    : allowExtras ? (data.extraPriceCents ? `Foto extra: ${brl(data.extraPriceCents)} cada` : "Pode escolher fotos extras")
+                    : data.photoLimit && picked.size >= limit ? "Limite do pacote atingido" : "Salvo automaticamente"}
+                </p>
+              </div>
+              <button type="button" onClick={finish} disabled={!picked.size || saving}
+                className="btn-primary btn-sm shrink-0 disabled:opacity-50">Finalizar ({picked.size})</button>
+            </div>
           </div>
         </>
+      )}
+
+      {limitAlert && (
+        <div className="fixed inset-0 z-[90] flex items-end justify-center bg-black/50 p-4 sm:items-center" role="dialog" aria-modal="true" onClick={() => setLimitAlert(null)}>
+          <div className="w-full max-w-sm rounded-3xl bg-ivory p-6 text-center shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <h2 className="font-display text-2xl">{limitAlert === "extra" ? "Você passou do limite do pacote" : "Limite do pacote atingido"}</h2>
+            <p className="mt-3 text-sm text-ink-soft">
+              {limitAlert === "extra"
+                ? <>Seu pacote inclui <strong>{limit} fotos</strong>. As fotos a mais são extras{data.extraPriceCents ? <> e custam <strong>{brl(data.extraPriceCents)} cada</strong></> : " e são cobradas à parte"}. O valor aparece na barra de baixo.</>
+                : <>Seu pacote inclui <strong>{limit} fotos</strong>. Para escolher outra, desmarque uma das escolhidas.</>}
+            </p>
+            <button type="button" onClick={() => setLimitAlert(null)} className="btn-primary mt-6 w-full justify-center">Entendi</button>
+          </div>
+        </div>
       )}
 
       {current && (

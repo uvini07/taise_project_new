@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, ArrowLeft, CalendarPlus, Check, CheckCircle2, Lightbulb, Pencil, RotateCcw, Send, Trash2 } from "lucide-react";
 import { StatCard } from "../../components/admin/AdminUI.jsx";
 import { ActivityLog, ClientEditor, ClientLink, ReleasedModal, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
+import CoverPicker from "../../components/admin/CoverPicker.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import PageLoader from "../../components/common/PageLoader.jsx";
 import Spinner from "../../components/common/Spinner.jsx";
@@ -175,6 +176,7 @@ export default function DeliveryDetail() {
         </div>
       )}
 
+      {d.files.length > 0 && <CoverPicker kind="delivery" item={d} />}
       {st === "draft" || st === "available" ? (
         <div className="mb-6 space-y-3">
           <DropZone onFiles={handleFiles} accept={ACCEPT} busy={!!queue} disabled={!!queue}

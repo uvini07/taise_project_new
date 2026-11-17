@@ -169,7 +169,7 @@ export default function ClientDelivery() {
     <div className="min-h-screen bg-paper">
       <GalleryCover studioName={data.studioName} title={data.clientName || data.title || "Suas fotos"}
         subtitle={data.clientName && data.title ? data.title : null} hint="Role para ver suas fotos"
-        image={cover ? <img src={cover.thumb} alt="" className="object-cover" /> : null}
+        image={data.coverUrl ? <img src={data.coverUrl} alt="" className="object-cover" /> : cover ? <img src={cover.thumb} alt="" className="object-cover" /> : null}
         action={files.length ? allBtn("flex items-center gap-2 rounded-md bg-black/80 px-4 py-2.5 text-sm text-white backdrop-blur hover:bg-black disabled:opacity-80") : null} />
 
       <header id="fotos" className="sticky top-0 z-30 flex items-center gap-3 border-b border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur sm:px-8">
