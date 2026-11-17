@@ -21,8 +21,18 @@ async function api(body) {
   return d;
 }
 async function putBlob(url, blob) {
-  const r = await fetch(url, { method: "PUT", headers: { "Content-Type": blob.type || "application/octet-stream" }, body: blob });
-  if (!r.ok) throw new Error(`Falha ao enviar uma foto (${r.status}).`);
+  // Rede do celular oscila: tenta de novo algumas vezes antes de desistir.
+  let last;
+  for (let i = 0; i < 3; i += 1) {
+    try {
+      const r = await fetch(url, { method: "PUT", headers: { "Content-Type": blob.type || "application/octet-stream" }, body: blob });
+      if (r.ok) return;
+      last = new Error(`Falha ao enviar uma foto (${r.status}).`);
+      if (r.status === 403) break;
+    } catch { last = new Error("A conexão caiu durante o envio. Confira a internet e tente de novo."); }
+    await new Promise((res) => setTimeout(res, 800 * (i + 1)));
+  }
+  throw last;
 }
 
 /* ------------------------------- Seleção --------------------------------- */
