@@ -5,6 +5,7 @@
 import { arrayRemove, arrayUnion, deleteDoc, doc, getDoc, getDocs, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import { auth } from "../firebaseAuth.js";
 import { sCol, sDoc } from "../studioDb.js";
+import { draw, loadBitmap, toBlob } from "../imageService.js";
 import { addDaysTo } from "../../utils/clientGallery.js";
 
 export const DEMO_MODE = false;
@@ -77,7 +78,7 @@ export async function deleteSelection(id) {
 
 /** Processadas no navegador (com blobs); sobe ao R2 e grava as referências. */
 export async function addSelectionPhotos(id, photos) {
-  const items = photos.map((p) => ({ id: randId(), name: p.name, contentType: "image/webp" }));
+  const items = photos.map((p) => ({ id: randId(), name: p.name, contentType: p.preview.type, thumbType: p.thumb.type }));
   const { items: signed } = await api({ action: "upload", kind: "selecao", parentId: id, items });
   const refs = [];
   for (let i = 0; i < photos.length; i += 1) {
@@ -174,15 +175,12 @@ export async function deleteDelivery(id) {
 async function galleryThumb(file, edge = 900, q = 0.78) {
   if (!(file?.type || "").startsWith("image/")) return null;
   try {
-    const bmp = await createImageBitmap(file);
-    const k = Math.min(1, edge / Math.max(bmp.width, bmp.height));
-    const c = document.createElement("canvas");
-    c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
-    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
-    const blob = await new Promise((r) => c.toBlob(r, "image/webp", q));
-    const out = blob && blob.type === "image/webp" ? { blob, width: bmp.width, height: bmp.height } : null;
+    const bmp = await loadBitmap(file);
+    const width = bmp.width, height = bmp.height;
+    // WebP quando o navegador sabe gerar; senão (Safari do iPhone) JPEG.
+    const blob = await toBlob(draw(bmp, edge), q);
     bmp.close?.();
-    return out;
+    return blob ? { blob, width, height } : null;
   } catch { return null; }
 }
 /** Sobe os arquivos ORIGINAIS (alta) direto ao R2; grava as referências. */
@@ -191,7 +189,7 @@ export async function addDeliveryFiles(id, files, onEach) {
   for (const f of files) {
     const raw = f.file || f;
     const th = await galleryThumb(raw);
-    const it = { id: randId(), name: f.name, contentType: f.type || "application/octet-stream", thumb: !!th };
+    const it = { id: randId(), name: f.name, contentType: f.type || "application/octet-stream", thumb: !!th, thumbType: th?.blob.type };
     const { items: [s] } = await api({ action: "upload", kind: "entrega", parentId: id, items: [it] });
     await putBlob(s.url, raw);
     const ref = { id: s.id, name: f.name, size: f.size, key: s.key, type: f.type || "" };
@@ -240,7 +238,7 @@ export async function setGalleryCover(kind, id, file) {
   const th = await galleryThumb(file, 2000, 0.84);
   if (!th) throw new Error("Não foi possível ler essa foto. Use JPG, PNG ou WebP.");
   const k = kind === "delivery" || kind === "entrega" ? "entrega" : "selecao";
-  const { items: [s] } = await api({ action: "upload", kind: k, parentId: id, items: [{ id: "cover", name: "capa.webp", contentType: "image/webp" }] });
+  const { items: [s] } = await api({ action: "upload", kind: k, parentId: id, items: [{ id: "cover", cover: true, contentType: th.blob.type }] });
   await putBlob(s.url, th.blob);
   await updateDoc(sDoc(k === "entrega" ? "deliveries" : "selections", id), { cover: { key: s.key, width: th.width, height: th.height, at: new Date() }, updatedAt: serverTimestamp() });
   return URL.createObjectURL(th.blob);

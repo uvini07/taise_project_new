@@ -21,7 +21,7 @@ export function validateImageFile(file) {
   return null;
 }
 
-async function loadBitmap(file) {
+export async function loadBitmap(file) {
   if ("createImageBitmap" in window) {
     try { return await createImageBitmap(file, { imageOrientation: "from-image" }); } catch { /* cai no <img> */ }
   }
@@ -37,7 +37,7 @@ async function loadBitmap(file) {
   }
 }
 
-function draw(bitmap, maxEdge) {
+export function draw(bitmap, maxEdge) {
   const w = bitmap.width, h = bitmap.height;
   const scale = Math.min(1, maxEdge / Math.max(w, h));
   const cw = Math.max(1, Math.round(w * scale)), ch = Math.max(1, Math.round(h * scale));
@@ -50,7 +50,7 @@ function draw(bitmap, maxEdge) {
   return canvas;
 }
 
-function toBlob(canvas, quality) {
+export function toBlob(canvas, quality) {
   return new Promise((resolve) => {
     canvas.toBlob((b) => {
       if (b && b.type === "image/webp") return resolve(b);

@@ -31,16 +31,24 @@ export default async function handler(req, res) {
       const out = await Promise.all(items.map(async (it) => {
         const id = String(it.id || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40);
         if (!id) throw new Error("item sem id");
+        // Prévias/miniaturas/capa: WebP, ou JPEG no navegador que não gera WebP (Safari).
+        const img = (t) => (t === "image/jpeg" ? { ct: "image/jpeg", ext: "jpg" } : { ct: "image/webp", ext: "webp" });
+        if (it.cover) {
+          const { ct, ext } = img(it.contentType);
+          const key = `${isEntrega ? entPrefix(slug, parentId) : selPrefix(slug, parentId)}cover.${ext}`;
+          return { id: "cover", key, url: await putUrl(bucket, key, ct) };
+        }
         if (isEntrega) {
           const key = entKey(slug, parentId, id, it.name || "foto");
           const out = { id, key, url: await putUrl(bucket, key, it.contentType || "application/octet-stream") };
           // Miniatura WebP só para a galeria do cliente (mesma pasta: some junto na limpeza).
-          if (it.thumb) { out.tkey = `${key}_t.webp`; out.turl = await putUrl(bucket, out.tkey, "image/webp"); }
+          if (it.thumb) { const t = img(it.thumbType); out.tkey = `${key}_t.${t.ext}`; out.turl = await putUrl(bucket, out.tkey, t.ct); }
           return out;
         }
-        const key = selKey(slug, parentId, id);
-        const tkey = selThumbKey(slug, parentId, id);
-        return { id, key, tkey, url: await putUrl(bucket, key, "image/webp"), turl: await putUrl(bucket, tkey, "image/webp") };
+        const p = img(it.contentType), t = img(it.thumbType || it.contentType);
+        const key = selKey(slug, parentId, id, p.ext);
+        const tkey = selThumbKey(slug, parentId, id, t.ext);
+        return { id, key, tkey, url: await putUrl(bucket, key, p.ct), turl: await putUrl(bucket, tkey, t.ct) };
       }));
       return res.status(200).json({ items: out });
     }
