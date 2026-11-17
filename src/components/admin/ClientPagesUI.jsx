@@ -324,3 +324,51 @@ export function ClientEditor({ kind, initial, taken, selections = [], onClose, o
     </Modal>
   );
 }
+
+const ACTIVITY = {
+  open: { label: "Abriu a página", alert: false },
+  download: { label: "Baixou", alert: false },
+  print_key: { label: "Apertou Print Screen", alert: true },
+  capture_shortcut: { label: "Atalho de captura de tela", alert: true },
+  print_page: { label: "Tentou imprimir / salvar PDF", alert: true },
+  devtools: { label: "Abriu as ferramentas do navegador", alert: true },
+  save_attempt: { label: "Tentou salvar a foto", alert: true },
+};
+const asDate = (v) => (v?.toDate ? v.toDate() : v ? new Date(v) : null);
+
+/** Rastreamento: acessos e tentativas de captura do cliente. */
+export function ActivityLog({ item }) {
+  const [onlyAlerts, setOnlyAlerts] = useState(false);
+  const [all, setAll] = useState(false);
+  const list = useMemo(() => [...(item.activity || [])].reverse(), [item.activity]);
+  const alerts = list.filter((e) => ACTIVITY[e.type]?.alert).length;
+  const opens = list.filter((e) => e.type === "open").length;
+  const devices = new Set(list.map((e) => `${e.device}|${e.ip}`)).size;
+  const shown = (onlyAlerts ? list.filter((e) => ACTIVITY[e.type]?.alert) : list).slice(0, all ? 200 : 8);
+  return (
+    <div className="card card-pad mb-6">
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <p className="text-xs font-medium uppercase tracking-wider text-ink-muted">Rastreamento</p>
+        <span className="text-xs text-ink-muted">· {opens} acesso(s) · {devices} aparelho(s)</span>
+        {alerts > 0 && <span className="inline-flex items-center gap-1 rounded-full bg-danger/10 px-2 py-0.5 text-xs font-medium text-danger"><AlertTriangle className="h-3.5 w-3.5" /> {alerts} tentativa(s) de captura</span>}
+        {alerts > 0 && <button type="button" className="btn-ghost btn-sm ml-auto" onClick={() => setOnlyAlerts((v) => !v)}>{onlyAlerts ? "Ver tudo" : "Só tentativas"}</button>}
+      </div>
+      {!list.length ? <p className="text-sm text-ink-muted">Nenhum acesso ainda. Quando o cliente abrir o link, aparece aqui (aparelho, cidade e horário).</p> : (
+        <ul className="divide-y divide-ink/5 text-sm">
+          {shown.map((e, i) => {
+            const meta = ACTIVITY[e.type] || { label: e.type };
+            const at = asDate(e.at);
+            return (
+              <li key={i} className="flex flex-wrap items-center gap-x-3 gap-y-0.5 py-2">
+                <span className={`font-medium ${meta.alert ? "text-danger" : "text-ink"}`}>{meta.alert ? "⚠️ " : ""}{meta.label}{e.photo ? ` (foto ${e.photo})` : ""}{e.file ? `: ${e.file}` : ""}</span>
+                <span className="text-xs text-ink-muted">{at ? at.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : ""} · {e.device}{e.city ? ` · ${e.city}` : ""}{e.ip ? ` · IP ${e.ip}` : ""}</span>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      {list.length > 8 && !all && <button type="button" className="btn-ghost btn-sm mt-2" onClick={() => setAll(true)}>Ver histórico completo</button>}
+      <p className="mt-3 text-xs text-ink-muted">No celular o print não é detectável pelo navegador; a marca d'água com nome, data e hora identifica quem vazou. No computador, atalhos de print e tentativas de salvar são registrados.</p>
+    </div>
+  );
+}

@@ -39,7 +39,12 @@ export default function ClientSelection() {
 
   const data = state.data;
   const protect = data?.copyProtection !== false;
-  const { shielded, reason } = useCopyProtection(!!data && protect && !done);
+  const viewRef = useRef(null);
+  viewRef.current = view;
+  const onCapture = useCallback((type) => {
+    clienteApi({ action: "event", kind: "selecao", studio, id, type, photoIndex: viewRef.current ?? undefined }).catch(() => {});
+  }, [clienteApi, studio, id]);
+  const { shielded, reason } = useCopyProtection(!!data && protect && !done, onCapture);
   const [stamp] = useState(() => new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }));
   const overlay = useLiveWatermark(data && protect ? `${data.clientName || "cliente"} · ${stamp}` : null);
 

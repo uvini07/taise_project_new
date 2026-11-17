@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AlertTriangle, ArrowLeft, CalendarPlus, Check, CheckCircle2, Lightbulb, Pencil, RotateCcw, Send, Trash2 } from "lucide-react";
 import { StatCard } from "../../components/admin/AdminUI.jsx";
-import { ClientEditor, ClientLink, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
+import { ActivityLog, ClientEditor, ClientLink, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import PageLoader from "../../components/common/PageLoader.jsx";
 import Spinner from "../../components/common/Spinner.jsx";
@@ -146,6 +146,8 @@ export default function DeliveryDetail() {
           <StatCard label="Downloads" value={d.downloads || 0} tone={d.downloads ? "success" : "muted"} />
         </div>
       </div>
+
+      {st !== "draft" && <ActivityLog item={d} />}
 
       {check && (
         <div className={`mb-6 rounded-2xl border p-4 text-sm ${check.total && !check.missing.length ? "border-success/20 bg-success/5" : "border-warning/25 bg-warning/5"}`}>

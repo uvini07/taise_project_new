@@ -4,7 +4,7 @@ import {
   ArrowLeft, CalendarPlus, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, Download, Eye, Heart, Lock, PackageCheck, Pencil, RotateCcw, Send, Shuffle, Trash2, Unlock, X,
 } from "lucide-react";
 import { StatCard } from "../../components/admin/AdminUI.jsx";
-import { ClientEditor, ClientLink, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
+import { ActivityLog, ClientEditor, ClientLink, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import PageLoader from "../../components/common/PageLoader.jsx";
 import Spinner from "../../components/common/Spinner.jsx";
@@ -238,6 +238,8 @@ export default function SelectionDetail() {
           <StatCard label="Peso no site" value={formatBytes(light)} hint={original ? `Originais: ${formatBytes(original)} (−${savingsPercent(original, light)}%)` : "Prévia WebP 1200px"} />
         </div>
       </div>
+
+      {st !== "draft" && <ActivityLog item={s} />}
 
       {st !== "finished" && (
         <div className="mb-6 space-y-3">

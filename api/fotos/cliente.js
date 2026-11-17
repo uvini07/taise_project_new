@@ -13,10 +13,30 @@ const okStr = (v, max = 80) => typeof v === "string" && v.length > 0 && v.length
 const LEGACY_SLUG = "tarufino";
 const docPath = (studio, col, id) => (studio === LEGACY_SLUG ? `${col}/${id}` : `studios/${studio}/${col}/${id}`);
 
+// Rastreamento: acessos e tentativas de captura ficam no próprio registro
+// (últimos MAX_LOG), para a fotógrafa ver no painel.
+const MAX_LOG = 200;
+const EVENT_TYPES = new Set(["open", "print_key", "capture_shortcut", "print_page", "devtools", "save_attempt", "download"]);
+function device(ua = "") {
+  const os = /iPhone/.test(ua) ? "iPhone" : /iPad/.test(ua) ? "iPad" : /Android/.test(ua) ? "Android" : /Mac OS X/.test(ua) ? "Mac" : /Windows/.test(ua) ? "Windows" : /Linux/.test(ua) ? "Linux" : "Outro";
+  const br = /Edg\//.test(ua) ? "Edge" : /CriOS|Chrome\//.test(ua) ? "Chrome" : /FxiOS|Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Navegador";
+  return `${os} · ${br}`;
+}
+async function track(ref, d, req, type, extra = {}) {
+  const h = req.headers || {};
+  const ip = String(h["x-forwarded-for"] || "").split(",")[0].trim() || null;
+  const city = h["x-vercel-ip-city"] ? decodeURIComponent(String(h["x-vercel-ip-city"])) : null;
+  const entry = { type, at: new Date(), device: device(String(h["user-agent"] || "")), ip, city, ...extra };
+  const log = [...(d.activity || []), entry].slice(-MAX_LOG);
+  const patch = { activity: log };
+  if (type !== "open" && type !== "download") patch.captureAlerts = FieldValue.increment(1);
+  await ref.update(patch).catch(() => {});
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Use POST." });
   try {
-    const { action, studio, kind, id, selectedIds, fileId, password } = req.body || {};
+    const { action, studio, kind, id, selectedIds, fileId, password, type, photoIndex } = req.body || {};
     if (!okStr(studio) || !okStr(id)) return res.status(400).json({ error: "Link inválido." });
     const col = kind === "entrega" ? "deliveries" : "selections";
     const snap = await adminDb().doc(docPath(studio, col, id)).get();
@@ -43,7 +63,15 @@ export default async function handler(req, res) {
     // Expira sozinho pela data (não depende do robô de limpeza).
     const expired = d.expiresAt?.toDate && d.expiresAt.toDate() < new Date();
 
+    if (action === "event") {
+      if (!EVENT_TYPES.has(type) || type === "open" || type === "download") return res.status(400).json({ error: "Evento inválido." });
+      const n = Number.isInteger(photoIndex) && photoIndex >= 0 && photoIndex < 5000 ? photoIndex + 1 : null;
+      await track(snap.ref, d, req, type, n ? { photo: n } : {});
+      return res.status(200).json({ ok: true });
+    }
+
     if (action === "gallery") {
+      if (d.status !== "draft" && !expired) await track(snap.ref, d, req, "open");
       if (kind === "entrega") {
         if (d.status === "draft") return res.status(403).json({ error: "Esta entrega ainda não foi liberada." });
         if (expired) return res.status(410).json({ error: "O prazo para baixar estas fotos já encerrou." });
@@ -91,6 +119,7 @@ export default async function handler(req, res) {
       if (!file) return res.status(404).json({ error: "Arquivo não encontrado." });
       const url = await getUrl(BUCKETS.entrega, file.key, { expiresIn: 3600, downloadName: file.name });
       snap.ref.update({ downloads: FieldValue.increment(1) }).catch(() => {});
+      await track(snap.ref, d, req, "download", { file: String(file.name).slice(0, 120) });
       return res.status(200).json({ url });
     }
 
