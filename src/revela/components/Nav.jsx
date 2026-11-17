@@ -106,7 +106,7 @@ export default function Nav() {
             </Link>
           ) : (
             <>
-              <Link to="/entrar" className="hidden rounded-full px-4 py-2.5 text-[15px] font-medium text-rv-ameixa transition-colors hover:bg-white/50 sm:inline-flex">Entrar</Link>
+              <Link to="/entrar" className="inline-flex rounded-full px-2.5 py-2.5 text-[14px] font-medium text-rv-ameixa transition-colors hover:bg-white/50 sm:px-4 sm:text-[15px]">Entrar</Link>
               <Link to="/cadastro" className="rv-btn rv-btn-primary rv-btn-sm"><span className="rv-btn-dot" aria-hidden />Criar conta</Link>
             </>
           )}
