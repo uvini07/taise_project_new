@@ -34,8 +34,8 @@ export const ADMIN_GROUPS = [
   ] },
   { title: "Clientes", items: [
     { to: "/adm/agenda", label: "Agenda", icon: CalendarDays },
-    { to: "/adm/selecao", label: "Seleção de fotos", icon: Heart, beta: true },
-    { to: "/adm/entrega", label: "Entrega final", icon: PackageCheck, beta: true },
+    { to: "/adm/selecao", label: "Seleção de fotos", icon: Heart },
+    { to: "/adm/entrega", label: "Entrega final", icon: PackageCheck },
   ] },
   { title: "Gestão", items: [
     { to: "/adm/financeiro", label: "Financeiro", icon: Wallet },

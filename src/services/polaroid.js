@@ -116,7 +116,6 @@ const TOOLS = {
     const [sel, del] = await Promise.all([listSelections(), listDeliveries()]);
     return {
       forModel: {
-        aviso: "Seleção e entrega ainda estão em modo de teste na plataforma.",
         selecoes: sel.slice(0, 20).map((x) => ({ cliente: x.clientName, ensaio: x.title || "", situacao: LBL[effectiveStatus(x, now)] || x.status, escolhidas: `${(x.selectedIds || []).length} de ${x.photoLimit || "?"}`, prazo: deadlineLabel(x.expiresAt, now) })),
         entregas: del.slice(0, 20).map((x) => ({ cliente: x.clientName, ensaio: x.title || "", situacao: LBL[effectiveStatus(x, now)] || x.status, downloads: x.downloads || 0, prazo: deadlineLabel(x.expiresAt, now) })),
       },
