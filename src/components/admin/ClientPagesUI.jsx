@@ -93,7 +93,7 @@ export function StorageMeter({ bytes = 0, label = "Armazenamento no Cloudflare" 
 /** Endereço da página do cliente com copiar, WhatsApp e abrir. */
 export function ClientLink({ kind, item, compact = false, password = null, onPassword }) {
   const toast = useToast();
-  const { confirm, confirmUI } = useConfirm();
+  const [confirmUI, confirm] = useConfirm();
   const [resetting, setResetting] = useState(false);
   // O link usa o id aleatório (impossível de adivinhar), não o endereço curto.
   const url = clientUrl(kind, item.id);

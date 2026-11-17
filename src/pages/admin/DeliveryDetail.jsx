@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, ArrowLeft, CalendarPlus, Check, CheckCircle2, Lightbulb, Pencil, RotateCcw, Send, Trash2 } from "lucide-react";
 import { StatCard } from "../../components/admin/AdminUI.jsx";
 import { ActivityLog, ClientEditor, ClientLink, ReleasedModal, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
@@ -12,6 +12,7 @@ import { useToast } from "../../contexts/ToastContext.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
 import {
   addDeliveryFiles, extendDelivery, getDelivery, getSelection, listSelections, publishDelivery, removeDeliveryFiles, saveDelivery, takenSlugs, setClientPassword,
+  deleteDelivery,
 } from "../../services/admin/clientPages.js";
 import { DELIVERY_STATUS } from "../../config/constants.js";
 import { compareDelivery, deadlineLabel, effectiveStatus, formatBytes } from "../../utils/clientGallery.js";
@@ -39,6 +40,7 @@ export default function DeliveryDetail() {
   const { id } = useParams();
   const toast = useToast();
   const [confirmUI, confirm] = useConfirm();
+  const navigate = useNavigate();
   const { data, loading, error, reload, setData } = useAsync(async () => {
     const d = await getDelivery(id);
     const [selection, selections] = await Promise.all([d.selectionId ? getSelection(d.selectionId).catch(() => null) : null, listSelections()]);
@@ -115,6 +117,10 @@ export default function DeliveryDetail() {
         </div>
         <div className="flex flex-wrap gap-2">
           <button className="btn-ghost btn-sm" onClick={() => setEditing(true)}><Pencil className="h-4 w-4" /> Editar</button>
+          <button className="btn-ghost btn-sm text-danger" onClick={async () => {
+            if (!(await confirm({ title: "Excluir entrega?", danger: true, confirmLabel: "Excluir", text: "O link para de funcionar e os arquivos são apagados do site. Os originais continuam no seu computador." }))) return;
+            await deleteDelivery(id); toast.success("Entrega excluída."); navigate("/adm/entrega");
+          }}><Trash2 className="h-4 w-4" /> Excluir</button>
           {st === "draft" && (
             <button className="btn-primary btn-sm" disabled={!d.files.length || !!queue || !!busy}
               title={!d.files.length ? "Suba as fotos antes de liberar" : undefined}

@@ -1,18 +1,26 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Clock, Heart, Images, ListChecks, Plus, Trash2 } from "lucide-react";
-import { AdminHeader, StatCard } from "../../components/admin/AdminUI.jsx";
-import { ClientEditor, ClientLink, DemoBanner, ExpiryAlert, StorageMeter } from "../../components/admin/ClientPagesUI.jsx";
-import Badge from "../../components/common/Badge.jsx";
-import { ScrambledImage } from "../../components/selection/Protected.jsx";
+import { useNavigate } from "react-router-dom";
+import { Heart, Plus } from "lucide-react";
+import { AdminHeader } from "../../components/admin/AdminUI.jsx";
+import { ClientEditor, DemoBanner, StorageMeter } from "../../components/admin/ClientPagesUI.jsx";
+import ClientList from "../../components/admin/ClientList.jsx";
 import PageLoader from "../../components/common/PageLoader.jsx";
 import { EmptyState, ErrorState } from "../../components/common/States.jsx";
 import { useConfirm } from "../../components/common/useConfirm.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
-import { deleteSelection, listDeliveries, listSelections, saveSelection, takenSlugs } from "../../services/admin/clientPages.js";
+import { listDeliveries, listSelections, saveSelection, takenSlugs } from "../../services/admin/clientPages.js";
 import { SELECTION_STATUS } from "../../config/constants.js";
-import { deadlineLabel, effectiveStatus, formatBytes } from "../../utils/clientGallery.js";
+import { daysLeft, effectiveStatus } from "../../utils/clientGallery.js";
+
+const SEL_FILTERS = [
+  { key: "acao", label: "Precisa de você", test: (s) => !!s.need, empty: "Tudo em dia por aqui. 🎉" },
+  { key: "aguardando", label: "Com o cliente", test: (s) => ["sent", "selecting"].includes(s.st), empty: "Nenhum cliente escolhendo agora." },
+  { key: "finalizadas", label: "Finalizadas", test: (s) => s.st === "finished", empty: "Nenhuma seleção finalizada." },
+  { key: "preparando", label: "Preparando", test: (s) => s.st === "draft", empty: "Nenhuma seleção em preparo." },
+  { key: "vencidas", label: "Vencidas", test: (s) => s.st === "expired", empty: "Nenhuma seleção vencida." },
+  { key: "todas", label: "Todas", test: () => true },
+];
 
 export default function SelectionAdmin() {
   const toast = useToast();
@@ -30,8 +38,15 @@ export default function SelectionAdmin() {
 
   const now = new Date();
   const withStatus = list.map((s) => ({ ...s, st: effectiveStatus(s, now) }));
-  const open = withStatus.filter((s) => ["sent", "selecting"].includes(s.st)).length;
-  const finished = withStatus.filter((s) => s.st === "finished").length;
+  const delivered = new Set((data?.deliveries || []).map((d) => d.selectionId).filter(Boolean));
+  const needs = (s) => {
+    if (s.st === "draft") return s.photos.length ? "Pronta para liberar ao cliente" : "Suba as fotos do ensaio";
+    if (s.st === "finished") return delivered.has(s.id) ? null : "Cliente escolheu: editar e criar a entrega";
+    if (s.st === "expired") return "Prazo venceu: estender ou encerrar";
+    const left = daysLeft(s.expiresAt, now);
+    if (left != null && left <= 2) return left === 0 ? "Prazo acaba hoje" : `Prazo acaba em ${left} dia(s)`;
+    return null;
+  };
   const previewBytes = list.reduce((t, s) => t + s.photos.reduce((a, p) => a + p.previewSize + p.thumbSize, 0), 0);
   const deliveryBytes = (data?.deliveries || []).reduce((t, d) => t + (d.files || []).reduce((a, f) => a + (f.size || 0), 0), 0);
 
@@ -43,65 +58,17 @@ export default function SelectionAdmin() {
         actions={<button className="btn-primary" onClick={() => setCreating(true)}><Plus className="h-4 w-4" /> Nova seleção</button>} />
       <DemoBanner />
 
-      <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Ensaios" value={list.length} icon={Images} />
-        <StatCard label="Esperando o cliente" value={open} icon={Clock} tone={open ? "warning" : "muted"} />
-        <StatCard label="Seleções finalizadas" value={finished} icon={Heart} tone={finished ? "success" : "muted"} />
-        <StatCard label="Espaço das prévias" value={formatBytes(previewBytes)} hint="Apagadas ao fim do prazo" icon={ListChecks} />
-      </div>
-
-      <div className="mb-6"><StorageMeter bytes={previewBytes + deliveryBytes} /></div>
-      <ExpiryAlert items={list} kind="selection" />
-
       {!list.length ? (
         <EmptyState icon={Heart} title="Nenhuma seleção ainda"
           text="Ex.: você fotografou 200 fotos e o pacote dá direito a 100. Crie a página, suba as 200 e o cliente marca as 100 que quer."
           action={<button className="btn-primary" onClick={() => setCreating(true)}><Plus className="h-4 w-4" /> Criar primeira seleção</button>} />
       ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {withStatus.map((s) => {
-            const st = SELECTION_STATUS[s.st];
-            const chosen = s.selectedIds.length;
-            return (
-              <div key={s.id} className="card card-pad flex flex-col">
-                <div className="flex items-start gap-3">
-                  <div className="grid h-14 w-14 shrink-0 grid-cols-2 gap-0.5 overflow-hidden rounded-xl bg-paper">
-                    {s.photos.slice(0, 4).map((p) => <ScrambledImage key={p.id} src={p.thumbUrl} scramble={p.thumbScramble} className="h-full w-full" />)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <Link to={`/adm/selecao/${s.id}`} className="font-display text-2xl hover:text-wine-900">{s.clientName}</Link>
-                    {s.title && <p className="truncate text-sm text-ink-muted">{s.title}</p>}
-                  </div>
-                  <Badge tone={st.tone}>{st.label}</Badge>
-                </div>
-
-                <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
-                  <div><p className="text-xs uppercase tracking-wider text-ink-muted">Fotos</p><p className="font-display text-2xl tabular-nums">{s.photos.length}</p></div>
-                  <div><p className="text-xs uppercase tracking-wider text-ink-muted">Escolhidas</p>
-                    <p className="font-display text-2xl tabular-nums">{chosen}<span className="text-base text-ink-muted"> / {s.photoLimit}</span></p></div>
-                  <div><p className="text-xs uppercase tracking-wider text-ink-muted">Prazo</p><p className="text-sm">{s.st === "finished" ? "Concluída" : deadlineLabel(s.expiresAt, now)}</p></div>
-                </div>
-
-                <div className="mt-4"><ClientLink kind="selection" item={s} /></div>
-
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  <Link className="btn-outline btn-sm" to={`/adm/selecao/${s.id}`}>Abrir ensaio</Link>
-                  <button className="btn-ghost btn-sm ml-auto text-danger" aria-label={`Excluir ${s.clientName}`}
-                    onClick={async () => {
-                      if (!(await confirm({ title: "Excluir seleção?", danger: true, confirmLabel: "Excluir",
-                        text: "A página do cliente sai do ar e as prévias são apagadas. Os originais continuam no seu computador." }))) return;
-                      await deleteSelection(s.id);
-                      toast.success("Seleção excluída.");
-                      reload();
-                    }}>
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <ClientList items={withStatus} kind="selection" base="/adm/selecao" statusMap={SELECTION_STATUS}
+          filters={SEL_FILTERS} needs={needs} progress={(s) => `${s.selectedIds.length}/${s.photoLimit} escolhidas · ${s.photos.length} fotos`}
+          empty="Nada aqui." />
       )}
+
+      <div className="mt-8"><StorageMeter bytes={previewBytes + deliveryBytes} /></div>
 
       {creating && (
         <ClientEditor kind="selection" taken={takenSlugs("selection")} onClose={() => setCreating(false)}

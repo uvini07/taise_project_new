@@ -18,7 +18,7 @@ import { useToast } from "../../contexts/ToastContext.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
 import {
   DEMO_MODE, addSelectionPhotos, extendSelection, finishSelection, getSelection, removeSelectionPhotos, reopenSelection, saveDelivery,
-  saveSelection, sendSelection, simulateClientChoice, takenSlugs, setClientPassword } from "../../services/admin/clientPages.js";
+  saveSelection, sendSelection, simulateClientChoice, takenSlugs, setClientPassword, deleteSelection } from "../../services/admin/clientPages.js";
 import { makeSelectionPreview, validateImageFile } from "../../services/imageService.js";
 import { DELIVERY_DEFAULTS, SELECTION_STATUS } from "../../config/constants.js";
 import { clientSlug, deadlineLabel, effectiveStatus, formatBytes, namesList, randomCode, savingsPercent } from "../../utils/clientGallery.js";
@@ -193,6 +193,10 @@ export default function SelectionDetail() {
         </div>
         <div className="flex flex-wrap gap-2">
           <button className="btn-ghost btn-sm" onClick={() => setEditing(true)}><Pencil className="h-4 w-4" /> Editar</button>
+          <button className="btn-ghost btn-sm text-danger" onClick={async () => {
+            if (!(await confirm({ title: "Excluir seleção?", danger: true, confirmLabel: "Excluir", text: "A página do cliente sai do ar e as prévias são apagadas. Os originais continuam no seu computador." }))) return;
+            await deleteSelection(id); toast.success("Seleção excluída."); navigate("/adm/selecao");
+          }}><Trash2 className="h-4 w-4" /> Excluir</button>
           <button className="btn-ghost btn-sm" disabled={!s.photos.length} onClick={() => setPreviewing(true)}><Eye className="h-4 w-4" /> Ver como o cliente</button>
           {st === "draft" && (
             <button className="btn-primary btn-sm" disabled={!canSend || busy}
