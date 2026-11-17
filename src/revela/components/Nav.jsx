@@ -106,8 +106,8 @@ export default function Nav() {
             </Link>
           ) : (
             <>
-              <Link to="/entrar" className="inline-flex rounded-full px-2.5 py-2.5 text-[14px] font-medium text-rv-ameixa transition-colors hover:bg-white/50 sm:px-4 sm:text-[15px]">Entrar</Link>
-              <Link to="/cadastro" className="rv-btn rv-btn-primary rv-btn-sm"><span className="rv-btn-dot" aria-hidden />Criar conta</Link>
+              <Link to="/entrar" className="inline-flex rounded-full px-2 py-2 text-[13px] font-medium text-rv-ameixa transition-colors hover:bg-white/50 sm:px-4 sm:py-2.5 sm:text-[15px]">Entrar</Link>
+              <Link to="/cadastro" className="rv-btn rv-btn-primary rv-btn-sm !px-3.5 !py-2 !text-[13px] sm:!px-5 sm:!py-2.5 sm:!text-[15px]"><span className="rv-btn-dot" aria-hidden />Criar conta</Link>
             </>
           )}
           <button type="button" className="inline-flex h-11 w-11 items-center justify-center rounded-full text-rv-ameixa hover:bg-white/50 lg:hidden"
