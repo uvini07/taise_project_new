@@ -19,7 +19,7 @@ import { useAsync } from "../../hooks/useAsync.js";
 import {
   DEMO_MODE, addSelectionPhotos, extendSelection, finishSelection, getSelection, removeSelectionPhotos, reopenSelection, saveDelivery,
   saveSelection, sendSelection, simulateClientChoice, takenSlugs,
-} from "../../services/admin/clientPagesDemo.js";
+} from "../../services/admin/clientPages.js";
 import { makeSelectionPreview, validateImageFile } from "../../services/imageService.js";
 import { DELIVERY_DEFAULTS, SELECTION_STATUS } from "../../config/constants.js";
 import { clientSlug, deadlineLabel, effectiveStatus, formatBytes, namesList, randomCode, savingsPercent } from "../../utils/clientGallery.js";
@@ -40,6 +40,7 @@ async function convertAll(files, opts, onEach) {
             name: file.name, originalSize: file.size, previewSize: r.preview.size, thumbSize: r.thumb.size,
             width: r.width, height: r.height, previewUrl: URL.createObjectURL(r.preview), thumbUrl: URL.createObjectURL(r.thumb),
             previewScramble: r.previewScramble, thumbScramble: r.thumbScramble,
+            preview: r.preview, thumb: r.thumb,
           },
         });
       } catch (e) {

@@ -10,7 +10,7 @@ import { clientMessage, clientSlug, randomCode, validateSlug } from "../../utils
 import { centsToInput, parseBRLToCents } from "../../utils/format.js";
 import { slugify } from "../../utils/text.js";
 import { whatsappLink } from "../../utils/whatsapp.js";
-import { DEMO_MODE } from "../../services/admin/clientPagesDemo.js";
+import { DEMO_MODE } from "../../services/admin/clientPages.js";
 import { sitePath } from "../../config/tenant.js";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 
@@ -35,7 +35,8 @@ export function DemoBanner() {
 /** Endereço da página do cliente com copiar, WhatsApp e abrir. */
 export function ClientLink({ kind, item, compact = false }) {
   const toast = useToast();
-  const url = clientUrl(kind, item.slug);
+  // O link usa o id aleatório (impossível de adivinhar), não o endereço curto.
+  const url = clientUrl(kind, item.id);
   const message = clientMessage(kind, { clientName: item.clientName, url, expiresAt: item.expiresAt, photoLimit: item.photoLimit });
   const wa = item.phone ? whatsappLink(item.phone, message) : `https://wa.me/?text=${encodeURIComponent(message)}`;
   async function copy(text, ok) {
@@ -44,8 +45,8 @@ export function ClientLink({ kind, item, compact = false }) {
   return (
     <div className={compact ? "" : "rounded-2xl border border-ink/10 bg-paper p-3"}>
       <p className="truncate text-xs text-ink-muted" title={url}>
-        <span className="opacity-70">{url.replace(/^https?:\/\//, "").replace(item.slug, "")}</span>
-        <span className="font-medium text-ink">{item.slug}</span>
+        <span className="opacity-70">{url.replace(/^https?:\/\//, "").replace(item.id, "")}</span>
+        <span className="font-medium text-ink">{item.id}</span>
       </p>
       <div className="mt-2 flex flex-wrap gap-1.5">
         <button type="button" className="btn-ghost btn-sm" onClick={() => copy(url, "Link copiado.")}><Copy className="h-4 w-4" /> Copiar link</button>

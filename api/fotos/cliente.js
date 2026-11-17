@@ -8,13 +8,17 @@ import { FieldValue } from "firebase-admin/firestore";
 
 const okStr = (v, max = 80) => typeof v === "string" && v.length > 0 && v.length <= max;
 
+// A Taíse (estúdio original) guarda tudo na raiz do banco; os demais em studios/{slug}/.
+const LEGACY_SLUG = "tarufino";
+const docPath = (studio, col, id) => (studio === LEGACY_SLUG ? `${col}/${id}` : `studios/${studio}/${col}/${id}`);
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Use POST." });
   try {
     const { action, studio, kind, id, selectedIds, fileId } = req.body || {};
     if (!okStr(studio) || !okStr(id)) return res.status(400).json({ error: "Link inválido." });
     const col = kind === "entrega" ? "deliveries" : "selections";
-    const snap = await adminDb().doc(`studios/${studio}/${col}/${id}`).get();
+    const snap = await adminDb().doc(docPath(studio, col, id)).get();
     if (!snap.exists) return res.status(404).json({ error: "Página não encontrada. Confira o link." });
     const d = snap.data();
 
@@ -31,11 +35,12 @@ export default async function handler(req, res) {
       if (d.status === "draft") return res.status(403).json({ error: "Esta seleção ainda não foi liberada." });
       if (expired) return res.status(410).json({ error: "O prazo para escolher as fotos já encerrou." });
       const photos = await Promise.all((d.photos || []).map(async (p) => ({
-        id: p.id, w: p.w, h: p.h,
+        id: p.id, width: p.width || null, height: p.height || null,
         thumb: await getUrl(BUCKETS.selecao, p.tkey, { expiresIn: 3600 }),
         full: await getUrl(BUCKETS.selecao, p.key, { expiresIn: 3600 }),
+        thumbScramble: p.thumbScramble || null, fullScramble: p.previewScramble || null,
       })));
-      return res.status(200).json({ clientName: d.clientName || "", title: d.title || "", photoLimit: d.photoLimit || null, status: d.status, selectedIds: d.selectedIds || [], finished: d.status === "finished", total: photos.length, photos, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null });
+      return res.status(200).json({ clientName: d.clientName || "", title: d.title || "", message: d.message || "", photoLimit: d.photoLimit || null, status: d.status, selectedIds: d.selectedIds || [], finished: d.status === "finished", copyProtection: d.copyProtection !== false, total: photos.length, photos, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null });
     }
 
     if (action === "pick") {

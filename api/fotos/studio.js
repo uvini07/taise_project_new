@@ -1,16 +1,10 @@
-// Ações de fotos da FOTÓGRAFA (precisa estar logada). Dá links de upload,
-// apaga arquivos e informa o uso de armazenamento. Toda chave é validada para
-// começar com o prefixo do próprio estúdio: ninguém sobe ou apaga foto de outro.
+// Ações de fotos da FOTÓGRAFA (logada). O SERVIDOR gera os caminhos (sempre
+// dentro do próprio estúdio) e devolve links de upload de curta duração.
+// Também apaga arquivos e informa o uso de armazenamento.
 import { ConfigError, studioOfUser, userFrom } from "../../lib/admin.js";
-import { BUCKETS, del, putUrl, usageBytes } from "../../lib/r2.js";
+import { BUCKETS, del, entKey, entPrefix, getUrl, listKeys, putUrl, selKey, selPrefix, selThumbKey, usageBytes } from "../../lib/r2.js";
 
-const MAX_KEYS = 60; // por chamada
-
-function allowedPrefix(bucketName, slug) {
-  if (bucketName === "selecao") return `sel/${slug}/`;
-  if (bucketName === "entrega") return `ent/${slug}/`;
-  return null;
-}
+const MAX_ITEMS = 40; // por chamada
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Use POST." });
@@ -19,28 +13,48 @@ export default async function handler(req, res) {
     if (!user) return res.status(401).json({ error: "Entre no painel." });
     const mine = await studioOfUser(user.uid);
     if (!mine) return res.status(403).json({ error: "Esta conta não tem um estúdio." });
-    const { action, bucket, keys } = req.body || {};
-    const bucketName = bucket === "entrega" ? "entrega" : "selecao";
-    const prefix = allowedPrefix(bucketName, mine.slug);
+    const slug = mine.slug;
+    const { action, kind, parentId, items, keys } = req.body || {};
+    const isEntrega = kind === "entrega";
+    const bucket = isEntrega ? BUCKETS.entrega : BUCKETS.selecao;
 
     if (action === "usage") {
-      const [sel, ent] = await Promise.all([usageBytes(BUCKETS.selecao, `sel/${mine.slug}/`), usageBytes(BUCKETS.entrega, `ent/${mine.slug}/`)]);
+      const [sel, ent] = await Promise.all([usageBytes(BUCKETS.selecao, `sel/${slug}/`), usageBytes(BUCKETS.entrega, `ent/${slug}/`)]);
       return res.status(200).json({ bytes: sel + ent, selecao: sel, entrega: ent });
     }
 
-    const list = Array.isArray(keys) ? keys : [];
-    if (!list.length) return res.status(400).json({ error: "Nada para processar." });
-    if (list.length > MAX_KEYS) return res.status(400).json({ error: `Muitos arquivos de uma vez (máx. ${MAX_KEYS}).` });
-    // Segurança: toda chave tem que ser do próprio estúdio.
-    for (const k of list) { const key = typeof k === "string" ? k : k?.key; if (!key || !key.startsWith(prefix)) return res.status(403).json({ error: "Caminho não permitido." }); }
-
     if (action === "upload") {
-      const urls = await Promise.all(list.map(async (k) => ({ key: k.key, url: await putUrl(BUCKETS[bucketName], k.key, k.contentType || "application/octet-stream") })));
+      if (!parentId || !Array.isArray(items) || !items.length) return res.status(400).json({ error: "Nada para enviar." });
+      if (items.length > MAX_ITEMS) return res.status(400).json({ error: `Muitos arquivos de uma vez (máx. ${MAX_ITEMS}).` });
+      const out = await Promise.all(items.map(async (it) => {
+        const id = String(it.id || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 40);
+        if (!id) throw new Error("item sem id");
+        if (isEntrega) {
+          const key = entKey(slug, parentId, id, it.name || "foto");
+          return { id, key, url: await putUrl(bucket, key, it.contentType || "application/octet-stream") };
+        }
+        const key = selKey(slug, parentId, id);
+        const tkey = selThumbKey(slug, parentId, id);
+        return { id, key, tkey, url: await putUrl(bucket, key, "image/webp"), turl: await putUrl(bucket, tkey, "image/webp") };
+      }));
+      return res.status(200).json({ items: out });
+    }
+
+    if (action === "viewurls") {
+      // Links temporários para a fotógrafa VER as fotos que já subiu.
+      const pfx = isEntrega ? `ent/${slug}/` : `sel/${slug}/`;
+      const list = (keys || []).filter((k) => typeof k === "string" && k.startsWith(pfx)).slice(0, 2000);
+      const urls = {};
+      await Promise.all(list.map(async (k) => { urls[k] = await getUrl(bucket, k, { expiresIn: 3600 }); }));
       return res.status(200).json({ urls });
     }
     if (action === "delete") {
-      await del(BUCKETS[bucketName], list.map((k) => (typeof k === "string" ? k : k.key)));
-      return res.status(200).json({ ok: true });
+      // Apaga por chaves (validadas) ou um ensaio inteiro (por prefixo).
+      
+      if (parentId) { const pfx = isEntrega ? entPrefix(slug, parentId) : selPrefix(slug, parentId); const list = await listKeys(bucket, pfx); await del(bucket, list); return res.status(200).json({ ok: true, apagadas: list.length }); }
+      const list = (keys || []).filter((k) => typeof k === "string" && k.startsWith(isEntrega ? `ent/${slug}/` : `sel/${slug}/`));
+      await del(bucket, list);
+      return res.status(200).json({ ok: true, apagadas: list.length });
     }
     return res.status(400).json({ error: "Ação inválida." });
   } catch (err) {

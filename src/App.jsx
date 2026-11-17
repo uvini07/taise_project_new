@@ -25,6 +25,8 @@ const VIP = lazy(() => import("./pages/public/VIP.jsx"));
 const Contact = lazy(() => import("./pages/public/Contact.jsx"));
 const Policies = lazy(() => import("./pages/public/Policies.jsx"));
 const NotFound = lazy(() => import("./pages/public/NotFound.jsx"));
+const ClientSelection = lazy(() => import("./pages/public/ClientSelection.jsx"));
+const ClientDelivery = lazy(() => import("./pages/public/ClientDelivery.jsx"));
 const AdminApp = lazy(() => import("./routes/AdminApp.jsx"));
 const StudioShell = lazy(() => import("./routes/StudioShell.jsx"));
 
@@ -56,6 +58,9 @@ function StudioGate() {
   setCurrentStudio(studio);
   return (
     <Routes>
+      {/* Páginas do cliente (sem a moldura do site): link único e protegido. */}
+      <Route path="selecao/:id" element={revela(ClientSelection)} />
+      <Route path="entrega/:id" element={revela(ClientDelivery)} />
       <Route element={<StudioShell key={studio} studio={studio} />}>
         <Route index element={<Home />} />
         <Route path="sobre" element={<About />} />

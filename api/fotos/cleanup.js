@@ -5,21 +5,30 @@ import { ConfigError, adminDb } from "../../lib/admin.js";
 import { FieldValue } from "firebase-admin/firestore";
 import { BUCKETS, del, entPrefix, listKeys, selPrefix } from "../../lib/r2.js";
 
+const LEGACY_SLUG = "tarufino";
+
+async function sweepRef(colRef, slug, col, bucket, prefixFn, now) {
+  let apagadas = 0;
+  const q = await colRef.where("expiresAt", "<=", now).get();
+  for (const doc of q.docs) {
+    const d = doc.data();
+    if (d.status === "draft" || d.status === "expired") continue;
+    // Apaga TUDO sob o prefixo (pega qualquer arquivo órfão também).
+    const keys = await listKeys(bucket, prefixFn(slug, doc.id));
+    await del(bucket, keys);
+    await doc.ref.update({ status: "expired", photos: col === "selections" ? FieldValue.delete() : undefined, files: col === "deliveries" ? [] : undefined, expiredAt: FieldValue.serverTimestamp() });
+    apagadas += 1;
+  }
+  return apagadas;
+}
+
 async function sweep(col, bucket, prefixFn, now) {
   let apagadas = 0;
+  // A Taíse guarda tudo na raiz do banco.
+  apagadas += await sweepRef(adminDb().collection(col), LEGACY_SLUG, col, bucket, prefixFn, now);
   const studios = await adminDb().collection("studios").get();
   for (const st of studios.docs) {
-    const slug = st.id;
-    const q = await st.ref.collection(col).where("expiresAt", "<=", now).get();
-    for (const doc of q.docs) {
-      const d = doc.data();
-      if (d.status === "draft" || d.status === "expired") continue;
-      // Apaga TUDO sob o prefixo (pega qualquer arquivo órfão também).
-      const keys = await listKeys(bucket, prefixFn(slug, doc.id));
-      await del(bucket, keys);
-      await doc.ref.update({ status: "expired", photos: col === "selections" ? FieldValue.delete() : undefined, files: col === "deliveries" ? [] : undefined, expiredAt: FieldValue.serverTimestamp() });
-      apagadas += 1;
-    }
+    apagadas += await sweepRef(st.ref.collection(col), st.id, col, bucket, prefixFn, now);
   }
   return apagadas;
 }

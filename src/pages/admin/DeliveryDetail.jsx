@@ -12,7 +12,7 @@ import { useToast } from "../../contexts/ToastContext.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
 import {
   addDeliveryFiles, extendDelivery, getDelivery, getSelection, listSelections, publishDelivery, removeDeliveryFiles, saveDelivery, takenSlugs,
-} from "../../services/admin/clientPagesDemo.js";
+} from "../../services/admin/clientPages.js";
 import { DELIVERY_STATUS } from "../../config/constants.js";
 import { compareDelivery, deadlineLabel, effectiveStatus, formatBytes } from "../../utils/clientGallery.js";
 import { formatDateTime } from "../../utils/format.js";
@@ -85,7 +85,7 @@ export default function DeliveryDetail() {
       while (next < fresh.length) {
         const file = fresh[next++];
         const thumbUrl = await thumbOf(file);
-        setD(await addDeliveryFiles(id, [{ name: file.name, size: file.size, type: file.type, thumbUrl }]));
+        setD(await addDeliveryFiles(id, [{ name: file.name, size: file.size, type: file.type, thumbUrl, file }]));
         setQueue((q) => ({ ...q, done: q.done + 1 }));
       }
     };

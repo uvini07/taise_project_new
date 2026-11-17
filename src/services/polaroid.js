@@ -9,7 +9,7 @@ import { addPayment, listTransactions } from "./admin/financeAdmin.js";
 import { fetchTakenLocks, getAvailability } from "./agendaService.js";
 import { aggregateCounters, countRecords, loadDailyCounters } from "./admin/analyticsAdmin.js";
 import { listCampaigns } from "./admin/vipAdmin.js";
-import { listDeliveries, listSelections } from "./admin/clientPagesDemo.js";
+import { listDeliveries, listSelections } from "./admin/clientPages.js";
 import { deadlineLabel, effectiveStatus } from "../utils/clientGallery.js";
 import { groupIncome, summarize, txBalance, txState } from "../utils/finance.js";
 import { addDays, todayKey } from "../utils/format.js";

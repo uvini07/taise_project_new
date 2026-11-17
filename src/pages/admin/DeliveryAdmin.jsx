@@ -9,7 +9,7 @@ import { EmptyState, ErrorState } from "../../components/common/States.jsx";
 import { useConfirm } from "../../components/common/useConfirm.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
-import { deleteDelivery, listDeliveries, listSelections, saveDelivery, takenSlugs } from "../../services/admin/clientPagesDemo.js";
+import { deleteDelivery, listDeliveries, listSelections, saveDelivery, takenSlugs } from "../../services/admin/clientPages.js";
 import { DELIVERY_STATUS } from "../../config/constants.js";
 import { deadlineLabel, effectiveStatus, formatBytes } from "../../utils/clientGallery.js";
 
