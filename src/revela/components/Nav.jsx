@@ -131,7 +131,7 @@ export default function Nav() {
               <Link to="/adm/dashboard" className="rv-btn rv-btn-primary w-full"><span className="rv-btn-dot" aria-hidden />Ir para o meu painel</Link>
             ) : (
               <>
-                <Link to="/cadastro" className="rv-btn rv-btn-primary w-full"><span className="rv-btn-dot" aria-hidden />Criar conta</Link>
+                <Link to="/cadastro" className="rv-btn lg lg-pill rv-btn-glass w-full">Criar conta</Link>
                 <Link to="/entrar" className="rv-btn lg lg-pill rv-btn-glass w-full">Entrar</Link>
               </>
             )}
