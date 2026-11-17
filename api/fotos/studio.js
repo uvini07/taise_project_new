@@ -11,7 +11,7 @@ export default async function handler(req, res) {
   try {
     const user = await userFrom(req);
     if (!user) return res.status(401).json({ error: "Entre no painel." });
-    const mine = await studioOfUser(user.uid);
+    const mine = await studioOfUser(user.uid, user.email);
     if (!mine) return res.status(403).json({ error: "Esta conta não tem um estúdio." });
     const slug = mine.slug;
     const { action, kind, parentId, items, keys } = req.body || {};
