@@ -24,6 +24,9 @@ export default function ClientSelection() {
   const [notice, setNotice] = useState(() => { try { return !sessionStorage.getItem(`revela-aviso-${id}`); } catch { return true; } });
   const closeNotice = () => { setNotice(false); try { sessionStorage.setItem(`revela-aviso-${id}`, "1"); } catch { /* sem storage */ } };
   const saveTimer = useRef(null);
+  // O aviso de proteção espera a abertura da capa terminar.
+  const [introDone, setIntroDone] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setIntroDone(true), 3400); return () => clearTimeout(t); }, []);
 
   const load = useCallback(async () => {
     setState((x) => ({ ...x, loading: !x.needPassword, error: null }));
@@ -120,7 +123,7 @@ export default function ClientSelection() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <AntiPiracyNotice open={notice && !done} onClose={closeNotice} />
+      <AntiPiracyNotice open={notice && !done && introDone} onClose={closeNotice} />
       <ProtectionShield show={shielded && !notice} reason={reason} brand={data.clientName} />
       <GalleryCover studioName={data.studioName} title={data.clientName || data.title || "Sua seleção"}
         subtitle={data.clientName && data.title ? data.title : null}
