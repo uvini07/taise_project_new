@@ -18,8 +18,7 @@ import { useToast } from "../../contexts/ToastContext.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
 import {
   DEMO_MODE, addSelectionPhotos, extendSelection, finishSelection, getSelection, removeSelectionPhotos, reopenSelection, saveDelivery,
-  saveSelection, sendSelection, simulateClientChoice, takenSlugs,
-} from "../../services/admin/clientPages.js";
+  saveSelection, sendSelection, simulateClientChoice, takenSlugs, setClientPassword } from "../../services/admin/clientPages.js";
 import { makeSelectionPreview, validateImageFile } from "../../services/imageService.js";
 import { DELIVERY_DEFAULTS, SELECTION_STATUS, WEBP_QUALITY } from "../../config/constants.js";
 import { clientSlug, deadlineLabel, effectiveStatus, formatBytes, namesList, randomCode, savingsPercent } from "../../utils/clientGallery.js";
@@ -93,6 +92,7 @@ export default function SelectionDetail() {
   const chosenSet = useMemo(() => new Set(s?.selectedIds || []), [s]);
   const shown = useMemo(() => (s ? (tab === "chosen" ? s.photos.filter((p) => chosenSet.has(p.id)) : s.photos) : []), [s, tab, chosenSet]);
 
+  const [pass, setPass] = useState(null);
   if (loading && !s) return <PageLoader />;
   if (error) return <ErrorState error={error} onRetry={reload} title="Seleção não encontrada." />;
 
@@ -198,7 +198,7 @@ export default function SelectionDetail() {
               title={!s.photos.length ? "Suba as fotos antes de liberar o link" : undefined}
               onClick={async () => {
                 if (await confirm({ title: "Liberar para o cliente?", confirmLabel: "Liberar link",
-                  text: `O prazo de ${s.deadlineDays} dia(s) começa agora. Depois é só mandar o link pelo WhatsApp.` })) act("send", () => sendSelection(id), "Link liberado. O prazo começou a contar.");
+                  text: `O prazo de ${s.deadlineDays} dia(s) começa agora. Uma senha de acesso será gerada para mandar junto com o link.` })) act("send", async () => { const r = await sendSelection(id); setPass(await setClientPassword("selection", id)); return r; }, "Link liberado com senha. Mande a mensagem pelo WhatsApp.");
               }}>
               {busy === "send" ? <Spinner className="h-4 w-4" /> : <Send className="h-4 w-4" />} Liberar para o cliente
             </button>
@@ -225,7 +225,7 @@ export default function SelectionDetail() {
       <div className="mb-6 grid gap-4 lg:grid-cols-[1fr_1.2fr]">
         <div className="card card-pad">
           <p className="mb-3 text-xs font-medium uppercase tracking-wider text-ink-muted">Link do cliente</p>
-          <ClientLink kind="selection" item={s} compact />
+          <ClientLink kind="selection" item={s} compact password={pass} onPassword={setPass} />
           <p className="mt-3 text-xs text-ink-muted">
             {st === "draft" ? `O prazo de ${s.deadlineDays} dia(s) começa quando você liberar o link.`
               : st === "finished" ? `Finalizada em ${formatDateTime(s.finishedAt)}.`

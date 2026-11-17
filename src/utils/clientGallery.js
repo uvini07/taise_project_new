@@ -104,19 +104,21 @@ export function compareDelivery(selectedNames, deliveredNames) {
 }
 
 /** Mensagem pronta para mandar o link pelo WhatsApp. */
-export function clientMessage(kind, { clientName, url, expiresAt, photoLimit }) {
+export function clientMessage(kind, { clientName, url, expiresAt, photoLimit, password }) {
   const first = String(clientName || "").trim().split(/\s+/)[0] || "";
   const prazo = expiresAt ? new Date(expiresAt).toLocaleDateString("pt-BR") : null;
   if (kind === "delivery") {
     return [
       `Oi${first ? `, ${first}` : ""}! Suas fotos estão prontas 🤍`,
       `Para baixar: ${url}`,
+      password ? `Senha de acesso: ${password}` : null,
       prazo ? `O link fica disponível até ${prazo}. Baixe e guarde em um lugar seguro.` : null,
     ].filter(Boolean).join("\n");
   }
   return [
     `Oi${first ? `, ${first}` : ""}! As fotos do seu ensaio já estão disponíveis para escolha 🤍`,
     `Acesse: ${url}`,
+    password ? `Senha de acesso: ${password}` : null,
     photoLimit ? `Você pode escolher até ${photoLimit} fotos.` : null,
     prazo ? `A seleção fica aberta até ${prazo}.` : null,
   ].filter(Boolean).join("\n");

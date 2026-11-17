@@ -210,3 +210,9 @@ export async function takenSlugs(kind, exceptId = null) {
   const snap = await getDocs(sCol(kind === "delivery" ? "deliveries" : "selections"));
   return snap.docs.filter((x) => x.id !== exceptId).map((x) => x.data().slug).filter(Boolean);
 }
+
+/** Gera (ou reseta) a senha do cliente. Devolve a senha em texto UMA vez. */
+export async function setClientPassword(kind, id) {
+  const { password } = await api({ action: "setpass", kind: kind === "delivery" || kind === "entrega" ? "entrega" : "selecao", parentId: id });
+  return password;
+}

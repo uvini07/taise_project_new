@@ -7,18 +7,15 @@ import { Check, ChevronLeft, ChevronRight, Heart, ShieldCheck, X } from "lucide-
 import { ProtectedImg, ProtectionShield, ScrambledImage, useLiveWatermark } from "../../components/selection/Protected.jsx";
 import { useCopyProtection } from "../../hooks/useCopyProtection.js";
 import PageLoader from "../../components/common/PageLoader.jsx";
+import PasswordGate from "../../components/selection/PasswordGate.jsx";
+import { clienteApi as rawApi, savePass, savedPass } from "../../services/clienteApi.js";
 import { deadlineLabel } from "../../utils/clientGallery.js";
-
-async function clienteApi(body) {
-  const r = await fetch("/api/fotos/cliente", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(d.error || "Não foi possível abrir esta página.");
-  return d;
-}
 
 export default function ClientSelection() {
   const { studio = "", id = "" } = useParams();
-  const [state, setState] = useState({ loading: true, error: null, data: null });
+  const [state, setState] = useState({ loading: true, error: null, data: null, needPassword: false });
+  const pass = useRef(savedPass(id));
+  const clienteApi = useCallback((body) => rawApi({ ...body, password: pass.current || undefined }), []);
   const [picked, setPicked] = useState(() => new Set());
   const [view, setView] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -26,14 +23,18 @@ export default function ClientSelection() {
   const saveTimer = useRef(null);
 
   const load = useCallback(async () => {
-    setState({ loading: true, error: null, data: null });
+    setState((x) => ({ ...x, loading: !x.needPassword, error: null }));
     try {
       const data = await clienteApi({ action: "gallery", kind: "selecao", studio, id });
       setPicked(new Set(data.selectedIds || []));
       setDone(!!data.finished);
-      setState({ loading: false, error: null, data });
-    } catch (e) { setState({ loading: false, error: e.message, data: null }); }
-  }, [studio, id]);
+      setState({ loading: false, error: null, data, needPassword: false });
+    } catch (e) {
+      if (e.needPassword) { savePass(id, ""); pass.current = ""; }
+      setState({ loading: false, error: e.message, data: null, needPassword: !!e.needPassword });
+    }
+  }, [studio, id, clienteApi]);
+  const tryPassword = async (p) => { pass.current = p; savePass(id, p); await load(); };
   useEffect(() => { load(); }, [load]);
 
   const data = state.data;
@@ -44,7 +45,10 @@ export default function ClientSelection() {
 
   const photos = data?.photos || [];
   const limit = Number(data?.photoLimit) || photos.length;
+  const allowExtras = !!data?.allowExtras && !!data?.photoLimit;
+  const extras = allowExtras ? Math.max(0, picked.size - limit) : 0;
   const over = picked.size > limit;
+  const brl = (c) => (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   // Salva as escolhas sozinho, pouco depois de parar de mexer.
   const persist = useCallback((ids) => {
@@ -63,11 +67,11 @@ export default function ClientSelection() {
     setPicked((s) => {
       const n = new Set(s);
       if (n.has(pid)) n.delete(pid);
-      else { if (limit && n.size >= limit) return s; n.add(pid); }
+      else { if (limit && !allowExtras && n.size >= limit) return s; n.add(pid); }
       persist(n);
       return n;
     });
-  }, [done, limit, persist]);
+  }, [done, limit, allowExtras, persist]);
 
   useEffect(() => {
     const onKey = (e) => {
@@ -92,6 +96,7 @@ export default function ClientSelection() {
   }
 
   if (state.loading) return <PageLoader full />;
+  if (state.needPassword) return <PasswordGate error={pass.current === "" && state.error?.startsWith("Digite") ? null : state.error} onSubmit={tryPassword} />;
   if (state.error) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-ivory px-6 text-center">
@@ -113,15 +118,22 @@ export default function ClientSelection() {
           {data.title && <p className="truncate text-sm text-ink-muted">{data.title}</p>}
         </div>
         {!done && (
-          <div className={`rounded-full px-4 py-2 text-sm font-medium ${over ? "bg-warning/15 text-warning" : "bg-wine-900 text-cream"}`}>
+          <div className={`rounded-full px-4 py-2 text-sm font-medium ${over && !allowExtras ? "bg-warning/15 text-warning" : "bg-wine-900 text-cream"}`}>
             <Heart className="mr-1.5 inline h-4 w-4 fill-current align-[-3px]" />
-            {picked.size}{limit ? ` de ${limit}` : ""} escolhidas
+            {picked.size}{limit ? ` de ${limit}` : ""} escolhidas{extras ? ` (+${extras})` : ""}
           </div>
         )}
       </header>
 
       {data.expiresAt && !done && (
         <p className="px-4 pt-3 text-xs text-ink-muted sm:px-8">Prazo para escolher: {deadlineLabel(new Date(data.expiresAt))}.</p>
+      )}
+      {!done && allowExtras && (
+        <p className={`mx-4 mt-3 max-w-2xl rounded-2xl p-3 text-sm sm:mx-8 ${extras ? "bg-warning/10 text-ink" : "bg-surface text-ink-soft"}`}>
+          {extras
+            ? <>Você escolheu <strong>{extras} foto(s) extra(s)</strong> além das {limit} do pacote{data.extraPriceCents ? <> · <strong>{brl(extras * data.extraPriceCents)}</strong> ({brl(data.extraPriceCents)} cada)</> : null}.</>
+            : <>Seu pacote inclui {limit} fotos. Você pode escolher mais{data.extraPriceCents ? ` por ${brl(data.extraPriceCents)} cada foto extra` : " (as extras são cobradas à parte)"}.</>}
+        </p>
       )}
       {data.message && <p className="mx-4 mt-3 max-w-2xl rounded-2xl bg-surface p-4 text-sm text-ink-soft sm:mx-8">{data.message}</p>}
 
@@ -154,7 +166,7 @@ export default function ClientSelection() {
           </div>
 
           <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur sm:px-8">
-            <p className="text-xs text-ink-muted">{saving ? "Salvando…" : "Suas escolhas são salvas automaticamente."}</p>
+            <p className="text-xs text-ink-muted">{saving ? "Salvando…" : !allowExtras && data.photoLimit && picked.size >= limit ? `Você chegou ao limite de ${limit} fotos. Desmarque uma para trocar.` : "Suas escolhas são salvas automaticamente."}</p>
             <button type="button" onClick={finish} disabled={!picked.size || saving}
               className="btn-primary disabled:opacity-50">Finalizar escolha ({picked.size})</button>
           </div>

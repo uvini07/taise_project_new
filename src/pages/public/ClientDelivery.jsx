@@ -1,30 +1,31 @@
 // Página do CLIENTE para baixar as fotos em alta (sem login). Acesso só pelo
 // link único. Os arquivos ficam no R2 e são baixados por links temporários.
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Download, ImageDown, Loader2, PackageCheck } from "lucide-react";
 import PageLoader from "../../components/common/PageLoader.jsx";
+import PasswordGate from "../../components/selection/PasswordGate.jsx";
+import { clienteApi as rawApi, savePass, savedPass } from "../../services/clienteApi.js";
 import { formatBytes, deadlineLabel } from "../../utils/clientGallery.js";
-
-async function clienteApi(body) {
-  const r = await fetch("/api/fotos/cliente", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const d = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(d.error || "Não foi possível abrir esta página.");
-  return d;
-}
 
 export default function ClientDelivery() {
   const { studio = "", id = "" } = useParams();
-  const [state, setState] = useState({ loading: true, error: null, data: null });
+  const [state, setState] = useState({ loading: true, error: null, data: null, needPassword: false });
+  const pass = useRef(savedPass(id));
+  const clienteApi = useCallback((body) => rawApi({ ...body, password: pass.current || undefined }), []);
   const [busy, setBusy] = useState(null);
 
   const load = useCallback(async () => {
-    setState({ loading: true, error: null, data: null });
+    setState((x) => ({ ...x, loading: !x.needPassword, error: null }));
     try {
       const data = await clienteApi({ action: "gallery", kind: "entrega", studio, id });
-      setState({ loading: false, error: null, data });
-    } catch (e) { setState({ loading: false, error: e.message, data: null }); }
-  }, [studio, id]);
+      setState({ loading: false, error: null, data, needPassword: false });
+    } catch (e) {
+      if (e.needPassword) { savePass(id, ""); pass.current = ""; }
+      setState({ loading: false, error: e.message, data: null, needPassword: !!e.needPassword });
+    }
+  }, [studio, id, clienteApi]);
+  const tryPassword = async (p) => { pass.current = p; savePass(id, p); await load(); };
   useEffect(() => { load(); }, [load]);
 
   async function download(fileId) {
@@ -43,6 +44,7 @@ export default function ClientDelivery() {
   }
 
   if (state.loading) return <PageLoader full />;
+  if (state.needPassword) return <PasswordGate error={pass.current === "" && state.error?.startsWith("Digite") ? null : state.error} onSubmit={tryPassword} />;
   if (state.error) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-ivory px-6 text-center">

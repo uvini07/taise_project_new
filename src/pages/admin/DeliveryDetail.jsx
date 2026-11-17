@@ -11,7 +11,7 @@ import { useConfirm } from "../../components/common/useConfirm.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
 import {
-  addDeliveryFiles, extendDelivery, getDelivery, getSelection, listSelections, publishDelivery, removeDeliveryFiles, saveDelivery, takenSlugs,
+  addDeliveryFiles, extendDelivery, getDelivery, getSelection, listSelections, publishDelivery, removeDeliveryFiles, saveDelivery, takenSlugs, setClientPassword,
 } from "../../services/admin/clientPages.js";
 import { DELIVERY_STATUS } from "../../config/constants.js";
 import { compareDelivery, deadlineLabel, effectiveStatus, formatBytes } from "../../utils/clientGallery.js";
@@ -55,6 +55,7 @@ export default function DeliveryDetail() {
     return chosen.length ? { total: chosen.length, ...compareDelivery(chosen, data.d.files.map((f) => f.name)) } : { total: 0 };
   }, [data]);
 
+  const [pass, setPass] = useState(null);
   if (loading && !data) return <PageLoader />;
   if (error) return <ErrorState error={error} onRetry={reload} title="Entrega não encontrada." />;
 
@@ -118,7 +119,7 @@ export default function DeliveryDetail() {
               onClick={async () => {
                 const missing = check?.missing?.length ? ` Atenção: ${check.missing.length} foto(s) escolhida(s) ainda não foram entregues.` : "";
                 if (await confirm({ title: "Liberar download?", confirmLabel: "Liberar",
-                  text: `O cliente poderá baixar as ${d.files.length} foto(s) por ${d.availableDays} dias.${missing}` })) act("pub", () => publishDelivery(id), "Download liberado.");
+                  text: `O cliente poderá baixar as ${d.files.length} foto(s) por ${d.availableDays} dias.${missing}` })) act("pub", async () => { const r = await publishDelivery(id); setPass(await setClientPassword("delivery", id)); return r; }, "Download liberado com senha. Mande a mensagem pelo WhatsApp.");
               }}>
               {busy === "pub" ? <Spinner className="h-4 w-4" /> : <Send className="h-4 w-4" />} Liberar download
             </button>
@@ -134,7 +135,7 @@ export default function DeliveryDetail() {
       <div className="mb-6 grid gap-4 lg:grid-cols-[1fr_1.2fr]">
         <div className="card card-pad">
           <p className="mb-3 text-xs font-medium uppercase tracking-wider text-ink-muted">Link do cliente</p>
-          <ClientLink kind="delivery" item={d} compact />
+          <ClientLink kind="delivery" item={d} compact password={pass} onPassword={setPass} />
           <p className="mt-3 text-xs text-ink-muted">
             {st === "draft" ? `O prazo de ${d.availableDays} dias começa quando você liberar o download.` : `${deadlineLabel(d.expiresAt)} · ${formatDateTime(d.expiresAt)}`}
           </p>

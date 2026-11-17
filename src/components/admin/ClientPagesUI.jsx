@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { Copy, ExternalLink, FlaskConical, FolderOpen, ImagePlus, RefreshCw, UploadCloud } from "lucide-react";
+import { Copy, ExternalLink, FlaskConical, FolderOpen, ImagePlus, KeyRound, RefreshCw, UploadCloud } from "lucide-react";
 import Modal from "../common/Modal.jsx";
 import Spinner from "../common/Spinner.jsx";
 import { SelectField, TextArea, TextField, Toggle } from "../common/Fields.jsx";
@@ -11,7 +11,8 @@ import { AlertTriangle, Clock3, Database } from "lucide-react";
 import { centsToInput, parseBRLToCents } from "../../utils/format.js";
 import { slugify } from "../../utils/text.js";
 import { whatsappLink } from "../../utils/whatsapp.js";
-import { DEMO_MODE } from "../../services/admin/clientPages.js";
+import { DEMO_MODE, setClientPassword } from "../../services/admin/clientPages.js";
+import { useConfirm } from "../common/useConfirm.jsx";
 import { sitePath } from "../../config/tenant.js";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 
@@ -90,30 +91,56 @@ export function StorageMeter({ bytes = 0, label = "Armazenamento no Cloudflare" 
 }
 
 /** Endereço da página do cliente com copiar, WhatsApp e abrir. */
-export function ClientLink({ kind, item, compact = false }) {
+export function ClientLink({ kind, item, compact = false, password = null, onPassword }) {
   const toast = useToast();
+  const { confirm, confirmUI } = useConfirm();
+  const [resetting, setResetting] = useState(false);
   // O link usa o id aleatório (impossível de adivinhar), não o endereço curto.
   const url = clientUrl(kind, item.id);
-  const message = clientMessage(kind, { clientName: item.clientName, url, expiresAt: item.expiresAt, photoLimit: item.photoLimit });
+  const released = item.status && item.status !== "draft";
+  const hasPass = !!item.access || !!password;
+  const message = clientMessage(kind, { clientName: item.clientName, url, expiresAt: item.expiresAt, photoLimit: item.photoLimit, password });
   const wa = item.phone ? whatsappLink(item.phone, message) : `https://wa.me/?text=${encodeURIComponent(message)}`;
   async function copy(text, ok) {
     try { await navigator.clipboard.writeText(text); toast.success(ok); } catch { toast.error("Não foi possível copiar. Selecione o texto e copie manualmente."); }
   }
+  async function reset() {
+    if (hasPass && !(await confirm({ title: "Gerar nova senha?", confirmLabel: "Gerar nova senha",
+      text: "A senha atual deixa de funcionar na hora. Mande a nova senha para o cliente." }))) return;
+    setResetting(true);
+    try { const p = await setClientPassword(kind, item.id); onPassword?.(p); toast.success("Nova senha gerada. Mande a mensagem para o cliente."); }
+    catch (e) { toast.error(e.message || "Não foi possível gerar a senha."); }
+    finally { setResetting(false); }
+  }
   return (
     <div className={compact ? "" : "rounded-2xl border border-ink/10 bg-paper p-3"}>
+      {confirmUI}
       <p className="truncate text-xs text-ink-muted" title={url}>
         <span className="opacity-70">{url.replace(/^https?:\/\//, "").replace(item.id, "")}</span>
         <span className="font-medium text-ink">{item.id}</span>
       </p>
+      {released && (
+        <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl bg-surface px-3 py-2 text-sm">
+          <KeyRound className="h-4 w-4 text-gold" aria-hidden />
+          {password
+            ? <><span className="text-ink-muted">Senha:</span> <strong className="font-mono tracking-[.2em]">{password}</strong>
+                <button type="button" className="btn-ghost btn-sm" onClick={() => copy(password, "Senha copiada.")}><Copy className="h-4 w-4" /></button></>
+            : <span className="text-ink-muted">{hasPass ? "Senha protegida (não fica salva). Esqueceu? Gere outra." : "Sem senha ainda."}</span>}
+          <button type="button" className="btn-ghost btn-sm ml-auto" disabled={resetting} onClick={reset}>
+            {resetting ? <Spinner className="h-4 w-4" /> : <RefreshCw className="h-4 w-4" />} {hasPass ? "Resetar senha" : "Gerar senha"}
+          </button>
+        </div>
+      )}
       <div className="mt-2 flex flex-wrap gap-1.5">
         <button type="button" className="btn-ghost btn-sm" onClick={() => copy(url, "Link copiado.")}><Copy className="h-4 w-4" /> Copiar link</button>
-        <button type="button" className="btn-ghost btn-sm" onClick={() => copy(message, "Mensagem copiada.")}>Copiar mensagem</button>
+        <button type="button" className="btn-ghost btn-sm" onClick={() => copy(message, password ? "Mensagem com a senha copiada." : "Mensagem copiada (sem a senha).")}>Copiar mensagem</button>
         <a className="btn-ghost btn-sm" href={wa} target="_blank" rel="noopener noreferrer"><WhatsAppIcon className="h-4 w-4" /> WhatsApp</a>
         <button type="button" className="btn-ghost btn-sm" disabled={DEMO_MODE} title={DEMO_MODE ? "A página do cliente será criada na próxima etapa" : undefined}
           onClick={() => window.open(url, "_blank", "noopener")}>
           <ExternalLink className="h-4 w-4" /> Ver página
         </button>
       </div>
+      {released && hasPass && !password && <p className="mt-2 text-xs text-ink-muted">A mensagem só leva a senha logo depois de gerá-la. Para reenviar, use “Resetar senha”.</p>}
     </div>
   );
 }

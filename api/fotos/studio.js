@@ -1,7 +1,9 @@
 // Ações de fotos da FOTÓGRAFA (logada). O SERVIDOR gera os caminhos (sempre
 // dentro do próprio estúdio) e devolve links de upload de curta duração.
 // Também apaga arquivos e informa o uso de armazenamento.
-import { ConfigError, studioOfUser, userFrom } from "../../lib/admin.js";
+import { FieldValue } from "firebase-admin/firestore";
+import { ConfigError, adminDb, studioOfUser, userFrom } from "../../lib/admin.js";
+import { generatePassword, hashPassword } from "../../lib/clientPass.js";
 import { BUCKETS, del, entKey, entPrefix, getUrl, listKeys, putUrl, selKey, selPrefix, selThumbKey, usageBytes } from "../../lib/r2.js";
 
 const MAX_ITEMS = 40; // por chamada
@@ -38,6 +40,18 @@ export default async function handler(req, res) {
         return { id, key, tkey, url: await putUrl(bucket, key, "image/webp"), turl: await putUrl(bucket, tkey, "image/webp") };
       }));
       return res.status(200).json({ items: out });
+    }
+
+    if (action === "setpass") {
+      // Gera (ou reseta) a senha do cliente. Só o hash fica no banco; a senha
+      // em texto volta UMA vez para a fotógrafa mandar junto com o link.
+      if (!parentId || typeof parentId !== "string" || parentId.length > 80) return res.status(400).json({ error: "Página inválida." });
+      const col = isEntrega ? "deliveries" : "selections";
+      const ref = adminDb().doc(slug === "tarufino" ? `${col}/${parentId}` : `studios/${slug}/${col}/${parentId}`);
+      if (!(await ref.get()).exists) return res.status(404).json({ error: "Página não encontrada." });
+      const password = generatePassword();
+      await ref.update({ access: { ...hashPassword(password), setAt: FieldValue.serverTimestamp() }, accessFails: 0, accessLockedUntil: null });
+      return res.status(200).json({ password });
     }
 
     if (action === "viewurls") {

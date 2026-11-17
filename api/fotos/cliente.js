@@ -5,6 +5,7 @@
 import { ConfigError, adminDb } from "../../lib/admin.js";
 import { BUCKETS, getUrl } from "../../lib/r2.js";
 import { FieldValue } from "firebase-admin/firestore";
+import { LOCK_MINUTES, MAX_FAILS, checkPassword } from "../../lib/clientPass.js";
 
 const okStr = (v, max = 80) => typeof v === "string" && v.length > 0 && v.length <= max;
 
@@ -15,12 +16,29 @@ const docPath = (studio, col, id) => (studio === LEGACY_SLUG ? `${col}/${id}` : 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Use POST." });
   try {
-    const { action, studio, kind, id, selectedIds, fileId } = req.body || {};
+    const { action, studio, kind, id, selectedIds, fileId, password } = req.body || {};
     if (!okStr(studio) || !okStr(id)) return res.status(400).json({ error: "Link inválido." });
     const col = kind === "entrega" ? "deliveries" : "selections";
     const snap = await adminDb().doc(docPath(studio, col, id)).get();
     if (!snap.exists) return res.status(404).json({ error: "Página não encontrada. Confira o link." });
     const d = snap.data();
+
+    // Senha de acesso (gerada ao liberar o link). Páginas antigas, sem senha, seguem abertas.
+    if (d.access?.hash) {
+      const lockedUntil = d.accessLockedUntil?.toDate?.();
+      if (lockedUntil && lockedUntil > new Date()) {
+        const min = Math.ceil((lockedUntil - new Date()) / 60000);
+        return res.status(429).json({ error: `Muitas tentativas erradas. Tente de novo em ${min} min.`, needPassword: true });
+      }
+      if (!password) return res.status(401).json({ error: "Digite a senha que você recebeu com o link.", needPassword: true });
+      if (!checkPassword(password, d.access)) {
+        const fails = (d.accessFails || 0) + 1;
+        const lock = fails >= MAX_FAILS;
+        await snap.ref.update(lock ? { accessFails: 0, accessLockedUntil: new Date(Date.now() + LOCK_MINUTES * 60000) } : { accessFails: fails });
+        return res.status(401).json({ error: lock ? `Muitas tentativas erradas. Tente de novo em ${LOCK_MINUTES} min.` : "Senha incorreta. Confira a mensagem que você recebeu.", needPassword: true, wrong: true });
+      }
+      if (d.accessFails) snap.ref.update({ accessFails: 0 }).catch(() => {});
+    }
 
     // Expira sozinho pela data (não depende do robô de limpeza).
     const expired = d.expiresAt?.toDate && d.expiresAt.toDate() < new Date();
@@ -40,7 +58,7 @@ export default async function handler(req, res) {
         full: await getUrl(BUCKETS.selecao, p.key, { expiresIn: 3600 }),
         thumbScramble: p.thumbScramble || null, fullScramble: p.previewScramble || null,
       })));
-      return res.status(200).json({ clientName: d.clientName || "", title: d.title || "", message: d.message || "", photoLimit: d.photoLimit || null, status: d.status, selectedIds: d.selectedIds || [], finished: d.status === "finished", copyProtection: d.copyProtection !== false, total: photos.length, photos, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null });
+      return res.status(200).json({ clientName: d.clientName || "", title: d.title || "", message: d.message || "", photoLimit: d.photoLimit || null, allowExtras: !!d.allowExtras, extraPriceCents: d.extraPriceCents || null, status: d.status, selectedIds: d.selectedIds || [], finished: d.status === "finished", copyProtection: d.copyProtection !== false, total: photos.length, photos, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null });
     }
 
     if (action === "pick") {
@@ -49,7 +67,7 @@ export default async function handler(req, res) {
       if (expired) return res.status(410).json({ error: "O prazo para escolher as fotos já encerrou." });
       const valid = new Set((d.photos || []).map((p) => p.id));
       const picked = [...new Set((selectedIds || []).filter((x) => valid.has(x)))];
-      if (d.photoLimit && picked.length > d.photoLimit) return res.status(400).json({ error: `Você pode escolher no máximo ${d.photoLimit} fotos.` });
+      if (d.photoLimit && !d.allowExtras && picked.length > d.photoLimit) return res.status(400).json({ error: `Você pode escolher no máximo ${d.photoLimit} fotos.` });
       await snap.ref.update({ selectedIds: picked, status: "selecting", updatedAt: FieldValue.serverTimestamp() });
       return res.status(200).json({ ok: true, selectedIds: picked });
     }
@@ -60,7 +78,7 @@ export default async function handler(req, res) {
       const valid = new Set((d.photos || []).map((p) => p.id));
       const picked = [...new Set((selectedIds || []).filter((x) => valid.has(x)))];
       if (!picked.length) return res.status(400).json({ error: "Escolha pelo menos uma foto." });
-      if (d.photoLimit && picked.length > d.photoLimit) return res.status(400).json({ error: `Você pode escolher no máximo ${d.photoLimit} fotos.` });
+      if (d.photoLimit && !d.allowExtras && picked.length > d.photoLimit) return res.status(400).json({ error: `Você pode escolher no máximo ${d.photoLimit} fotos.` });
       await snap.ref.update({ selectedIds: picked, status: "finished", finishedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
       return res.status(200).json({ ok: true, finished: true });
     }
