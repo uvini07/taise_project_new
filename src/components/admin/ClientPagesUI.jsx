@@ -193,7 +193,7 @@ export function ClientEditor({ kind, initial, taken, selections = [], onClose, o
   async function save() {
     const errs = [];
     if (!f.clientName.trim()) errs.push("Informe o nome do cliente.");
-    const slugErr = validateSlug(slug, taken);
+    const slugErr = validateSlug(slug, Array.isArray(taken) ? taken : []);
     if (slugErr) errs.push(slugErr);
     let extraPriceCents = null;
     if (isSelection) {
