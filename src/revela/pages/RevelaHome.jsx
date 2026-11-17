@@ -1,8 +1,6 @@
 import { useEffect } from "react";
 import RevelaLayout from "../components/RevelaLayout.jsx";
 import Hero from "../sections/Hero.jsx";
-import DotStatement from "../sections/DotStatement.jsx";
-import Unify from "../sections/Unify.jsx";
 import Features from "../sections/Features.jsx";
 import HowItWorks from "../sections/HowItWorks.jsx";
 import PlansSection from "../sections/PlansSection.jsx";
@@ -25,14 +23,12 @@ export default function RevelaHome() {
   return (
     <RevelaLayout>
       <Hero />
-      <DotStatement />
-      <Unify />
-      <SiteBuilder />
       <Polaroidy />
       <Features />
+      <SiteBuilder />
+      <Showcase />
       <HowItWorks />
       <PlansSection />
-      <Showcase />
       <Close />
     </RevelaLayout>
   );
