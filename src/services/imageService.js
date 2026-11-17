@@ -137,6 +137,17 @@ function stampRevelaWatermark(canvas, text) {
 export const PREVIEW_MAX_EDGE = 1000;
 export const PREVIEW_QUALITY = 0.55;
 
+function scrambleCanvas(src, cols, rows) {
+  const plan = scramblePlan(src.width, src.height, cols, rows);
+  const out = document.createElement("canvas");
+  out.width = plan.fileWidth;
+  out.height = plan.fileHeight;
+  const ctx = out.getContext("2d");
+  for (const { from: f, to: t } of scrambleMoves(plan, "scramble")) ctx.drawImage(src, f.x, f.y, f.w, f.h, t.x, t.y, f.w, f.h);
+  const { perm, tileW, tileH, pad, width, height } = plan;
+  return { canvas: out, meta: { cols, rows, tileW, tileH, pad, width, height, perm } };
+}
+
 export async function makeSelectionPreview(file, {
   maxEdge = PREVIEW_MAX_EDGE, thumbEdge = 400, quality = PREVIEW_QUALITY, watermark = "", scramble = true,
 } = {}) {
