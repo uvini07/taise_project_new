@@ -134,7 +134,7 @@ export function ClientLink({ kind, item, compact = false, password = null, onPas
       <div className="mt-2 flex flex-wrap gap-1.5">
         <button type="button" className="btn-ghost btn-sm" onClick={() => copy(url, "Link copiado.")}><Copy className="h-4 w-4" /> Copiar link</button>
         <button type="button" className="btn-ghost btn-sm" onClick={() => copy(message, password ? "Mensagem com a senha copiada." : "Mensagem copiada (sem a senha).")}>Copiar mensagem</button>
-        <a className="btn-ghost btn-sm" href={wa} target="_blank" rel="noopener noreferrer"><WhatsAppIcon className="h-4 w-4" /> WhatsApp</a>
+        <a className={released ? "btn-sm inline-flex items-center gap-1.5 rounded-full bg-[#25D366] px-4 font-semibold text-white hover:brightness-95" : "btn-ghost btn-sm"} href={wa} target="_blank" rel="noopener noreferrer"><WhatsAppIcon className="h-4 w-4" /> {released ? "Enviar no WhatsApp" : "WhatsApp"}</a>
         <button type="button" className="btn-ghost btn-sm" disabled={DEMO_MODE} title={DEMO_MODE ? "A página do cliente será criada na próxima etapa" : undefined}
           onClick={() => window.open(url, "_blank", "noopener")}>
           <ExternalLink className="h-4 w-4" /> Ver página
@@ -370,5 +370,39 @@ export function ActivityLog({ item }) {
       {list.length > 8 && !all && <button type="button" className="btn-ghost btn-sm mt-2" onClick={() => setAll(true)}>Ver histórico completo</button>}
       <p className="mt-3 text-xs text-ink-muted">No celular o print não é detectável pelo navegador; a marca d'água com nome, data e hora identifica quem vazou. No computador, atalhos de print e tentativas de salvar são registrados.</p>
     </div>
+  );
+}
+
+/** Aparece logo depois de liberar: senha + botão grande para mandar no WhatsApp. */
+export function ReleasedModal({ open, onClose, kind, item, password }) {
+  const toast = useToast();
+  if (!item) return null;
+  const url = clientUrl(kind, item.id);
+  const message = clientMessage(kind, { clientName: item.clientName, url, expiresAt: item.expiresAt, photoLimit: item.photoLimit, password });
+  const wa = item.phone ? whatsappLink(item.phone, message) : `https://wa.me/?text=${encodeURIComponent(message)}`;
+  async function copy() {
+    try { await navigator.clipboard.writeText(message); toast.success("Mensagem copiada."); } catch { toast.error("Não foi possível copiar."); }
+  }
+  return (
+    <Modal open={open} onClose={onClose} title={kind === "delivery" ? "Download liberado! 🎉" : "Seleção liberada! 🎉"} size="sm">
+      <p className="text-sm text-ink-muted">Agora é só mandar para {item.clientName || "o cliente"}. A mensagem já vai com o link e a senha.</p>
+      {password && (
+        <div className="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-surface p-4">
+          <KeyRound className="h-5 w-5 text-gold" aria-hidden />
+          <span className="text-sm text-ink-muted">Senha:</span>
+          <strong className="font-mono text-2xl tracking-[.25em]">{password}</strong>
+        </div>
+      )}
+      <pre className="mt-4 max-h-40 overflow-y-auto whitespace-pre-wrap rounded-xl border border-ink/10 bg-paper p-3 font-sans text-xs text-ink-soft">{message}</pre>
+      <a href={wa} target="_blank" rel="noopener noreferrer" onClick={() => setTimeout(onClose, 300)}
+        className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-[#25D366] px-6 py-3.5 text-base font-semibold text-white shadow-soft hover:brightness-95">
+        <WhatsAppIcon className="h-5 w-5" /> Enviar pelo WhatsApp
+      </a>
+      {!item.phone && <p className="mt-2 text-center text-xs text-ink-muted">Sem telefone cadastrado: o WhatsApp vai pedir para escolher o contato.</p>}
+      <div className="mt-3 flex justify-center gap-2">
+        <button type="button" className="btn-ghost btn-sm" onClick={copy}><Copy className="h-4 w-4" /> Copiar mensagem</button>
+        <button type="button" className="btn-ghost btn-sm" onClick={onClose}>Depois</button>
+      </div>
+    </Modal>
   );
 }

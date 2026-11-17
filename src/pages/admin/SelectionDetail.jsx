@@ -4,7 +4,7 @@ import {
   ArrowLeft, CalendarPlus, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, Download, Eye, Heart, Lock, PackageCheck, Pencil, RotateCcw, Send, Shuffle, Trash2, Unlock, X,
 } from "lucide-react";
 import { StatCard } from "../../components/admin/AdminUI.jsx";
-import { ActivityLog, ClientEditor, ClientLink, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
+import { ActivityLog, ClientEditor, ClientLink, ReleasedModal, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import PageLoader from "../../components/common/PageLoader.jsx";
 import Spinner from "../../components/common/Spinner.jsx";
@@ -93,6 +93,7 @@ export default function SelectionDetail() {
   const shown = useMemo(() => (s ? (tab === "chosen" ? s.photos.filter((p) => chosenSet.has(p.id)) : s.photos) : []), [s, tab, chosenSet]);
 
   const [pass, setPass] = useState(null);
+  const [released, setReleased] = useState(false);
   if (loading && !s) return <PageLoader />;
   if (error) return <ErrorState error={error} onRetry={reload} title="Seleção não encontrada." />;
 
@@ -176,6 +177,7 @@ export default function SelectionDetail() {
   return (
     <>
       {confirmUI}
+      <ReleasedModal open={released} onClose={() => setReleased(false)} kind="selection" item={s} password={pass} />
       <Link to="/adm/selecao" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink"><ArrowLeft className="h-4 w-4" /> Seleções</Link>
 
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -198,7 +200,7 @@ export default function SelectionDetail() {
               title={!s.photos.length ? "Suba as fotos antes de liberar o link" : undefined}
               onClick={async () => {
                 if (await confirm({ title: "Liberar para o cliente?", confirmLabel: "Liberar link",
-                  text: `O prazo de ${s.deadlineDays} dia(s) começa agora. Uma senha de acesso será gerada para mandar junto com o link.` })) act("send", async () => { const r = await sendSelection(id); setPass(await setClientPassword("selection", id)); return r; }, "Link liberado com senha. Mande a mensagem pelo WhatsApp.");
+                  text: `O prazo de ${s.deadlineDays} dia(s) começa agora. Uma senha de acesso será gerada para mandar junto com o link.` })) act("send", async () => { const r = await sendSelection(id); setPass(await setClientPassword("selection", id)); setReleased(true); return r; }, "Link liberado com senha. Mande a mensagem pelo WhatsApp.");
               }}>
               {busy === "send" ? <Spinner className="h-4 w-4" /> : <Send className="h-4 w-4" />} Liberar para o cliente
             </button>

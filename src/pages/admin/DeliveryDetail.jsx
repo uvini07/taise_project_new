@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { AlertTriangle, ArrowLeft, CalendarPlus, Check, CheckCircle2, Lightbulb, Pencil, RotateCcw, Send, Trash2 } from "lucide-react";
 import { StatCard } from "../../components/admin/AdminUI.jsx";
-import { ActivityLog, ClientEditor, ClientLink, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
+import { ActivityLog, ClientEditor, ClientLink, ReleasedModal, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import PageLoader from "../../components/common/PageLoader.jsx";
 import Spinner from "../../components/common/Spinner.jsx";
@@ -56,6 +56,7 @@ export default function DeliveryDetail() {
   }, [data]);
 
   const [pass, setPass] = useState(null);
+  const [released, setReleased] = useState(false);
   if (loading && !data) return <PageLoader />;
   if (error) return <ErrorState error={error} onRetry={reload} title="Entrega não encontrada." />;
 
@@ -101,6 +102,7 @@ export default function DeliveryDetail() {
   return (
     <>
       {confirmUI}
+      <ReleasedModal open={released} onClose={() => setReleased(false)} kind="delivery" item={d} password={pass} />
       <Link to="/adm/entrega" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink"><ArrowLeft className="h-4 w-4" /> Entregas</Link>
 
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -119,7 +121,7 @@ export default function DeliveryDetail() {
               onClick={async () => {
                 const missing = check?.missing?.length ? ` Atenção: ${check.missing.length} foto(s) escolhida(s) ainda não foram entregues.` : "";
                 if (await confirm({ title: "Liberar download?", confirmLabel: "Liberar",
-                  text: `O cliente poderá baixar as ${d.files.length} foto(s) por ${d.availableDays} dias.${missing}` })) act("pub", async () => { const r = await publishDelivery(id); setPass(await setClientPassword("delivery", id)); return r; }, "Download liberado com senha. Mande a mensagem pelo WhatsApp.");
+                  text: `O cliente poderá baixar as ${d.files.length} foto(s) por ${d.availableDays} dias.${missing}` })) act("pub", async () => { const r = await publishDelivery(id); setPass(await setClientPassword("delivery", id)); setReleased(true); return r; }, "Download liberado com senha. Mande a mensagem pelo WhatsApp.");
               }}>
               {busy === "pub" ? <Spinner className="h-4 w-4" /> : <Send className="h-4 w-4" />} Liberar download
             </button>
