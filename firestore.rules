@@ -329,6 +329,17 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // --------------------------------------------- seleção e entrega de fotos
+    // O cliente NUNCA lê isto direto no banco: o acesso dele passa pela função
+    // do servidor (conta de serviço), liberado só pelo link único. Aqui, no
+    // banco, apenas o dono do estúdio administra — ninguém mais lê nem escreve.
+    match /selections/{id} {
+      allow read, write: if isAdmin();
+    }
+    match /deliveries/{id} {
+      allow read, write: if isAdmin();
+    }
+
     // @@BODY_END@@
 
     // ============================================================ ESTÚDIOS
@@ -641,6 +652,17 @@ service cloud.firestore {
           && incoming().diff(resource.data).affectedKeys().hasOnly(['_k', incoming()._k])
           && incoming()[incoming()._k] == resource.data.get(incoming()._k, 0) + 1;
         allow delete: if isAdminS();
+      }
+
+      // --------------------------------------------- seleção e entrega de fotos
+      // O cliente NUNCA lê isto direto no banco: o acesso dele passa pela função
+      // do servidor (conta de serviço), liberado só pelo link único. Aqui, no
+      // banco, apenas o dono do estúdio administra — ninguém mais lê nem escreve.
+      match /selections/{id} {
+        allow read, write: if isAdminS();
+      }
+      match /deliveries/{id} {
+        allow read, write: if isAdminS();
       }
     }
     // @@STUDIOS_END@@

@@ -5,8 +5,9 @@ import Spinner from "../common/Spinner.jsx";
 import { SelectField, TextArea, TextField, Toggle } from "../common/Fields.jsx";
 import { WhatsAppIcon } from "../common/Icons.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
-import { CLIENT_PATHS, DELIVERY_DEFAULTS, SELECTION_DEFAULTS } from "../../config/constants.js";
-import { clientMessage, clientSlug, randomCode, validateSlug } from "../../utils/clientGallery.js";
+import { CLIENT_PATHS, DELIVERY_DEFAULTS, R2_FREE_BYTES, SELECTION_DEFAULTS, WEBP_QUALITY } from "../../config/constants.js";
+import { clientMessage, clientSlug, daysLeft, effectiveStatus, formatBytes, randomCode, validateSlug } from "../../utils/clientGallery.js";
+import { AlertTriangle, Clock3, Database } from "lucide-react";
 import { centsToInput, parseBRLToCents } from "../../utils/format.js";
 import { slugify } from "../../utils/text.js";
 import { whatsappLink } from "../../utils/whatsapp.js";
@@ -28,6 +29,62 @@ export function DemoBanner() {
         <strong className="text-ink">Modo demonstração.</strong> As telas já funcionam, mas ainda não há banco de dados nem armazenamento:
         as fotos ficam só neste navegador e <strong>somem ao recarregar a página</strong>. A página do cliente será ligada na próxima etapa.
       </p>
+    </div>
+  );
+}
+
+/**
+ * Aviso de vencimento: lista o que vence em até N dias e ainda está ativo
+ * (esperando o cliente ou disponível para download). Some quando não há nada.
+ */
+export function ExpiryAlert({ items = [], kind, days = 2 }) {
+  const now = new Date();
+  const active = kind === "delivery" ? ["available", "downloaded"] : ["sent", "selecting"];
+  const soon = items.filter((it) => {
+    const st = effectiveStatus(it, now);
+    if (!active.includes(st) || !it.expiresAt) return false;
+    const d = daysLeft(it.expiresAt, now);
+    return d >= 0 && d <= days;
+  });
+  if (!soon.length) return null;
+  const label = kind === "delivery" ? "entrega(s)" : "seleção(ões)";
+  return (
+    <div role="alert" className="mb-4 flex items-start gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm">
+      <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-warning" />
+      <div>
+        <p className="font-medium text-ink">{soon.length} {label} vencem em até {days} dia(s).</p>
+        <p className="text-ink-muted">Quando o prazo acaba, as fotos são apagadas automaticamente do Cloudflare. Avise o cliente ou estenda o prazo: {soon.map((s) => s.clientName).filter(Boolean).slice(0, 6).join(", ")}{soon.length > 6 ? "…" : ""}.</p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Medidor de armazenamento: usa o tamanho guardado no banco (sem custo). Mostra
+ * o quanto do limite grátis do Cloudflare (10 GB) está em uso e avisa ao se
+ * aproximar — é o que evita cobrança inesperada.
+ */
+export function StorageMeter({ bytes = 0, label = "Armazenamento no Cloudflare" }) {
+  const pct = Math.min(100, (bytes / R2_FREE_BYTES) * 100);
+  const level = pct >= 95 ? "danger" : pct >= 80 ? "warning" : "ok";
+  const bar = level === "danger" ? "bg-danger" : level === "warning" ? "bg-warning" : "bg-wine-900";
+  const extraGB = Math.max(0, (bytes - R2_FREE_BYTES) / (1024 ** 3));
+  return (
+    <div className="rounded-2xl border border-ink/10 bg-paper p-4">
+      <div className="flex items-center justify-between gap-2">
+        <p className="flex items-center gap-2 text-sm font-medium text-ink"><Database className="h-4 w-4 text-ink-muted" /> {label}</p>
+        <p className="text-sm text-ink-muted">{formatBytes(bytes)} de 10 GB grátis</p>
+      </div>
+      <div className="mt-2 h-2.5 w-full overflow-hidden rounded-full bg-ink/10">
+        <div className={`h-full rounded-full transition-all ${bar}`} style={{ width: `${Math.max(2, pct)}%` }} />
+      </div>
+      {level === "ok" && <p className="mt-2 text-xs text-ink-muted">Dentro do limite grátis. As fotos vencidas são apagadas sozinhas, liberando espaço.</p>}
+      {level === "warning" && (
+        <p className="mt-2 flex items-start gap-1.5 text-xs text-warning"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> Chegando ao limite grátis. Acima de 10 GB, o Cloudflare cobra ~US$ 0,015 por GB/mês. Dica: use a qualidade “Econômica” nas próximas seleções.</p>
+      )}
+      {level === "danger" && (
+        <p className="mt-2 flex items-start gap-1.5 text-xs text-danger"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" /> Acima do limite grátis em {extraGB.toFixed(1)} GB (~US$ {(extraGB * 0.015).toFixed(2)}/mês). Finalize e entregue seleções antigas para liberar espaço.</p>
+      )}
     </div>
   );
 }
@@ -153,7 +210,7 @@ export function ClientEditor({ kind, initial, taken, selections = [], onClose, o
     try {
       const base = { clientName: f.clientName.trim(), phone: f.phone.trim(), title: f.title.trim(), message: f.message.trim(), slug };
       await onSave(isSelection
-        ? { ...base, photoLimit: Number(f.photoLimit), deadlineDays: Number(f.deadlineDays), watermark: !!f.watermark, watermarkStrong: !!f.watermarkStrong, watermarkClientName: !!f.watermarkClientName, copyProtection: !!f.copyProtection, allowExtras: !!f.allowExtras, extraPriceCents: f.allowExtras ? extraPriceCents : null }
+        ? { ...base, photoLimit: Number(f.photoLimit), deadlineDays: Number(f.deadlineDays), watermark: !!f.watermark, watermarkStrong: !!f.watermarkStrong, watermarkClientName: !!f.watermarkClientName, copyProtection: !!f.copyProtection, allowExtras: !!f.allowExtras, extraPriceCents: f.allowExtras ? extraPriceCents : null, webpQuality: WEBP_QUALITY[f.webpQuality] ? f.webpQuality : "equilibrado" }
         : { ...base, availableDays: Number(f.availableDays), selectionId: f.selectionId || null });
     } catch (e) {
       setErrors([e.message || "Não foi possível salvar."]);
@@ -205,6 +262,10 @@ export function ClientEditor({ kind, initial, taken, selections = [], onClose, o
           <div className="grid gap-5 sm:grid-cols-2">
             <TextField label="Fotos que o cliente pode escolher *" type="number" min="1" value={f.photoLimit} onChange={up("photoLimit")} hint="Ex.: tirou 200, o pacote dá direito a 100." />
             <TextField label="Prazo para escolher (dias) *" type="number" min="1" value={f.deadlineDays} onChange={up("deadlineDays")} hint="Conta a partir do envio do link. Depois, as prévias são apagadas." />
+            <SelectField label="Qualidade das prévias" value={f.webpQuality || "equilibrado"} onChange={up("webpQuality")}
+              hint={WEBP_QUALITY[f.webpQuality]?.hint || WEBP_QUALITY.equilibrado.hint} className="sm:col-span-2">
+              {Object.entries(WEBP_QUALITY).map(([k, q]) => <option key={k} value={k}>{q.label}</option>)}
+            </SelectField>
             <div className="space-y-4 sm:col-span-2">
               <Toggle label="Marca d'água nas prévias" hint="Protege as fotos enquanto o cliente ainda não pagou." checked={f.watermark} onChange={(v) => setF((x) => ({ ...x, watermark: v }))} />
               {f.watermark && (

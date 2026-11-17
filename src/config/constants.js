@@ -56,6 +56,18 @@ export const DELIVERY_STATUS = {
 };
 
 export const SELECTION_DEFAULTS = {
-  photoLimit: 100, deadlineDays: 7, watermark: true, watermarkStrong: true, watermarkClientName: true, copyProtection: true, allowExtras: false, extraPriceCents: null,
+  photoLimit: 100, deadlineDays: 7, watermark: true, watermarkStrong: true, watermarkClientName: true, copyProtection: true, allowExtras: false, extraPriceCents: null, webpQuality: "equilibrado",
 };
 export const DELIVERY_DEFAULTS = { availableDays: 30 };
+
+// Qualidade das prévias WebP da seleção. Menor qualidade = arquivos menores =
+// menos espaço no Cloudflare (as fotos finais da entrega vão sempre em alta).
+export const WEBP_QUALITY = {
+  economico: { value: 0.6, label: "Econômica", hint: "Arquivos bem menores. Ótima para muitas fotos; ocupa menos espaço." },
+  equilibrado: { value: 0.72, label: "Equilibrada", hint: "O padrão: boa aparência com arquivos leves." },
+  alta: { value: 0.85, label: "Alta", hint: "Prévias mais nítidas, arquivos maiores. Use em poucos ensaios." },
+};
+
+// Cota gratuita de armazenamento do Cloudflare R2 (10 GB). Acima disso começa a
+// cobrar ~US$ 0,015 por GB/mês. O painel avisa quando se aproxima do limite.
+export const R2_FREE_BYTES = 10 * 1024 * 1024 * 1024;

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Clock, Heart, Images, ListChecks, Plus, Trash2 } from "lucide-react";
 import { AdminHeader, StatCard } from "../../components/admin/AdminUI.jsx";
-import { ClientEditor, ClientLink, DemoBanner } from "../../components/admin/ClientPagesUI.jsx";
+import { ClientEditor, ClientLink, DemoBanner, ExpiryAlert, StorageMeter } from "../../components/admin/ClientPagesUI.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import { ScrambledImage } from "../../components/selection/Protected.jsx";
 import PageLoader from "../../components/common/PageLoader.jsx";
@@ -10,7 +10,7 @@ import { EmptyState, ErrorState } from "../../components/common/States.jsx";
 import { useConfirm } from "../../components/common/useConfirm.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
-import { deleteSelection, listSelections, saveSelection, takenSlugs } from "../../services/admin/clientPages.js";
+import { deleteSelection, listDeliveries, listSelections, saveSelection, takenSlugs } from "../../services/admin/clientPages.js";
 import { SELECTION_STATUS } from "../../config/constants.js";
 import { deadlineLabel, effectiveStatus, formatBytes } from "../../utils/clientGallery.js";
 
@@ -18,9 +18,12 @@ export default function SelectionAdmin() {
   const toast = useToast();
   const navigate = useNavigate();
   const [confirmUI, confirm] = useConfirm();
-  const { data, loading, error, reload } = useAsync(listSelections, []);
+  const { data, loading, error, reload } = useAsync(async () => {
+    const [selections, deliveries] = await Promise.all([listSelections(), listDeliveries()]);
+    return { selections, deliveries };
+  }, []);
   const [creating, setCreating] = useState(false);
-  const list = data || [];
+  const list = data?.selections || [];
 
   if (loading && !data) return <PageLoader />;
   if (error) return <ErrorState error={error} onRetry={reload} />;
@@ -30,6 +33,7 @@ export default function SelectionAdmin() {
   const open = withStatus.filter((s) => ["sent", "selecting"].includes(s.st)).length;
   const finished = withStatus.filter((s) => s.st === "finished").length;
   const previewBytes = list.reduce((t, s) => t + s.photos.reduce((a, p) => a + p.previewSize + p.thumbSize, 0), 0);
+  const deliveryBytes = (data?.deliveries || []).reduce((t, d) => t + (d.files || []).reduce((a, f) => a + (f.size || 0), 0), 0);
 
   return (
     <>
@@ -45,6 +49,9 @@ export default function SelectionAdmin() {
         <StatCard label="Seleções finalizadas" value={finished} icon={Heart} tone={finished ? "success" : "muted"} />
         <StatCard label="Espaço das prévias" value={formatBytes(previewBytes)} hint="Apagadas ao fim do prazo" icon={ListChecks} />
       </div>
+
+      <div className="mb-6"><StorageMeter bytes={previewBytes + deliveryBytes} /></div>
+      <ExpiryAlert items={list} kind="selection" />
 
       {!list.length ? (
         <EmptyState icon={Heart} title="Nenhuma seleção ainda"

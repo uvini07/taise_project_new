@@ -21,7 +21,7 @@ import {
   saveSelection, sendSelection, simulateClientChoice, takenSlugs,
 } from "../../services/admin/clientPages.js";
 import { makeSelectionPreview, validateImageFile } from "../../services/imageService.js";
-import { DELIVERY_DEFAULTS, SELECTION_STATUS } from "../../config/constants.js";
+import { DELIVERY_DEFAULTS, SELECTION_STATUS, WEBP_QUALITY } from "../../config/constants.js";
 import { clientSlug, deadlineLabel, effectiveStatus, formatBytes, namesList, randomCode, savingsPercent } from "../../utils/clientGallery.js";
 import { downloadCSV } from "../../utils/csv.js";
 import { formatBRL, formatDateTime } from "../../utils/format.js";
@@ -121,7 +121,8 @@ export default function SelectionDetail() {
     const flush = async () => { if (batch.length) setData(await addSelectionPhotos(id, batch.splice(0))); };
     const brand = settings?.brandName || "Taíse Foto";
     const mark = !s.watermark ? "" : s.watermarkClientName !== false && s.clientName ? `${brand} · ${s.clientName}` : brand;
-    await convertAll(valid, { watermark: mark, brand, strong: s.watermarkStrong !== false }, (r) => {
+    const quality = (WEBP_QUALITY[s.webpQuality] || WEBP_QUALITY.equilibrado).value;
+    await convertAll(valid, { watermark: mark, brand, strong: s.watermarkStrong !== false, quality }, (r) => {
       if (r.ok) batch.push(r.photo); else lastErrors.current = [...lastErrors.current, r.error];
       setQueue((q) => ({ ...q, done: q.done + 1, errors: lastErrors.current }));
       if (batch.length >= 6) flush();

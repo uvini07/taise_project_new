@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Clock, HardDrive, PackageCheck, Plus, Send, Trash2 } from "lucide-react";
 import { AdminHeader, StatCard } from "../../components/admin/AdminUI.jsx";
-import { ClientEditor, ClientLink, DemoBanner } from "../../components/admin/ClientPagesUI.jsx";
+import { ClientEditor, ClientLink, DemoBanner, ExpiryAlert, StorageMeter } from "../../components/admin/ClientPagesUI.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import PageLoader from "../../components/common/PageLoader.jsx";
 import { EmptyState, ErrorState } from "../../components/common/States.jsx";
@@ -31,6 +31,9 @@ export default function DeliveryAdmin() {
   const active = list.filter((d) => ["available", "downloaded"].includes(d.st));
   const activeBytes = active.reduce((t, d) => t + d.bytes, 0);
   const selName = Object.fromEntries(data.selections.map((s) => [s.id, s.clientName]));
+  // Total guardado no Cloudflare: prévias de seleção + arquivos de entrega.
+  const selBytes = data.selections.reduce((t, s) => t + (s.photos || []).reduce((a, p) => a + (p.previewSize || 0) + (p.thumbSize || 0), 0), 0);
+  const delBytes = list.reduce((t, d) => t + d.bytes, 0);
 
   return (
     <>
@@ -46,6 +49,9 @@ export default function DeliveryAdmin() {
         <StatCard label="Em preparação" value={list.filter((d) => d.st === "draft").length} icon={Clock} />
         <StatCard label="Espaço em uso" value={formatBytes(activeBytes)} hint="Só das entregas disponíveis" icon={HardDrive} />
       </div>
+
+      <div className="mb-6"><StorageMeter bytes={selBytes + delBytes} /></div>
+      <ExpiryAlert items={data.deliveries} kind="delivery" />
 
       {!list.length ? (
         <EmptyState icon={PackageCheck} title="Nenhuma entrega ainda"
