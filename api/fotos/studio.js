@@ -33,7 +33,10 @@ export default async function handler(req, res) {
         if (!id) throw new Error("item sem id");
         if (isEntrega) {
           const key = entKey(slug, parentId, id, it.name || "foto");
-          return { id, key, url: await putUrl(bucket, key, it.contentType || "application/octet-stream") };
+          const out = { id, key, url: await putUrl(bucket, key, it.contentType || "application/octet-stream") };
+          // Miniatura WebP só para a galeria do cliente (mesma pasta: some junto na limpeza).
+          if (it.thumb) { out.tkey = `${key}_t.webp`; out.turl = await putUrl(bucket, out.tkey, "image/webp"); }
+          return out;
         }
         const key = selKey(slug, parentId, id);
         const tkey = selThumbKey(slug, parentId, id);

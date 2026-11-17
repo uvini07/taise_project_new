@@ -170,14 +170,32 @@ export async function deleteDelivery(id) {
   await api({ action: "delete", kind: "entrega", parentId: id }).catch(() => {});
   await deleteDoc(sDoc("deliveries", id));
 }
+/** Miniatura WebP leve (lado maior 900px) para a galeria do cliente. Falha → sem miniatura. */
+async function galleryThumb(file) {
+  if (!(file?.type || "").startsWith("image/")) return null;
+  try {
+    const bmp = await createImageBitmap(file);
+    const k = Math.min(1, 900 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise((r) => c.toBlob(r, "image/webp", 0.78));
+    const out = blob && blob.type === "image/webp" ? { blob, width: bmp.width, height: bmp.height } : null;
+    bmp.close?.();
+    return out;
+  } catch { return null; }
+}
 /** Sobe os arquivos ORIGINAIS (alta) direto ao R2; grava as referências. */
 export async function addDeliveryFiles(id, files, onEach) {
   const refs = [];
   for (const f of files) {
-    const [it] = [{ id: randId(), name: f.name, contentType: f.type || "application/octet-stream" }];
+    const raw = f.file || f;
+    const th = await galleryThumb(raw);
+    const it = { id: randId(), name: f.name, contentType: f.type || "application/octet-stream", thumb: !!th };
     const { items: [s] } = await api({ action: "upload", kind: "entrega", parentId: id, items: [it] });
-    await putBlob(s.url, f.file || f);
+    await putBlob(s.url, raw);
     const ref = { id: s.id, name: f.name, size: f.size, key: s.key, type: f.type || "" };
+    if (th && s.turl) { await putBlob(s.turl, th.blob); Object.assign(ref, { tkey: s.tkey, width: th.width, height: th.height }); }
     await updateDoc(sDoc("deliveries", id), { files: arrayUnion(ref), updatedAt: serverTimestamp() });
     refs.push(ref); onEach?.(ref);
   }
@@ -187,7 +205,7 @@ export async function removeDeliveryFiles(id, fileIds) {
   const d = (await getDoc(sDoc("deliveries", id))).data();
   const ids = new Set(fileIds);
   const gone = (d.files || []).filter((f) => ids.has(f.id));
-  await api({ action: "delete", kind: "entrega", keys: gone.map((f) => f.key) }).catch(() => {});
+  await api({ action: "delete", kind: "entrega", keys: gone.flatMap((f) => [f.key, f.tkey].filter(Boolean)) }).catch(() => {});
   await updateDoc(sDoc("deliveries", id), { files: (d.files || []).filter((f) => !ids.has(f.id)), updatedAt: serverTimestamp() });
   return getDelivery(id);
 }

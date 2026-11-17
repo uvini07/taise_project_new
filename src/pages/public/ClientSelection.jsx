@@ -7,6 +7,7 @@ import { Check, ChevronLeft, ChevronRight, Heart, ShieldCheck, X } from "lucide-
 import { AntiPiracyNotice, ProtectedImg, ProtectionShield, ScrambledImage, useLiveWatermark } from "../../components/selection/Protected.jsx";
 import { useCopyProtection } from "../../hooks/useCopyProtection.js";
 import PageLoader from "../../components/common/PageLoader.jsx";
+import GalleryCover from "../../components/selection/GalleryCover.jsx";
 import PasswordGate from "../../components/selection/PasswordGate.jsx";
 import { clienteApi as rawApi, savePass, savedPass } from "../../services/clienteApi.js";
 import { deadlineLabel } from "../../utils/clientGallery.js";
@@ -115,12 +116,17 @@ export default function ClientSelection() {
   }
 
   const current = view != null ? photos[view] : null;
+  const cover = photos.find((p) => p.id === data.coverId) || photos[0];
 
   return (
     <div className="min-h-screen bg-paper">
       <AntiPiracyNotice open={notice && !done} onClose={closeNotice} />
       <ProtectionShield show={shielded && !notice} reason={reason} brand={data.clientName} />
-      <header className="sticky top-0 z-30 flex flex-wrap items-center gap-3 border-b border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur sm:px-8">
+      <GalleryCover studioName={data.studioName} title={data.clientName || data.title || "Sua seleção"}
+        subtitle={data.clientName && data.title ? data.title : null}
+        hint={done ? "Ver suas fotos" : "Role para escolher suas fotos"}
+        image={cover ? <ProtectedImg src={cover.full} scramble={cover.fullScramble} overlay={overlay} className="h-full w-full" fit="cover" /> : null} />
+      <header id="fotos" className="sticky top-0 z-30 scroll-mt-0 flex flex-wrap items-center gap-3 border-b border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur sm:px-8">
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-2xl sm:text-3xl">{data.clientName || "Sua seleção"}</h1>
           {data.title && <p className="truncate text-sm text-ink-muted">{data.title}</p>}

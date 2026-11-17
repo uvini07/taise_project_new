@@ -11,6 +11,12 @@ const okStr = (v, max = 80) => typeof v === "string" && v.length > 0 && v.length
 
 // A Taíse (estúdio original) guarda tudo na raiz do banco; os demais em studios/{slug}/.
 const LEGACY_SLUG = "tarufino";
+async function studioName(slug) {
+  if (slug === LEGACY_SLUG) return "Taíse Foto";
+  const s = (await adminDb().doc(`studios/${slug}`).get().catch(() => null))?.data() || {};
+  return s.name || s.studioName || s.brandName || "";
+}
+const IMG = /\.(jpe?g|png|webp|heic|heif|gif|avif)$/i;
 const docPath = (studio, col, id) => (studio === LEGACY_SLUG ? `${col}/${id}` : `studios/${studio}/${col}/${id}`);
 
 // Rastreamento: acessos e tentativas de captura ficam no próprio registro
@@ -75,8 +81,14 @@ export default async function handler(req, res) {
       if (kind === "entrega") {
         if (d.status === "draft") return res.status(403).json({ error: "Esta entrega ainda não foi liberada." });
         if (expired) return res.status(410).json({ error: "O prazo para baixar estas fotos já encerrou." });
-        const files = await Promise.all((d.files || []).map(async (f) => ({ id: f.id, name: f.name, size: f.size })));
-        return res.status(200).json({ clientName: d.clientName || "", title: d.title || "", total: files.length, files, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null });
+        const files = await Promise.all((d.files || []).map(async (f) => {
+          const img = (f.type || "").startsWith("image/") || IMG.test(f.name || "");
+          // A miniatura (WebP leve) abre a galeria rápido; arquivos antigos sem miniatura usam o original.
+          const thumb = f.tkey ? await getUrl(BUCKETS.entrega, f.tkey, { expiresIn: 3600 }) : img ? await getUrl(BUCKETS.entrega, f.key, { expiresIn: 3600 }) : null;
+          return { id: f.id, name: f.name, size: f.size, width: f.width || null, height: f.height || null, thumb, image: img };
+        }));
+        const cover = files.find((f) => f.id === d.coverId && f.thumb) || files.find((f) => f.thumb) || null;
+        return res.status(200).json({ studioName: await studioName(studio), clientName: d.clientName || "", title: d.title || "", total: files.length, files, coverId: cover?.id || null, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null });
       }
       if (d.status === "draft") return res.status(403).json({ error: "Esta seleção ainda não foi liberada." });
       if (expired) return res.status(410).json({ error: "O prazo para escolher as fotos já encerrou." });
@@ -86,7 +98,7 @@ export default async function handler(req, res) {
         full: await getUrl(BUCKETS.selecao, p.key, { expiresIn: 3600 }),
         thumbScramble: p.thumbScramble || null, fullScramble: p.previewScramble || null,
       })));
-      return res.status(200).json({ clientName: d.clientName || "", title: d.title || "", message: d.message || "", photoLimit: d.photoLimit || null, allowExtras: !!d.allowExtras, extraPriceCents: d.extraPriceCents || null, status: d.status, selectedIds: d.selectedIds || [], finished: d.status === "finished", copyProtection: d.copyProtection !== false, total: photos.length, photos, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null });
+      return res.status(200).json({ studioName: await studioName(studio), coverId: (photos.find((p) => p.id === d.coverId) || photos[0])?.id || null, clientName: d.clientName || "", title: d.title || "", message: d.message || "", photoLimit: d.photoLimit || null, allowExtras: !!d.allowExtras, extraPriceCents: d.extraPriceCents || null, status: d.status, selectedIds: d.selectedIds || [], finished: d.status === "finished", copyProtection: d.copyProtection !== false, total: photos.length, photos, expiresAt: d.expiresAt?.toDate?.()?.toISOString() || null });
     }
 
     if (action === "pick") {
