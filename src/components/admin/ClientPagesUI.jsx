@@ -289,17 +289,9 @@ export function ClientEditor({ kind, initial, taken, selections = [], onClose, o
           <div className="grid gap-5 sm:grid-cols-2">
             <TextField label="Fotos que o cliente pode escolher *" type="number" min="1" value={f.photoLimit} onChange={up("photoLimit")} hint="Ex.: tirou 200, o pacote dá direito a 100." />
             <TextField label="Prazo para escolher (dias) *" type="number" min="1" value={f.deadlineDays} onChange={up("deadlineDays")} hint="Conta a partir do envio do link. Depois, as prévias são apagadas." />
-            <SelectField label="Qualidade das prévias" value={f.webpQuality || "equilibrado"} onChange={up("webpQuality")}
-              hint={WEBP_QUALITY[f.webpQuality]?.hint || WEBP_QUALITY.equilibrado.hint} className="sm:col-span-2">
-              {Object.entries(WEBP_QUALITY).map(([k, q]) => <option key={k} value={k}>{q.label}</option>)}
-            </SelectField>
             <div className="space-y-4 sm:col-span-2">
-              <Toggle label="Marca d'água nas prévias" hint="Protege as fotos enquanto o cliente ainda não pagou." checked={f.watermark} onChange={(v) => setF((x) => ({ ...x, watermark: v }))} />
-              {f.watermark && (
-                <Toggle label="Marca d'água reforçada (anti-IA)" hint="Cobre a foto inteira com padrão denso, marca grande no centro e posição diferente em cada foto. Bem mais difícil de apagar com inteligência artificial."
-                  checked={f.watermarkStrong} onChange={(v) => setF((x) => ({ ...x, watermarkStrong: v }))} />
-              )}
-              {f.watermark && (
+              <p className="rounded-2xl bg-surface p-3 text-xs text-ink-muted">As prévias do cliente sempre saem em qualidade reduzida e com a marca d'água da Revela em diagonal (proteção contra pirataria). As fotos em alta vão só na entrega.</p>
+              {(
                 <Toggle label="Nome do cliente na marca d'água" hint={`Ex.: “${brandName} · ${f.clientName.trim() || "Ana Souza"}”. Se a foto vazar, dá para saber de quem veio — é o que mais desestimula prints.`}
                   checked={f.watermarkClientName} onChange={(v) => setF((x) => ({ ...x, watermarkClientName: v }))} />
               )}

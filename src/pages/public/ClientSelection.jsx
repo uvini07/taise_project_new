@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Check, ChevronLeft, ChevronRight, Heart, ShieldCheck, X } from "lucide-react";
-import { ProtectedImg, ProtectionShield, ScrambledImage, useLiveWatermark } from "../../components/selection/Protected.jsx";
+import { AntiPiracyNotice, ProtectedImg, ProtectionShield, ScrambledImage, useLiveWatermark } from "../../components/selection/Protected.jsx";
 import { useCopyProtection } from "../../hooks/useCopyProtection.js";
 import PageLoader from "../../components/common/PageLoader.jsx";
 import PasswordGate from "../../components/selection/PasswordGate.jsx";
@@ -20,6 +20,8 @@ export default function ClientSelection() {
   const [view, setView] = useState(null);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const [notice, setNotice] = useState(() => { try { return !sessionStorage.getItem(`revela-aviso-${id}`); } catch { return true; } });
+  const closeNotice = () => { setNotice(false); try { sessionStorage.setItem(`revela-aviso-${id}`, "1"); } catch { /* sem storage */ } };
   const saveTimer = useRef(null);
 
   const load = useCallback(async () => {
@@ -116,7 +118,8 @@ export default function ClientSelection() {
 
   return (
     <div className="min-h-screen bg-paper">
-      <ProtectionShield show={shielded} reason={reason} brand={data.clientName} />
+      <AntiPiracyNotice open={notice && !done} onClose={closeNotice} />
+      <ProtectionShield show={shielded && !notice} reason={reason} brand={data.clientName} />
       <header className="sticky top-0 z-30 flex flex-wrap items-center gap-3 border-b border-ink/10 bg-paper/95 px-4 py-3 backdrop-blur sm:px-8">
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-2xl sm:text-3xl">{data.clientName || "Sua seleção"}</h1>

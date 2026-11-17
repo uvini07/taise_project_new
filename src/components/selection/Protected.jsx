@@ -42,8 +42,8 @@ export function useLiveWatermark(text) {
   return useMemo(() => {
     if (!text) return null;
     const safe = String(text).replace(/[<>&"]/g, "");
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='360' height='180'><g transform='rotate(-24 180 90)'>`
-      + `<text x='180' y='92' text-anchor='middle' font-family='Georgia,serif' font-size='15' fill='white' fill-opacity='0.30' stroke='black' stroke-opacity='0.14' stroke-width='0.6'>${safe}</text></g></svg>`;
+    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='440' height='240'><g transform='rotate(-30 220 120)'>`
+      + `<text x='220' y='122' text-anchor='middle' font-family='Georgia,serif' font-size='13' fill='white' fill-opacity='0.20' stroke='black' stroke-opacity='0.08' stroke-width='0.5'>${safe}</text></g></svg>`;
     return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`;
   }, [text]);
 }
@@ -56,7 +56,7 @@ export function ProtectedImg({ src, scramble, overlay, className = "", imgClassN
   return (
     <span className={`protect-area relative block ${className}`} onContextMenu={(e) => e.preventDefault()}>
       <ScrambledImage src={src} scramble={scramble} className={imgClassName} fit={fit} />
-      <span className="absolute inset-0" style={overlay ? { backgroundImage: overlay, backgroundSize: "360px 180px" } : undefined} aria-hidden />
+      <span className="absolute inset-0" style={overlay ? { backgroundImage: overlay, backgroundSize: "440px 240px" } : undefined} aria-hidden />
     </span>
   );
 }
@@ -75,6 +75,29 @@ export function ProtectionShield({ show, reason, brand }) {
       <p className="font-display text-3xl">Fotos protegidas</p>
       <p className="max-w-sm text-sm text-ink-muted">{SHIELD_TEXT[reason] || SHIELD_TEXT.default}</p>
       {brand && <p className="mt-2 text-xs uppercase tracking-[.25em] text-ink-muted">{brand}</p>}
+    </div>,
+    document.body,
+  );
+}
+
+/** Aviso ao abrir a seleção: por que a marca d'água e a qualidade reduzida. */
+export function AntiPiracyNotice({ open, onClose, brand }) {
+  if (!open) return null;
+  return createPortal(
+    <div className="fixed inset-0 z-[110] flex items-end justify-center bg-black/60 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="antipiracy-title">
+      <div className="w-full max-w-md rounded-3xl bg-ivory p-6 text-center shadow-2xl">
+        <ShieldCheck className="mx-auto h-10 w-10 text-gold" strokeWidth={1.3} aria-hidden />
+        <h2 id="antipiracy-title" className="mt-3 font-display text-3xl">Suas fotos estão protegidas</h2>
+        <p className="mt-3 text-sm text-ink-soft">
+          As imagens desta página aparecem com <strong>marca d'água</strong> e em <strong>qualidade reduzida</strong> de propósito:
+          são ferramentas contra pirataria, para que ninguém copie ou use as fotos sem autorização.
+        </p>
+        <p className="mt-3 text-sm text-ink-soft">
+          Fique tranquilo(a): depois que você escolher suas fotos, {brand ? <strong>{brand}</strong> : "a fotógrafa"} vai
+          disponibilizá-las <strong>em alta qualidade e sem marca d'água</strong>.
+        </p>
+        <button type="button" onClick={onClose} className="btn-primary mt-6 w-full justify-center">Entendi, ver as fotos</button>
+      </div>
     </div>,
     document.body,
   );

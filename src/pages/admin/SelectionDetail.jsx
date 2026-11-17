@@ -20,7 +20,7 @@ import {
   DEMO_MODE, addSelectionPhotos, extendSelection, finishSelection, getSelection, removeSelectionPhotos, reopenSelection, saveDelivery,
   saveSelection, sendSelection, simulateClientChoice, takenSlugs, setClientPassword } from "../../services/admin/clientPages.js";
 import { makeSelectionPreview, validateImageFile } from "../../services/imageService.js";
-import { DELIVERY_DEFAULTS, SELECTION_STATUS, WEBP_QUALITY } from "../../config/constants.js";
+import { DELIVERY_DEFAULTS, SELECTION_STATUS } from "../../config/constants.js";
 import { clientSlug, deadlineLabel, effectiveStatus, formatBytes, namesList, randomCode, savingsPercent } from "../../utils/clientGallery.js";
 import { downloadCSV } from "../../utils/csv.js";
 import { formatBRL, formatDateTime } from "../../utils/format.js";
@@ -134,9 +134,8 @@ export default function SelectionDetail() {
       return chain;
     };
     const brand = settings?.brandName || "Taíse Foto";
-    const mark = !s.watermark ? "" : s.watermarkClientName !== false && s.clientName ? `${brand} · ${s.clientName}` : brand;
-    const quality = (WEBP_QUALITY[s.webpQuality] || WEBP_QUALITY.equilibrado).value;
-    await convertAll(valid, { watermark: mark, brand, strong: s.watermarkStrong !== false, quality }, (r) => {
+    const mark = s.watermarkClientName !== false && s.clientName ? `${brand} · ${s.clientName}` : brand;
+    await convertAll(valid, { watermark: mark }, (r) => {
       if (r.ok) batch.push(r.photo); else lastErrors.current = [...lastErrors.current, r.error];
       setQueue((q) => ({ ...q, done: q.done + 1, errors: lastErrors.current }));
       if (batch.length >= 6) flush();
@@ -187,7 +186,7 @@ export default function SelectionDetail() {
             <Badge tone={status.tone}>{status.label}</Badge>
           </div>
           <p className="mt-1 text-sm text-ink-muted">
-            {[s.title, `até ${s.photoLimit} fotos`, s.watermark ? (s.watermarkClientName !== false ? "marca d'água com o nome do cliente" : "com marca d'água") : "sem marca d'água",
+            {[s.title, `até ${s.photoLimit} fotos`, s.watermarkClientName !== false ? "marca d'água Revela + nome do cliente" : "marca d'água Revela",
               s.copyProtection !== false ? "proteção contra cópia" : null,
               s.allowExtras ? `extras ${s.extraPriceCents ? formatBRL(s.extraPriceCents) : "liberadas"}` : null].filter(Boolean).join(" · ")}
           </p>
@@ -237,7 +236,7 @@ export default function SelectionDetail() {
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <StatCard label="Fotos" value={s.photos.length} />
           <StatCard label="Escolhidas" value={`${chosen.length}/${s.photoLimit}`} tone={chosen.length ? "success" : "muted"} hint={extras ? `${extras} extra(s)${s.extraPriceCents ? ` · ${formatBRL(extras * s.extraPriceCents)}` : ""}` : undefined} />
-          <StatCard label="Peso no site" value={formatBytes(light)} hint={original ? `Originais: ${formatBytes(original)} (−${savingsPercent(original, light)}%)` : "Prévia WebP 1200px"} />
+          <StatCard label="Peso no site" value={formatBytes(light)} hint={original ? `Originais: ${formatBytes(original)} (−${savingsPercent(original, light)}%)` : "Prévia WebP 1000px"} />
         </div>
       </div>
 
@@ -247,7 +246,7 @@ export default function SelectionDetail() {
         <div className="mb-6 space-y-3">
           <DropZone onFiles={handleFiles} busy={queue && !queue.finished} disabled={queue && !queue.finished}
             title="Arraste as fotos do ensaio aqui"
-            hint="JPG, PNG, WebP ou AVIF até 40 MB. Cada foto vira, no seu navegador, uma prévia pequena (1200px) com marca d'água e arquivo embaralhado. O original não é enviado." />
+            hint="JPG, PNG, WebP ou AVIF até 40 MB. Cada foto vira, no seu navegador, uma prévia leve (1000px, qualidade reduzida) com a marca d'água da Revela e arquivo embaralhado. O original não é enviado." />
           {queue && (
             <div className="card p-4">
               <ProgressBar value={queue.done / queue.total} label={queue.finished ? `Concluído: ${queue.done - queue.errors.length} de ${queue.total} convertidas` : `Convertendo ${queue.done} de ${queue.total}…`} />
