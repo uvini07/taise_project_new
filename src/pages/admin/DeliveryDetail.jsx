@@ -89,7 +89,8 @@ export default function DeliveryDetail() {
         setQueue((q) => ({ ...q, done: q.done + 1 }));
       }
     };
-    await Promise.all([worker(), worker(), worker()]);
+    try { await Promise.all([worker(), worker(), worker()]); }
+    catch (e) { setQueue(null); return toast.error(`O envio falhou: ${e.message || "erro desconhecido"}`); }
     setQueue(null);
     toast.success([`${fresh.length} arquivo(s) adicionados.`, dup ? `${dup} repetido(s) ignorado(s).` : null, skipped ? `${skipped} não são imagens.` : null].filter(Boolean).join(" "));
   }

@@ -118,7 +118,20 @@ export default function SelectionDetail() {
     lastErrors.current = errors;
     setQueue({ total: valid.length, done: 0, errors });
     const batch = [];
-    const flush = async () => { if (batch.length) setData(await addSelectionPhotos(id, batch.splice(0))); };
+    let uploaded = 0;
+    let uploadError = null;
+    // Envia em sequência (uma remessa por vez) e guarda o erro real do servidor/R2.
+    let chain = Promise.resolve();
+    const flush = () => {
+      if (!batch.length) return chain;
+      const part = batch.splice(0);
+      chain = chain.then(async () => {
+        if (uploadError) return;
+        try { setData(await addSelectionPhotos(id, part)); uploaded += part.length; }
+        catch (e) { uploadError = e; }
+      });
+      return chain;
+    };
     const brand = settings?.brandName || "Taíse Foto";
     const mark = !s.watermark ? "" : s.watermarkClientName !== false && s.clientName ? `${brand} · ${s.clientName}` : brand;
     const quality = (WEBP_QUALITY[s.webpQuality] || WEBP_QUALITY.equilibrado).value;
@@ -129,9 +142,16 @@ export default function SelectionDetail() {
     });
     await flush();
     const failed = lastErrors.current.length;
+    if (uploadError) {
+      const msg = `Fotos convertidas, mas o envio falhou: ${uploadError.message || "erro desconhecido"}`;
+      lastErrors.current = [...lastErrors.current, msg];
+      setQueue((q) => ({ ...q, finished: true, errors: lastErrors.current }));
+      toast.error(uploaded ? `${uploaded} foto(s) enviadas. ${msg}` : msg);
+      return;
+    }
     setQueue((q) => ({ ...q, finished: true }));
     if (failed) toast.error(`${failed} arquivo(s) não foram convertidos. Veja a lista abaixo do envio.`);
-    else toast.success(`${valid.length} foto(s) convertidas.`);
+    else toast.success(`${uploaded} foto(s) enviadas.`);
   }
 
   function toggleMark(pid) {
