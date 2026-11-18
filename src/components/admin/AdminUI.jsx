@@ -64,17 +64,27 @@ export function PeriodPicker({ value, custom, onChange }) {
  * Envio de uma imagem com prévia. upload(file, onProgress) deve retornar o
  * objeto de imagem ({ url, thumbUrl, path, ... }).
  */
-export function ImageInput({ label, value, onUpload, onRemove, aspect = "aspect-[4/3]", hint }) {
+export function ImageInput({ label, value, onUpload, onRemove, aspect = "aspect-[4/3]", hint, multiple = 0 }) {
   const input = useRef(null);
   const [progress, setProgress] = useState(null);
   const [error, setError] = useState("");
+  const [count, setCount] = useState("");
   async function pick(e) {
-    const file = e.target.files?.[0];
+    // multiple = quantas fotos ainda cabem; o que passar disso é ignorado.
+    const all = [...(e.target.files || [])];
     e.target.value = "";
-    if (!file) return;
+    const files = multiple ? all.slice(0, multiple) : all.slice(0, 1);
+    if (!files.length) return;
     setError("");
-    setProgress(0);
-    try { await onUpload(file, setProgress); } catch (err) { setError(err.message || "Falha no envio."); } finally { setProgress(null); }
+    const skipped = all.length - files.length;
+    try {
+      for (let i = 0; i < files.length; i += 1) {
+        setProgress(0);
+        setCount(files.length > 1 ? `${i + 1} de ${files.length}` : "");
+        await onUpload(files[i], setProgress);
+      }
+      if (multiple && skipped > 0) setError(`Só cabem ${multiple} foto(s): as primeiras foram usadas e ${skipped} ficou(aram) de fora.`);
+    } catch (err) { setError(err.message || "Falha no envio."); } finally { setProgress(null); setCount(""); }
   }
   return (
     <div>
@@ -82,12 +92,12 @@ export function ImageInput({ label, value, onUpload, onRemove, aspect = "aspect-
       <div className={`relative overflow-hidden rounded-2xl border border-dashed border-ink/20 bg-paper ${aspect}`}>
         {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : (
           <button type="button" onClick={() => input.current?.click()} className="flex h-full w-full flex-col items-center justify-center gap-2 text-sm text-ink-muted hover:text-ink">
-            <ImagePlus className="h-6 w-6 text-gold" strokeWidth={1.4} /> Escolher imagem
+            <ImagePlus className="h-6 w-6 text-gold" strokeWidth={1.4} /> {multiple > 1 ? `Escolher fotos (até ${multiple})` : "Escolher imagem"}
           </button>
         )}
         {progress != null && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-surface/80 text-sm">
-            <Spinner /> {Math.round(progress * 100)}%
+            <Spinner /> {count && <span className="text-xs">{count}</span>} {Math.round(progress * 100)}%
           </div>
         )}
         {value && progress == null && (
@@ -97,7 +107,7 @@ export function ImageInput({ label, value, onUpload, onRemove, aspect = "aspect-
           </div>
         )}
       </div>
-      <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" onChange={pick} />
+      <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple={multiple > 1} className="hidden" onChange={pick} />
       {error ? <p className="field-error">{error}</p> : hint ? <p className="field-hint">{hint}</p> : null}
     </div>
   );

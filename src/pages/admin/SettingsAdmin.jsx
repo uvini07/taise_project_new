@@ -180,10 +180,10 @@ export default function SettingsAdmin() {
                   </div>
                 ))}
                 {heroImages.length < 5 && (
-                  <ImageInput label={heroImages.length ? "" : undefined} value=""
+                  <ImageInput multiple={5 - heroImages.length} label={heroImages.length ? "" : undefined} value=""
                     onUpload={async (file, p) => {
                       const img = await upload(file, "hero", p);
-                      setForm((f) => set(f, "hero.images", [...(f.hero.images || []), { url: img.url, thumbUrl: img.thumbUrl, path: img.path, thumbPath: img.thumbPath, alt: "" }]));
+                      setForm((f) => set(f, "hero.images", [...(f.hero.images || []), { url: img.url, thumbUrl: img.thumbUrl, path: img.path, thumbPath: img.thumbPath, alt: "" }].slice(0, 5)));
                     }} />
                 )}
               </div>

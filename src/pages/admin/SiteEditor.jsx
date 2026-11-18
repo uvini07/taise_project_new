@@ -262,9 +262,9 @@ export default function SiteEditor() {
               </div>
             ))}
             {heroImages.length < 5 && (
-              <ImageInput aspect="aspect-square" onUpload={async (file, p) => {
+              <ImageInput multiple={5 - heroImages.length} aspect="aspect-square" onUpload={async (file, p) => {
                 const img = await up("hero")(file, p);
-                setForm((f) => set(f, "hero.images", [...(f.hero?.images || []), { url: img.url, thumbUrl: img.thumbUrl, path: img.path, thumbPath: img.thumbPath, alt: "" }]));
+                setForm((f) => set(f, "hero.images", [...(f.hero?.images || []), { url: img.url, thumbUrl: img.thumbUrl, path: img.path, thumbPath: img.thumbPath, alt: "" }].slice(0, 5)));
               }} />
             )}
           </div>
