@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import {
   ArrowRight, CalendarCheck, CalendarDays, CheckCircle2, Circle, Crown, Images, Inbox, Package, Settings, Ticket, Wallet,
 } from "lucide-react";
-import { getDocs, collection, limit, orderBy, query, where } from "firebase/firestore";
+import { getDocs, limit, orderBy, query, where } from "firebase/firestore";
 import { AdminHeader, PeriodPicker, Section, StatCard } from "../../components/admin/AdminUI.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import Spinner from "../../components/common/Spinner.jsx";
@@ -11,7 +11,6 @@ import { ErrorState } from "../../components/common/States.jsx";
 import { useAuth } from "../../contexts/AuthContext.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { useAsync } from "../../hooks/useAsync.js";
-import { db } from "../../services/firebase.js";
 import { listAllPackages } from "../../services/admin/packagesAdmin.js";
 import { listAllCategories } from "../../services/admin/galleryAdmin.js";
 import { listOpenRequests } from "../../services/admin/agendaAdmin.js";
@@ -21,7 +20,7 @@ import { addDays, formatBRL, formatDateTime, formatDayLong, todayKey, toDate, to
 import { MAX_PUBLISHED_PACKAGES, isPublicStatus, lotRemaining, packageAvailability } from "../../utils/lots.js";
 import { summarize, txBalance } from "../../utils/finance.js";
 import { resolvePeriod } from "../../utils/period.js";
-import { getDoc, doc } from "firebase/firestore";
+import { getDoc } from "firebase/firestore";
 import { sCol, sDoc } from "../../services/studioDb.js";
 import { isLegacyStudio, sitePath } from "../../config/tenant.js";
 
@@ -86,6 +85,7 @@ export default function Dashboard() {
     [data.categories.length > 0 && data.categories.some((c) => c.visible), "Monte a galeria com as suas fotos", "/adm/galeria"],
     [data.packages.some((p) => isPublicStatus(p.status)), "Publique o primeiro pacote", "/adm/pacotes"],
     [data.hasAvailability, "Configure os dias e horários da agenda", "/adm/agenda"],
+    [!!settings.payments?.provider, "Escolha como receber o sinal dos agendamentos (ou “Não receber pelo site”)", "/adm/recebimentos"],
     [sawSite, "Veja como ficou o seu site", sitePath("/"), true],
   ] : [];
   const pendingSteps = steps.filter(([ok]) => !ok).length;
