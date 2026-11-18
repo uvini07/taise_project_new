@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  ArrowLeft, CalendarPlus, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, Download, Eye, Heart, Lock, PackageCheck, Pencil, RotateCcw, Send, Shuffle, Trash2, Unlock, X,
+  ArrowLeft, CalendarPlus, Check, CheckCircle2, ChevronLeft, ChevronRight, ClipboardList, Download, Eye, Heart, Lock, MessageCircle, PackageCheck, Pencil, RotateCcw, Send, Shuffle, Trash2, Unlock, X,
 } from "lucide-react";
 import { StatCard } from "../../components/admin/AdminUI.jsx";
 import { ActivityLog, ClientEditor, ClientLink, ReleasedModal, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
@@ -276,7 +276,7 @@ export default function SelectionDetail() {
           <div className="flex flex-wrap gap-1.5">
             <button className="btn-ghost btn-sm" onClick={() => copy(namesList(chosen.map((p) => p.name)), "Nomes copiados (separados por vírgula).")}><ClipboardList className="h-4 w-4" /> Copiar nomes</button>
             <button className="btn-ghost btn-sm" onClick={() => copy(namesList(chosen.map((p) => p.name), "\n"), "Nomes copiados (um por linha).")}>Um por linha</button>
-            <button className="btn-ghost btn-sm" onClick={() => downloadCSV(`selecao-${s.slug}.csv`, chosen, [{ label: "Arquivo", value: (p) => p.name }])}><Download className="h-4 w-4" /> CSV</button>
+            <button className="btn-ghost btn-sm" onClick={() => downloadCSV(`selecao-${s.slug}.csv`, chosen, [{ label: "Arquivo", value: (p) => p.name }, { label: "Pedido do cliente", value: (p) => s.comments?.[p.id]?.text || "" }])}><Download className="h-4 w-4" /> CSV</button>
             <button className="btn-primary btn-sm" onClick={createDelivery}><PackageCheck className="h-4 w-4" /> Criar entrega final</button>
           </div>
         )}
@@ -324,6 +324,9 @@ export default function SelectionDetail() {
                 )}
                 <div className="px-2.5 py-2">
                   <p className="truncate text-xs font-medium" title={p.name}>{p.name}</p>
+                  {s.comments?.[p.id]?.text && (
+                    <p className="mt-1 flex items-start gap-1 rounded-lg bg-gold/10 px-2 py-1 text-[11px] text-ink" title="Pedido do cliente"><MessageCircle className="mt-0.5 h-3 w-3 shrink-0" />{s.comments[p.id].text}</p>
+                  )}
                   <p className="text-[11px] text-ink-muted">{formatBytes(p.originalSize)} → {formatBytes(p.previewSize)}</p>
                 </div>
               </li>

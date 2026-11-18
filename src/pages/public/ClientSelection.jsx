@@ -3,7 +3,7 @@
 // temporários e são desenhadas embaralhadas no canvas (proteção contra cópia).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Check, ChevronLeft, ChevronRight, Heart, ShieldCheck, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Heart, MessageCircle, ShieldCheck, X } from "lucide-react";
 import { AntiPiracyNotice, ProtectedImg, ProtectionShield, ScrambledImage, useLiveWatermark } from "../../components/selection/Protected.jsx";
 import { useCopyProtection } from "../../hooks/useCopyProtection.js";
 import PageLoader from "../../components/common/PageLoader.jsx";
@@ -18,6 +18,10 @@ export default function ClientSelection() {
   const pass = useRef(savedPass(id));
   const clienteApi = useCallback((body) => rawApi({ ...body, password: pass.current || undefined }), []);
   const [picked, setPicked] = useState(() => new Set());
+  // Comentários do cliente por foto ("deixa sem edição", "tira a espinha"…).
+  const [comments, setComments] = useState({});
+  const [draft, setDraft] = useState(null); // texto em edição na foto aberta (null = fechado)
+  const [savingNote, setSavingNote] = useState(false);
   const [view, setView] = useState(null);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
@@ -43,6 +47,7 @@ export default function ClientSelection() {
     try {
       const data = await clienteApi({ action: "gallery", kind: "selecao", studio, id });
       setPicked(new Set(data.selectedIds || []));
+      setComments(Object.fromEntries(Object.entries(data.comments || {}).map(([k, v]) => [k, v?.text || ""]).filter(([, v]) => v)));
       setDone(!!data.finished);
       setState({ loading: false, error: null, data, needPassword: false });
     } catch (e) {
@@ -101,6 +106,7 @@ export default function ClientSelection() {
   useEffect(() => {
     const onKey = (e) => {
       if (view == null) return;
+      if (e.target?.tagName === "TEXTAREA") return; // digitando o comentário
       if (e.key === "Escape") setView(null);
       if (e.key === "ArrowRight") setView((v) => (v + 1) % photos.length);
       if (e.key === "ArrowLeft") setView((v) => (v - 1 + photos.length) % photos.length);
@@ -108,6 +114,18 @@ export default function ClientSelection() {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [view, photos.length]);
+
+  useEffect(() => { setDraft(null); }, [view]);
+
+  async function saveNote(pid, text) {
+    setSavingNote(true);
+    try {
+      const r = await clienteApi({ action: "comment", kind: "selecao", studio, id, photoId: pid, text });
+      setComments((c) => { const n = { ...c }; if (r.text) n[pid] = r.text; else delete n[pid]; return n; });
+      setDraft(null);
+    } catch (e) { alert(e.message); }
+    finally { setSavingNote(false); }
+  }
 
   async function finish() {
     if (!picked.size) return;
@@ -186,6 +204,11 @@ export default function ClientSelection() {
                     <button type="button" onClick={() => setView(i)} className="block w-full overflow-hidden rounded-xl bg-surface" aria-label={`Abrir foto ${i + 1}`}>
                       <ProtectedImg src={p.thumb} scramble={p.thumbScramble} overlay={overlay} className="aspect-[4/5]" fit="cover" />
                     </button>
+                    {comments[p.id] && (
+                      <span className="pointer-events-none absolute bottom-2 left-2 flex max-w-[85%] items-center gap-1 rounded-full bg-black/60 px-2 py-1 text-[11px] text-white" title={comments[p.id]}>
+                        <MessageCircle className="h-3 w-3 shrink-0" /><span className="truncate">{comments[p.id]}</span>
+                      </span>
+                    )}
                     <button type="button" onClick={() => toggle(p.id)} aria-pressed={on}
                       className={`absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full border transition ${on ? "border-rose bg-rose text-white" : "border-white/70 bg-black/30 text-white hover:bg-black/50"}`}
                       aria-label={on ? "Remover das escolhidas" : "Escolher esta foto"}>
@@ -247,6 +270,34 @@ export default function ClientSelection() {
             </div>
             <button onClick={() => setView((v) => (v + 1) % photos.length)} className="absolute right-2 z-10 rounded-full bg-black/40 p-2 text-cream hover:bg-black/60" aria-label="Próxima"><ChevronRight className="h-6 w-6" /></button>
           </div>
+          {!done && (
+            <div className="mx-auto w-full max-w-md px-4 pt-3 text-cream">
+              {draft == null ? (
+                <button type="button" onClick={() => setDraft(comments[current.id] || "")}
+                  className="flex w-full items-center gap-2 rounded-2xl bg-white/10 px-4 py-2.5 text-left text-sm hover:bg-white/15">
+                  <MessageCircle className="h-4 w-4 shrink-0" />
+                  <span className="min-w-0 flex-1 truncate">{comments[current.id] || "Adicionar um pedido para esta foto"}</span>
+                  {comments[current.id] && <span className="text-xs text-cream/70">Editar</span>}
+                </button>
+              ) : (
+                <div className="rounded-2xl bg-white p-3 text-ink">
+                  <textarea value={draft} onChange={(e) => setDraft(e.target.value)} maxLength={300} rows={2} autoFocus
+                    placeholder="Ex.: gostei dessa, deixa sem editar" className="w-full resize-none rounded-xl border border-ink/10 p-2 text-sm outline-none focus:border-wine-900" />
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {["Deixar sem edição", "Tirar espinhas", "Suavizar a pele", "Clarear", "Preto e branco"].map((t) => (
+                      <button key={t} type="button" onClick={() => setDraft((d) => (d ? `${d.replace(/[.\s]+$/, "")}. ${t}` : t))}
+                        className="rounded-full border border-ink/15 px-2.5 py-1 text-xs text-ink-soft hover:border-wine-900">{t}</button>
+                    ))}
+                  </div>
+                  <div className="mt-3 flex items-center justify-end gap-2">
+                    {comments[current.id] && <button type="button" className="mr-auto text-xs text-danger" disabled={savingNote} onClick={() => saveNote(current.id, "")}>Apagar</button>}
+                    <button type="button" className="btn-ghost btn-sm" onClick={() => setDraft(null)}>Cancelar</button>
+                    <button type="button" className="btn-primary btn-sm" disabled={savingNote} onClick={() => saveNote(current.id, draft)}>{savingNote ? "Salvando…" : "Salvar"}</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           <div className="flex items-center justify-center py-4">
             <button type="button" onClick={() => toggle(current.id)}
               className={`flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium transition ${picked.has(current.id) ? "bg-rose text-white" : "bg-white/90 text-ink hover:bg-white"}`}>
