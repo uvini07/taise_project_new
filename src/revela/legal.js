@@ -1,13 +1,13 @@
 // Termos de uso e Política de privacidade da Revela.
-// Os dados da empresa ficam em LEGAL_INFO: troque os [ENTRE COLCHETES] pelos
+// Os dados de quem opera a Revela ficam em LEGAL_INFO (troque pelo CNPJ quando abrir a empresa).
 // dados reais. O texto é um modelo e deve ser revisado por um advogado.
 export const LEGAL_INFO = {
-  company: "[RAZÃO SOCIAL OU NOME COMPLETO]",
-  doc: "[CNPJ OU CPF]",
-  address: "[ENDEREÇO COMPLETO]",
+  company: "Marcelo Vinicius Jordão",
+  doc: "CPF 462.899.188-00",
+  address: "São Paulo/SP",
   email: "revelaphotography@gmail.com",
   phone: "(11) 97181-3986",
-  city: "[CIDADE/UF DO FORO]",
+  city: "São Paulo/SP",
   updated: "18 de novembro de 2026",
 };
 
@@ -15,7 +15,7 @@ const I = LEGAL_INFO;
 
 export const TERMS = {
   title: "Termos de uso",
-  intro: `Estes Termos regem o uso da Revela, plataforma que oferece a fotógrafas e fotógrafos (“você”) site, agenda, pacotes, seleção e entrega de fotos e ferramentas de gestão. A Revela é operada por ${I.company}, inscrita sob o nº ${I.doc}, com endereço em ${I.address} (“Revela”, “nós”). Ao criar uma conta, você declara que leu e aceita estes Termos e a Política de privacidade.`,
+  intro: `Estes Termos regem o uso da Revela, plataforma que oferece a fotógrafas e fotógrafos (“você”) site, agenda, pacotes, seleção e entrega de fotos e ferramentas de gestão. A Revela é operada por ${I.company}, ${I.doc}, com endereço em ${I.address} (“Revela”, “nós”). Ao criar uma conta, você declara que leu e aceita estes Termos e a Política de privacidade.`,
   sections: [
     ["1. Conta e cadastro", [
       "Para usar a Revela você precisa ter 18 anos ou mais e informar dados verdadeiros. Você é responsável por manter a sua senha em sigilo e por tudo o que acontece na sua conta.",
