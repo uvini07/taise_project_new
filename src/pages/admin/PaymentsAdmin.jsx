@@ -1,6 +1,7 @@
 // Recebimentos: como a fotógrafa recebe o SINAL dos agendamentos pelo site.
 // O dinheiro cai direto na conta dela (Pix próprio, Mercado Pago ou InfinitePay).
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Check, ExternalLink, KeyRound, Loader2, QrCode, Unplug, Wallet, Zap } from "lucide-react";
 import { AdminHeader } from "../../components/admin/AdminUI.jsx";
 import { TextField } from "../../components/common/Fields.jsx";
@@ -25,6 +26,22 @@ export default function PaymentsAdmin() {
   const [token, setToken] = useState("");
   const [mpBusy, setMpBusy] = useState(false);
   const up = (k) => (e) => setF((x) => ({ ...x, [k]: e.target.value }));
+  const [params, setParams] = useSearchParams();
+
+  // Volta do "Conectar com Mercado Pago".
+  useEffect(() => {
+    const r = params.get("mp");
+    if (!r) return;
+    if (r === "ok") { toast.success("Mercado Pago conectado!"); setF((x) => ({ ...x, provider: "mercadopago" })); }
+    else toast.error("Não foi possível conectar o Mercado Pago. Tente de novo.");
+    params.delete("mp"); setParams(params, { replace: true });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function oauthMp() {
+    setMpBusy(true);
+    try { const { url } = await pagamentosApi({ action: "mpauthurl" }, { authed: true }); window.location.href = url; }
+    catch (e) { toast.error(e.message); setMpBusy(false); }
+  }
 
   useEffect(() => {
     pagamentosApi({ action: "mpinfo" }, { authed: true })
@@ -107,6 +124,15 @@ export default function PaymentsAdmin() {
                   </div>
                 ) : (
                   <>
+                    {mp.oauth && (
+                      <button type="button" className="btn-primary w-full justify-center py-3 sm:w-auto" disabled={mpBusy} onClick={oauthMp}>
+                        {mpBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />} Conectar com Mercado Pago
+                      </button>
+                    )}
+                    {mp.oauth ? (
+                      <details className="text-sm text-ink-muted">
+                        <summary className="cursor-pointer">Prefere colar o token manualmente?</summary>
+                        <div className="mt-3 space-y-3">
                     <ol className="list-decimal space-y-1 pl-5 text-sm text-ink-soft">
                       <li>Entre em <a className="text-wine-900 underline" href="https://www.mercadopago.com.br/developers/panel/app" target="_blank" rel="noopener noreferrer">Mercado Pago Developers <ExternalLink className="inline h-3 w-3" /></a> com a sua conta e crie uma aplicação (ex.: “Revela”).</li>
                       <li>Abra <strong>Credenciais de produção</strong> e copie o <strong>Access Token</strong> (começa com APP_USR-).</li>
@@ -118,6 +144,23 @@ export default function PaymentsAdmin() {
                         {mpBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />} Conectar
                       </button>
                     </div>
+                        </div>
+                      </details>
+                    ) : (
+                      <>
+                    <ol className="list-decimal space-y-1 pl-5 text-sm text-ink-soft">
+                      <li>Entre em <a className="text-wine-900 underline" href="https://www.mercadopago.com.br/developers/panel/app" target="_blank" rel="noopener noreferrer">Mercado Pago Developers <ExternalLink className="inline h-3 w-3" /></a> com a sua conta e crie uma aplicação (ex.: “Revela”).</li>
+                      <li>Abra <strong>Credenciais de produção</strong> e copie o <strong>Access Token</strong> (começa com APP_USR-).</li>
+                      <li>Cole abaixo. Ele fica guardado só no servidor, nunca aparece no site.</li>
+                    </ol>
+                    <div className="flex flex-wrap gap-2">
+                      <input type="password" autoComplete="off" className="field-input min-w-0 flex-1 basis-64" placeholder="APP_USR-..." value={token} onChange={(e) => setToken(e.target.value)} />
+                      <button type="button" className="btn-primary" disabled={!token.trim() || mpBusy} onClick={connectMp}>
+                        {mpBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />} Conectar
+                      </button>
+                    </div>
+                      </>
+                    )}
                   </>
                 )}
             </div>

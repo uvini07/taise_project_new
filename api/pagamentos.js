@@ -8,6 +8,7 @@
 //
 // O dinheiro nunca passa pela Revela. O valor do sinal vem do agendamento
 // gravado no banco (preço validado pelas regras), nunca do navegador.
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { FieldValue } from "firebase-admin/firestore";
 import { ConfigError, adminDb, studioOfUser, userFrom } from "../lib/admin.js";
 
@@ -30,6 +31,42 @@ async function markPaid(ref, provider, extra = {}) {
   await ref.set({ deposit: { status: "paid", provider, paidAt: FieldValue.serverTimestamp(), ...extra } }, { merge: true });
 }
 
+// --- "Conectar com Mercado Pago" (OAuth): uma aplicação da Revela, a fotógrafa só autoriza.
+const MP_ID = () => process.env.MP_CLIENT_ID || "";
+const MP_SECRET = () => process.env.MP_CLIENT_SECRET || "";
+const oauthOn = () => !!(MP_ID() && MP_SECRET());
+const redirectUri = () => `${site()}/api/pagamentos?mpoauth=1`;
+const sign = (v) => createHmac("sha256", MP_SECRET()).update(v).digest("base64url");
+function makeState(slug) {
+  const v = Buffer.from(JSON.stringify({ slug, exp: Date.now() + 15 * 60e3 })).toString("base64url");
+  return `${v}.${sign(v)}`;
+}
+function readState(state) {
+  const [v, sig] = String(state || "").split(".");
+  if (!v || !sig) return null;
+  const a = Buffer.from(sign(v)), b = Buffer.from(sig);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
+  try { const d = JSON.parse(Buffer.from(v, "base64url").toString()); return d.exp > Date.now() && okSlug(d.slug) ? d.slug : null; } catch { return null; }
+}
+async function mpOauthToken(body) {
+  const r = await fetch(`${MP}/oauth/token`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client_id: MP_ID(), client_secret: MP_SECRET(), ...body }) });
+  return r.ok ? r.json() : null;
+}
+/** Token da fotógrafa; renova sozinho (OAuth) quando está perto de vencer. */
+async function mpTokenOf(db, slug) {
+  const ref = db.doc(secretPath(slug));
+  const sec = (await ref.get()).data();
+  if (!sec?.mpToken) return null;
+  if (sec.mpRefresh && sec.mpExpiresAt && sec.mpExpiresAt - Date.now() < 7 * 86400e3 && oauthOn()) {
+    const t = await mpOauthToken({ grant_type: "refresh_token", refresh_token: sec.mpRefresh });
+    if (t?.access_token) {
+      await ref.set({ mpToken: t.access_token, mpRefresh: t.refresh_token || sec.mpRefresh, mpExpiresAt: Date.now() + (t.expires_in || 15552000) * 1000 }, { merge: true });
+      return t.access_token;
+    }
+  }
+  return sec.mpToken;
+}
+
 async function mpGet(token, url) {
   const r = await fetch(`${MP}${url}`, { headers: { Authorization: `Bearer ${token}` } });
   return r.ok ? r.json() : null;
@@ -37,6 +74,21 @@ async function mpGet(token, url) {
 
 export default async function handler(req, res) {
   try {
+    // ------------------------------------------------ volta do "Conectar com Mercado Pago"
+    if (req.method === "GET" && req.query?.mpoauth) {
+      const back = (q) => res.redirect(302, `${site()}/adm/recebimentos?mp=${q}`);
+      const slug = oauthOn() ? readState(req.query.state) : null;
+      if (!slug || !req.query.code) return back("erro");
+      const t = await mpOauthToken({ grant_type: "authorization_code", code: String(req.query.code), redirect_uri: redirectUri() });
+      if (!t?.access_token) return back("erro");
+      const me = await mpGet(t.access_token, "/users/me");
+      await adminDb().doc(secretPath(slug)).set({
+        mpToken: t.access_token, mpRefresh: t.refresh_token || null, mpExpiresAt: Date.now() + (t.expires_in || 15552000) * 1000,
+        mpUser: { id: me?.id || t.user_id || null, nickname: me?.nickname || "", email: me?.email || "" }, updatedAt: FieldValue.serverTimestamp(),
+      }, { merge: true });
+      return back("ok");
+    }
+
     // ------------------------------------------------ avisos (webhooks)
     const { provider: hook, studio: hookStudio } = req.query || {};
     if (hook) {
@@ -46,9 +98,9 @@ export default async function handler(req, res) {
       if (hook === "mp") {
         // O aviso só traz o id: buscamos o pagamento NO Mercado Pago com o token da fotógrafa.
         const id = req.body?.data?.id || req.query["data.id"] || req.query.id;
-        const sec = (await db.doc(secretPath(hookStudio)).get()).data();
-        if (!id || !sec?.mpToken) return res.status(200).json({ ok: true });
-        const p = await mpGet(sec.mpToken, `/v1/payments/${encodeURIComponent(id)}`);
+        const tok = id ? await mpTokenOf(db, hookStudio) : null;
+        if (!tok) return res.status(200).json({ ok: true });
+        const p = await mpGet(tok, `/v1/payments/${encodeURIComponent(id)}`);
         if (p?.status === "approved" && okId(p.external_reference)) {
           const ref = db.doc(path(hookStudio, "appointments", p.external_reference));
           if ((await ref.get()).exists) await markPaid(ref, "mercadopago", { ref: String(p.id), amountCents: Math.round(p.transaction_amount * 100) });
@@ -84,7 +136,7 @@ export default async function handler(req, res) {
     const { action } = req.body || {};
 
     // ------------------------------------------------ painel (logado)
-    if (["mpsave", "mpinfo", "mpremove"].includes(action)) {
+    if (["mpsave", "mpinfo", "mpremove", "mpauthurl"].includes(action)) {
       const user = await userFrom(req);
       if (!user) return res.status(401).json({ error: "Entre na sua conta." });
       const slug = (await studioOfUser(user.uid, user.email))?.slug;
@@ -92,9 +144,15 @@ export default async function handler(req, res) {
       const ref = adminDb().doc(secretPath(slug));
       if (action === "mpinfo") {
         const d = (await ref.get()).data();
-        return res.status(200).json({ connected: !!d?.mpToken, account: d?.mpUser || null });
+        return res.status(200).json({ connected: !!d?.mpToken, account: d?.mpUser || null, oauth: oauthOn() });
       }
-      if (action === "mpremove") { await ref.set({ mpToken: FieldValue.delete(), mpUser: FieldValue.delete() }, { merge: true }); return res.status(200).json({ ok: true }); }
+      if (action === "mpauthurl") {
+        if (!oauthOn()) return res.status(409).json({ error: "Conexão automática ainda não configurada." });
+        const u = new URL("https://auth.mercadopago.com.br/authorization");
+        u.search = new URLSearchParams({ client_id: MP_ID(), response_type: "code", platform_id: "mp", state: makeState(slug), redirect_uri: redirectUri() }).toString();
+        return res.status(200).json({ url: u.toString() });
+      }
+      if (action === "mpremove") { await ref.set({ mpToken: FieldValue.delete(), mpUser: FieldValue.delete(), mpRefresh: FieldValue.delete(), mpExpiresAt: FieldValue.delete() }, { merge: true }); return res.status(200).json({ ok: true }); }
       const token = String(req.body.token || "").trim();
       if (!/^APP_USR-[\w-]{20,}$/.test(token)) return res.status(400).json({ error: "Cole o Access Token de PRODUÇÃO (começa com APP_USR-)." });
       const me = await mpGet(token, "/users/me");
@@ -119,8 +177,8 @@ export default async function handler(req, res) {
       let st = appt.deposit?.status || "none";
       // Mercado Pago: confere na hora, caso o aviso ainda não tenha chegado.
       if (st === "pending" && appt.deposit?.provider === "mercadopago" && appt.deposit?.mpId) {
-        const sec = (await db.doc(secretPath(studio)).get()).data();
-        const p = sec?.mpToken ? await mpGet(sec.mpToken, `/v1/payments/${appt.deposit.mpId}`) : null;
+        const tok = await mpTokenOf(db, studio);
+        const p = tok ? await mpGet(tok, `/v1/payments/${appt.deposit.mpId}`) : null;
         if (p?.status === "approved") { await markPaid(ref, "mercadopago", { ref: String(p.id), amountCents }); st = "paid"; }
       }
       return res.status(200).json({ status: st });
@@ -138,8 +196,9 @@ export default async function handler(req, res) {
     }
 
     if (cfg.provider === "mercadopago") {
-      const sec = (await db.doc(secretPath(studio)).get()).data();
-      if (!sec?.mpToken) return res.status(409).json({ error: "Pagamento pelo site indisponível." });
+      const tok = await mpTokenOf(db, studio);
+      if (!tok) return res.status(409).json({ error: "Pagamento pelo site indisponível." });
+      const sec = { mpToken: tok };
       // Reaproveita o Pix já gerado (vale 24h) se o valor não mudou.
       const d = appt.deposit;
       if (d?.provider === "mercadopago" && d.mpId && d.amountCents === amountCents && d.qr) {
