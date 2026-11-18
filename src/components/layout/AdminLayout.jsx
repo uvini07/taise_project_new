@@ -19,29 +19,32 @@ import { logout } from "../../services/authService.js";
 import { useBodyLock } from "../../hooks/useBodyLock.js";
 import { sitePath } from "../../config/tenant.js";
 
-// Menu do painel em três grupos. "beta" marca ferramentas ainda em teste.
+// Menu do painel por assunto: o dia a dia (clientes) primeiro, depois o site,
+// o dinheiro e a divulgação. "beta" marca ferramentas ainda em teste.
 export const ADMIN_GROUPS = [
   { title: null, items: [
     { to: "/adm/dashboard", label: "Visão geral", icon: LayoutDashboard },
+  ] },
+  { title: "Clientes", items: [
+    { to: "/adm/agenda", label: "Agenda", icon: CalendarDays, hint: "Pedidos de agendamento e horários" },
+    { to: "/adm/selecao", label: "Seleção de fotos", icon: Heart, hint: "O cliente escolhe as fotos do ensaio" },
+    { to: "/adm/entrega", label: "Entrega final", icon: PackageCheck, hint: "Fotos editadas para o cliente baixar" },
   ] },
   { title: "Meu site", items: [
     { to: "/adm/editor", label: "Editar meu site", icon: Wand2, hint: "Editor visual: veja o site mudando enquanto edita", highlight: true },
     { to: "/adm/configuracoes", label: "Conteúdo do site", icon: Settings, hint: "Textos, fotos e contato" },
     { to: "/adm/pacotes", label: "Pacotes", icon: Package },
     { to: "/adm/galeria", label: "Galeria", icon: Images },
-    { to: "/adm/evento", label: "Evento promocional", icon: Sparkles },
-    { to: "/adm/vip", label: "Lista VIP", icon: Crown },
   ] },
-  { title: "Clientes", items: [
-    { to: "/adm/agenda", label: "Agenda", icon: CalendarDays },
-    { to: "/adm/selecao", label: "Seleção de fotos", icon: Heart },
-    { to: "/adm/entrega", label: "Entrega final", icon: PackageCheck },
-  ] },
-  { title: "Gestão", items: [
-    { to: "/adm/financeiro", label: "Financeiro", icon: Wallet },
+  { title: "Dinheiro", items: [
     { to: "/adm/recebimentos", label: "Recebimentos", icon: QrCode, hint: "Pix, Mercado Pago ou InfinitePay para o sinal" },
+    { to: "/adm/financeiro", label: "Financeiro", icon: Wallet, hint: "Entradas, saídas e o que falta receber" },
+    { to: "/adm/assinatura", label: "Minha assinatura", icon: CreditCard, hint: "Seu plano da Revela" },
+  ] },
+  { title: "Divulgação", items: [
+    { to: "/adm/evento", label: "Evento promocional", icon: Sparkles, hint: "Datas especiais: Natal, Dia das Mães…" },
+    { to: "/adm/vip", label: "Lista VIP", icon: Crown, hint: "Clientes que querem saber primeiro" },
     { to: "/adm/analytics", label: "Visitas do site", icon: BarChart3 },
-    { to: "/adm/assinatura", label: "Minha assinatura", icon: CreditCard },
   ] },
 ];
 export const ADMIN_NAV = ADMIN_GROUPS.flatMap((g) => g.items);
