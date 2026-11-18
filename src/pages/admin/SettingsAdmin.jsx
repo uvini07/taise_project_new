@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { AlertCircle, ArrowDown, ArrowUp, ExternalLink, Plus, Save, Trash2 } from "lucide-react";
+import { AlertCircle, ArrowDown, ArrowUp, Check, ExternalLink, Plus, Save, Trash2 } from "lucide-react";
 import { AdminHeader, ImageInput, Section } from "../../components/admin/AdminUI.jsx";
 import { TextArea, TextField, Toggle } from "../../components/common/Fields.jsx";
 import Spinner from "../../components/common/Spinner.jsx";
@@ -310,18 +310,21 @@ function ColorField({ label, value, onChange }) {
 }
 
 function ThemeSwatch({ t, active, onClick, onDelete }) {
+  // Uma linha por modelo: funciona em coluna estreita ou larga.
   return (
-    <div className={`relative rounded-2xl border bg-surface p-3 transition ${active ? "border-wine-900 ring-2 ring-wine-900/30" : "border-ink/10 hover:border-ink/30"}`}>
-      <button type="button" onClick={onClick} className="block w-full text-left">
-        <div className="flex h-16 overflow-hidden rounded-xl border border-ink/10">
-          <span className="flex flex-1 items-center justify-center font-display text-lg" style={{ background: t.background, color: t.text || "#221A16" }}>Aa</span>
-          <span className="flex w-1/3 items-center justify-center text-xs" style={{ background: t.primary, color: t.onPrimary || "#F0E6D7" }}>Aa</span>
-        </div>
-        <p className="mt-2 truncate text-sm font-medium">{t.name}</p>
+    <div className={`flex items-center gap-2 rounded-xl border bg-surface pr-2 transition ${active ? "border-wine-900 ring-2 ring-wine-900/20" : "border-ink/10 hover:border-ink/30"}`}>
+      <button type="button" onClick={onClick} aria-pressed={active} className="flex min-w-0 flex-1 items-center gap-3 p-2 text-left">
+        <span className="flex h-10 w-16 shrink-0 overflow-hidden rounded-lg border border-ink/10" aria-hidden>
+          <span className="flex flex-1 items-center justify-center font-display text-sm" style={{ background: t.background, color: t.text || "#221A16" }}>Aa</span>
+          <span className="w-1/3" style={{ background: t.primary }} />
+          <span className="w-1/6" style={{ background: t.accent || t.primary }} />
+        </span>
+        <span className="min-w-0 flex-1 truncate text-sm font-medium" title={t.name}>{t.name}</span>
+        {active && <Check className="h-4 w-4 shrink-0 text-wine-900" aria-label="Em uso" />}
       </button>
       {onDelete && (
-        <button type="button" onClick={onDelete} aria-label={`Excluir ${t.name}`} className="absolute right-2 top-2 rounded-full bg-surface/90 p-1 text-danger shadow">
-          <Trash2 className="h-3.5 w-3.5" />
+        <button type="button" onClick={onDelete} aria-label={`Excluir ${t.name}`} className="rounded-full p-1.5 text-ink-muted hover:bg-danger/10 hover:text-danger">
+          <Trash2 className="h-4 w-4" />
         </button>
       )}
     </div>
@@ -364,7 +367,7 @@ export function ThemeEditor({ form, setForm }) {
       </Section>
 
       <Section title="Modelos de cores" text="Clique para aplicar. Você pode salvar as cores atuais como um modelo seu.">
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))]">
           {BUILTIN_THEMES.map((t) => <ThemeSwatch key={t.id} t={t} active={same(t)} onClick={() => setTheme(t)} />)}
           {presets.map((t, i) => (
             <ThemeSwatch key={`${t.name}-${i}`} t={t} active={same(t)} onClick={() => setTheme(t)}
@@ -372,10 +375,10 @@ export function ThemeEditor({ form, setForm }) {
           ))}
         </div>
         <div className="mt-5 flex flex-wrap gap-2">
-          <input className="field-input !w-64 !py-2" placeholder="Nome do modelo (ex.: Páscoa)" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} />
+          <input className="field-input min-w-0 flex-1 basis-48 !py-2" placeholder="Nome do modelo (ex.: Páscoa)" value={name} maxLength={40} onChange={(e) => setName(e.target.value)} />
           <button type="button" className="btn-outline btn-sm" disabled={!name.trim() || !valid}
             onClick={() => { setForm((f) => ({ ...f, themePresets: [...presets, { name: name.trim(), ...full(theme) }] })); setName(""); }}>
-            <Plus className="h-4 w-4" /> Salvar cores atuais como modelo
+            <Plus className="h-4 w-4" /> Salvar como modelo
           </button>
         </div>
         <p className="mt-2 text-xs text-ink-muted">Modelos novos também precisam de “Salvar estilo”.</p>
