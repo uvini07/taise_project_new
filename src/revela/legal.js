@@ -1,6 +1,6 @@
 // Termos de uso e Política de privacidade da Revela.
 // Os dados de quem opera a Revela ficam em LEGAL_INFO (troque pelo CNPJ quando abrir a empresa).
-// dados reais. O texto é um modelo e deve ser revisado por um advogado.
+// O texto é um modelo e deve ser revisado por um advogado.
 export const LEGAL_INFO = {
   company: "Marcelo Vinicius Jordão",
   doc: "CPF 462.899.188-00",
