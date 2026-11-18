@@ -52,7 +52,7 @@ export function ChatDemo() {
   const [auto, setAuto] = useState(true);
 
   useEffect(() => {
-    if (!auto || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return undefined;
+    if (!auto) return undefined;
     let t; let k = 0; let s = 3;
     const wait = [0, 900, 1300, 5200]; // tempo em cada etapa (pergunta, pensando, resposta)
     const tick = () => {
@@ -129,7 +129,6 @@ export default function Polaroidy() {
       <style>{`
         @keyframes rv-msg-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
         .rv-msg { animation: rv-msg-in .45s cubic-bezier(.16,1,.3,1) both; }
-        @media (prefers-reduced-motion: reduce) { .rv-msg { animation: none; } }
       `}</style>
       <div className="rv-ground" aria-hidden>
         <span className="rv-blob" style={{ left: "50%", top: "-20%", width: "60vw", height: "60vw", background: "radial-gradient(closest-side, rgba(201,93,99,.34), rgba(201,93,99,0))" }} />

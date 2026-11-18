@@ -1,6 +1,6 @@
 import { useReveal } from "../../hooks/useReveal.js";
 
-/** Entrada suave ao rolar a página (desligada com "reduzir movimento"). */
+/** Entrada suave ao rolar a página. */
 export default function Reveal({ as: Tag = "div", delay = 0, className = "", children, ...rest }) {
   const ref = useReveal();
   return (

@@ -1,7 +1,6 @@
 /**
  * Título que aparece palavra por palavra saindo do desfoque. Inspirado no
- * padrão "Blur Text" (React Bits), refeito em CSS puro: sem dependência e
- * respeitando a preferência de reduzir movimento.
+ * padrão "Blur Text" (React Bits), refeito em CSS puro: sem dependência.
  */
 export default function BlurText({ text, as: Tag = "h1", className = "", delay = 0, step = 70 }) {
   const words = String(text || "").split(/\s+/).filter(Boolean);

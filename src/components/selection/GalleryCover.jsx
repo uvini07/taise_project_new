@@ -22,11 +22,7 @@ const CSS = `
 .gc-sub { animation: gc-rise 1s cubic-bezier(.2,.7,.2,1) 2.3s both }
 .gc-action { animation: gc-fade .8s ease 2.6s both }
 .gc-hint { animation: gc-fade .8s ease 2.9s both }
-@media (prefers-reduced-motion: reduce) {
-  .gc-curtain, .gc-photo, .gc-shade, .gc-line, .gc-studio, .gc-title > span, .gc-sub, .gc-action, .gc-hint { animation: none !important }
-  .gc-curtain { display: none }
-  .gc-shade { opacity: .45 }
-}`;
+`;
 
 export default function GalleryCover({ image, studioName, title, subtitle, hint, action, target = "fotos" }) {
   const go = () => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" });

@@ -145,7 +145,6 @@ function EditorDemo() {
   // Constrói o site sozinho, passo a passo; a cada volta usa outra cor e fonte.
   useEffect(() => {
     if (!auto) return undefined;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setStep(BUILD.length - 2); return undefined; }
     let s = 0; let round = 0; let t;
     const tick = () => {
       if (box.current?.closest("[data-offscreen]")) { t = setTimeout(tick, 1000); return; }
@@ -261,7 +260,6 @@ export default function SiteBuilder() {
         .rv-swap { animation: rv-swap-in .55s cubic-bezier(.16,1,.3,1) both; }
         @keyframes rv-pulse-k { 0% { box-shadow: 0 0 0 0 rgba(201,93,99,.55); } 100% { box-shadow: 0 0 0 10px rgba(201,93,99,0); } }
         .rv-pulse { animation: rv-pulse-k .9s ease-out 1; }
-        @media (prefers-reduced-motion: reduce) { .rv-swap, .rv-pulse { animation: none; } }
       `}</style>
       <div className="rv-ground" aria-hidden>
         <span className="rv-blob" style={{ left: "-16%", top: "-10%", width: "56vw", height: "56vw", background: "radial-gradient(closest-side, rgba(255,255,255,.95), rgba(255,255,255,0))" }} />
