@@ -1,5 +1,6 @@
 import { LOGO } from "../../config/defaults.js";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
+import { layoutById } from "../../config/siteStyle.js";
 import { isLegacyStudio } from "../../config/tenant.js";
 
 /**
@@ -24,8 +25,10 @@ export default function Logo({ tone: asked = "dark", className = "h-12 w-auto", 
   let tone = asked;
   if (mode === "dark" && settings.logoUrl) tone = "dark";
   else if (mode === "light" && settings.logoLightUrl) tone = "light";
-  else if (mode === "auto" && followSiteChoice && asked === "dark" && settings.logoLightUrl && isDarkHex(settings.theme?.background)) tone = "light";
-  const custom = tone === "light" ? settings.logoLightUrl : settings.logoUrl;
+  else if (mode === "auto" && followSiteChoice && asked === "dark" && settings.logoLightUrl
+    && (isDarkHex(settings.theme?.background) || layoutById(settings.layout).dark)) tone = "light";
+  // Falta a versão pedida? Usa a outra que a fotógrafa enviou.
+  const custom = tone === "light" ? settings.logoLightUrl || settings.logoUrl : settings.logoUrl || settings.logoLightUrl;
   // Estúdio novo sem logo enviada: mostra o nome do estúdio em texto.
   if (!custom && !isLegacyStudio()) {
     return (
