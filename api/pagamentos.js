@@ -67,6 +67,11 @@ async function mpTokenOf(db, slug) {
   return sec.mpToken;
 }
 
+// API de Orders (a nova; a de Payments será descontinuada).
+const money = (c) => (c / 100).toFixed(2);
+const orderPaid = (o) => o && (o.status === "processed" || o.status_detail === "accredited");
+const orderPix = (o) => o?.transactions?.payments?.[0]?.payment_method || {};
+
 async function mpGet(token, url) {
   const r = await fetch(`${MP}${url}`, { headers: { Authorization: `Bearer ${token}` } });
   return r.ok ? r.json() : null;
@@ -92,18 +97,26 @@ export default async function handler(req, res) {
     // ------------------------------------------------ avisos (webhooks)
     const { provider: hook, studio: hookStudio } = req.query || {};
     if (hook) {
-      if (!okSlug(hookStudio)) return res.status(200).json({ ok: true });
+      if (hookStudio && !okSlug(hookStudio)) return res.status(200).json({ ok: true });
+      if (!hookStudio && hook !== "mp") return res.status(200).json({ ok: true });
       const db = adminDb();
 
       if (hook === "mp") {
-        // O aviso só traz o id: buscamos o pagamento NO Mercado Pago com o token da fotógrafa.
+        // O aviso só traz o id: buscamos o pedido NO Mercado Pago com o token da fotógrafa.
         const id = req.body?.data?.id || req.query["data.id"] || req.query.id;
-        const tok = id ? await mpTokenOf(db, hookStudio) : null;
+        let slug = hookStudio;
+        if (!slug) {
+          // Aviso configurado no painel da aplicação (vale para todas as contas): acha a fotógrafa pelo user_id.
+          const uid = Number(req.body?.user_id);
+          const q = uid ? await db.collection("paymentSecrets").where("mpUser.id", "==", uid).limit(1).get() : null;
+          slug = q?.docs[0]?.id || null;
+        }
+        const tok = id && slug ? await mpTokenOf(db, slug) : null;
         if (!tok) return res.status(200).json({ ok: true });
-        const p = await mpGet(tok, `/v1/payments/${encodeURIComponent(id)}`);
-        if (p?.status === "approved" && okId(p.external_reference)) {
-          const ref = db.doc(path(hookStudio, "appointments", p.external_reference));
-          if ((await ref.get()).exists) await markPaid(ref, "mercadopago", { ref: String(p.id), amountCents: Math.round(p.transaction_amount * 100) });
+        const o = await mpGet(tok, `/v1/orders/${encodeURIComponent(id)}`);
+        if (orderPaid(o) && okId(o.external_reference)) {
+          const ref = db.doc(path(slug, "appointments", o.external_reference));
+          if ((await ref.get()).exists) await markPaid(ref, "mercadopago", { ref: String(o.id), amountCents: Math.round(Number(o.total_amount) * 100) || null });
         }
         return res.status(200).json({ ok: true });
       }
@@ -178,8 +191,8 @@ export default async function handler(req, res) {
       // Mercado Pago: confere na hora, caso o aviso ainda não tenha chegado.
       if (st === "pending" && appt.deposit?.provider === "mercadopago" && appt.deposit?.mpId) {
         const tok = await mpTokenOf(db, studio);
-        const p = tok ? await mpGet(tok, `/v1/payments/${appt.deposit.mpId}`) : null;
-        if (p?.status === "approved") { await markPaid(ref, "mercadopago", { ref: String(p.id), amountCents }); st = "paid"; }
+        const o = tok ? await mpGet(tok, `/v1/orders/${appt.deposit.mpId}`) : null;
+        if (orderPaid(o)) { await markPaid(ref, "mercadopago", { ref: String(o.id), amountCents }); st = "paid"; }
       }
       return res.status(200).json({ status: st });
     }
@@ -202,31 +215,31 @@ export default async function handler(req, res) {
       // Reaproveita o Pix já gerado (vale 24h) se o valor não mudou.
       const d = appt.deposit;
       if (d?.provider === "mercadopago" && d.mpId && d.amountCents === amountCents && d.qr) {
-        const p = await mpGet(sec.mpToken, `/v1/payments/${d.mpId}`);
-        if (p?.status === "approved") { await markPaid(ref, "mercadopago", { ref: String(p.id), amountCents }); return res.status(200).json({ status: "paid", amountCents }); }
-        if (p?.status === "pending") return res.status(200).json({ provider: "mercadopago", amountCents, qr: d.qr, qrBase64: p.point_of_interaction?.transaction_data?.qr_code_base64 || null });
+        const o = await mpGet(sec.mpToken, `/v1/orders/${d.mpId}`);
+        if (orderPaid(o)) { await markPaid(ref, "mercadopago", { ref: String(o.id), amountCents }); return res.status(200).json({ status: "paid", amountCents }); }
+        if (o && ["action_required", "created"].includes(o.status)) return res.status(200).json({ provider: "mercadopago", amountCents, qr: d.qr, qrBase64: orderPix(o).qr_code_base64 || null });
       }
-      const r = await fetch(`${MP}/v1/payments`, {
+      const r = await fetch(`${MP}/v1/orders`, {
         method: "POST",
         headers: { Authorization: `Bearer ${sec.mpToken}`, "Content-Type": "application/json", "X-Idempotency-Key": `${studio}-${apptId}-${amountCents}-${Date.now() >> 16}` },
         body: JSON.stringify({
-          transaction_amount: amountCents / 100,
-          description: desc,
-          payment_method_id: "pix",
+          type: "online",
+          processing_mode: "automatic",
           external_reference: apptId,
-          notification_url: `${site()}/api/pagamentos?provider=mp&studio=${studio}`,
-          date_of_expiration: new Date(Date.now() + 24 * 3600e3).toISOString().replace("Z", "-00:00"),
+          description: desc,
+          total_amount: money(amountCents),
           payer: { email: appt.email || `reserva-${apptId.slice(0, 10).toLowerCase()}@studiorevela.com`, first_name: String(appt.name || "").split(" ")[0] || "Cliente" },
+          transactions: { payments: [{ amount: money(amountCents), payment_method: { id: "pix", type: "bank_transfer" }, expiration_time: "P1D" }] },
         }),
       });
-      const p = await r.json().catch(() => null);
-      const qr = p?.point_of_interaction?.transaction_data?.qr_code;
-      if (!r.ok || !qr) {
-        console.error("mp create", r.status, p?.message);
+      const o = await r.json().catch(() => null);
+      const pm = orderPix(o);
+      if (!r.ok || !pm.qr_code) {
+        console.error("mp order", r.status, JSON.stringify(o?.errors || o?.message || o).slice(0, 500));
         return res.status(502).json({ error: "Não foi possível gerar o Pix agora. Tente de novo em instantes." });
       }
-      await ref.set({ deposit: { status: "pending", provider: "mercadopago", amountCents, mpId: String(p.id), qr } }, { merge: true });
-      return res.status(200).json({ provider: "mercadopago", amountCents, qr, qrBase64: p.point_of_interaction.transaction_data.qr_code_base64 || null });
+      await ref.set({ deposit: { status: "pending", provider: "mercadopago", amountCents, mpId: String(o.id), qr: pm.qr_code } }, { merge: true });
+      return res.status(200).json({ provider: "mercadopago", amountCents, qr: pm.qr_code, qrBase64: pm.qr_code_base64 || null });
     }
 
     if (cfg.provider === "infinitepay") {
