@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import {
-  BarChart3, CalendarDays, CreditCard, Crown, Heart, PackageCheck, ExternalLink, ImagePlus, Images, LayoutDashboard, LifeBuoy, LogOut, Menu, Package, Settings, Sparkles, Wallet, Wand2, X,
+  BarChart3, CalendarDays, CreditCard, Crown, Heart, PackageCheck, ExternalLink, ImagePlus, Images, LayoutDashboard, LifeBuoy, LogOut, Menu, Package, Settings, Sparkles, Wallet, QrCode, Wand2, X,
 } from "lucide-react";
 import Logo from "../common/Logo.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
@@ -39,6 +39,7 @@ export const ADMIN_GROUPS = [
   ] },
   { title: "Gestão", items: [
     { to: "/adm/financeiro", label: "Financeiro", icon: Wallet },
+    { to: "/adm/recebimentos", label: "Recebimentos", icon: QrCode, hint: "Pix, Mercado Pago ou InfinitePay para o sinal" },
     { to: "/adm/analytics", label: "Visitas do site", icon: BarChart3 },
     { to: "/adm/assinatura", label: "Minha assinatura", icon: CreditCard },
   ] },

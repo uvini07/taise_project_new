@@ -127,6 +127,18 @@ export async function addAppointmentNote(id, note) {
   });
 }
 
+/** Sinal pago/pendente (Pix manual ou correção de um aviso automático). */
+export async function setDepositStatus(id, status) {
+  await updateDoc(sDoc("appointments", id), {
+    "deposit.status": status,
+    "deposit.paidAt": status === "paid" ? serverTimestamp() : null,
+    "deposit.confirmedBy": status === "paid" ? "painel" : null,
+    updatedAt: serverTimestamp(),
+    history: arrayUnion(historyEntry("edit", { fields: ["deposit"] })),
+  });
+  audit("appointment.deposit", "appointments", id, { status });
+}
+
 export async function updateAppointmentDetails(id, patch) {
   const allowed = ["name", "phone", "email", "notes", "priceCents"];
   const data = Object.fromEntries(Object.entries(patch).filter(([k]) => allowed.includes(k)));

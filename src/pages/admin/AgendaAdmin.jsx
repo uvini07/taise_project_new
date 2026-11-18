@@ -19,7 +19,7 @@ import { useAsync } from "../../hooks/useAsync.js";
 import { APPOINTMENT_STATUS } from "../../config/constants.js";
 import {
   addAppointmentNote, changeAppointmentStatus, createManualAppointment, freeSlotsForAdmin, listAppointments,
-  deleteAppointment, listOpenRequests, rescheduleAppointment, saveAvailability, updateAppointmentDetails,
+  deleteAppointment, listOpenRequests, rescheduleAppointment, saveAvailability, setDepositStatus, updateAppointmentDetails,
 } from "../../services/admin/agendaAdmin.js";
 import { fetchTakenLocks, getAvailability } from "../../services/agendaService.js";
 import { listAllPackages } from "../../services/admin/packagesAdmin.js";
@@ -134,6 +134,18 @@ function AppointmentModal({ a, cfg, onClose, onChanged, change }) {
           <dl className="grid gap-3 rounded-2xl bg-paper p-4 text-sm sm:grid-cols-2">
             <div><dt className="text-ink-muted">Pacote</dt><dd>{a.packageName || "—"} {a.lotName && `· ${a.lotName}`}</dd></div>
             <div><dt className="text-ink-muted">Valor combinado</dt><dd>{formatBRL(a.priceCents)}</dd></div>
+            {a.deposit && (
+              <div className="sm:col-span-2">
+                <dt className="text-ink-muted">Sinal{a.deposit.amountCents ? ` (${formatBRL(a.deposit.amountCents)})` : ""}</dt>
+                <dd className="mt-1 flex flex-wrap items-center gap-2">
+                  <DepositBadge d={a.deposit} />
+                  {a.deposit.note && <span className="text-xs text-ink-muted">{a.deposit.note}</span>}
+                  {a.deposit.status !== "paid"
+                    ? <button type="button" className="btn-ghost btn-sm" onClick={() => run(() => setDepositStatus(a.id, "paid"), "Sinal marcado como pago.")}>Marcar como pago</button>
+                    : <button type="button" className="btn-ghost btn-sm" onClick={() => run(() => setDepositStatus(a.id, "pending"), "Sinal voltou para pendente.")}>Desfazer</button>}
+                </dd>
+              </div>
+            )}
             <div><dt className="text-ink-muted">Origem</dt><dd>{a.source === "admin" ? "Lançado no painel" : "Site"}</dd></div>
             <div><dt className="text-ink-muted">Pedido em</dt><dd>{formatDateTime(a.createdAt)}</dd></div>
           </dl>
@@ -574,7 +586,7 @@ export default function AgendaAdmin() {
                 {pending.map((a) => (
                   <li key={a.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium">{a.name} {a.vipCampaignId && <Badge tone="gold">VIP</Badge>}</p>
+                      <p className="font-medium">{a.name} {a.vipCampaignId && <Badge tone="gold">VIP</Badge>} {a.deposit && <DepositBadge d={a.deposit} />}</p>
                       <p className="text-sm text-ink-muted">{formatDayLong(a.date)}, {a.time} · {a.packageName} · {formatBRL(a.priceCents)}</p>
                     </div>
                     <StatusBadge status={a.status} />
@@ -632,4 +644,12 @@ export default function AgendaAdmin() {
       {creating && <NewAppointmentModal cfg={cfg} packages={packages} onClose={() => setCreating(false)} onSaved={() => { setCreating(false); reloadAll(); }} />}
     </>
   );
+}
+
+const PROVIDER_NAME = { pix: "Pix", mercadopago: "Mercado Pago", infinitepay: "InfinitePay" };
+function DepositBadge({ d }) {
+  const via = PROVIDER_NAME[d.provider] ? ` · ${PROVIDER_NAME[d.provider]}` : "";
+  if (d.status === "paid") return <Badge tone="success">Sinal pago{via}</Badge>;
+  if (d.status === "review") return <Badge tone="warning">Sinal a conferir{via}</Badge>;
+  return <Badge tone="muted">Sinal pendente{via}</Badge>;
 }

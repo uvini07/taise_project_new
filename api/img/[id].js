@@ -59,7 +59,7 @@ export default async function handler(req, res) {
 
     const user = await userFrom(req);
     if (!user) return res.status(401).json({ error: "Entre na sua conta." });
-    const { slug } = await studioOfUser(user.uid, user.email);
+    const slug = (await studioOfUser(user.uid, user.email))?.slug;
     if (!slug) return res.status(403).json({ error: "Conta sem estúdio." });
 
     if (req.method === "POST" && id === "upload") {

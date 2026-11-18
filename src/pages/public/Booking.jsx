@@ -7,6 +7,7 @@ import PageLoader from "../../components/common/PageLoader.jsx";
 import Spinner from "../../components/common/Spinner.jsx";
 import { Checkbox, TextArea, TextField } from "../../components/common/Fields.jsx";
 import { EmptyState, ErrorState } from "../../components/common/States.jsx";
+import PayDeposit from "../../components/booking/PayDeposit.jsx";
 import WhatsAppLink from "../../components/common/WhatsAppLink.jsx";
 import { WhatsAppIcon } from "../../components/common/Icons.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
@@ -160,6 +161,20 @@ export default function Booking() {
     );
   }
 
+  const backFromPay = params.get("pagamento");
+  if (backFromPay && !done) {
+    return (
+      <section className="container-x flex min-h-[60vh] items-center justify-center py-16">
+        <div className="w-full max-w-md text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-wine-900 text-cream"><Check className="h-8 w-8" /></div>
+          <h1 className="display-md mt-6">Obrigado!</h1>
+          <p className="mt-3 text-ink-muted">Assim que o pagamento do sinal for aprovado, a fotógrafa recebe o aviso e confirma o seu horário pelo WhatsApp.</p>
+          <Link to={sitePath("/")} className="btn-primary mt-8">Voltar ao início</Link>
+        </div>
+      </section>
+    );
+  }
+
   if (done) {
     return (
       <section className="container-x flex min-h-[70vh] items-center justify-center py-16">
@@ -173,6 +188,7 @@ export default function Booking() {
             <div className="flex justify-between gap-4"><dt className="text-ink-muted">Valor</dt><dd className="text-right font-medium">{formatBRL(done.priceCents)}</dd></div>
             <div className="flex justify-between gap-4"><dt className="text-ink-muted">Código</dt><dd className="font-mono font-medium tracking-wider">{done.code}</dd></div>
           </dl>
+          <PayDeposit apptId={done.id} payments={settings.payments} />
           <WhatsAppLink number={settings.contact.bookingWhatsapp || settings.contact.whatsapp} message={waMessages.booking(done)} context="agenda-enviado" className="btn-primary mt-8 w-full py-3.5">
             <WhatsAppIcon className="h-4 w-4" /> Avisar pelo WhatsApp
           </WhatsAppLink>
@@ -292,7 +308,9 @@ export default function Booking() {
                   <button type="submit" className="btn-primary w-full py-3.5 sm:w-auto" disabled={sending}>
                     {sending ? <Spinner className="h-4 w-4" /> : <CalendarCheck className="h-4 w-4" />} Enviar pedido de agendamento
                   </button>
-                  <p className="text-xs text-ink-muted">Não há pagamento pelo site. A confirmação e a forma de pagamento são combinadas pelo WhatsApp.</p>
+                  <p className="text-xs text-ink-muted">{settings.payments?.provider && settings.payments.provider !== "none"
+                    ? `Depois de enviar, você pode pagar o sinal (${Number(settings.payments.depositPercent) || 30}%) aqui mesmo. O valor vai direto para a fotógrafa.`
+                    : "Não há pagamento pelo site. A confirmação e a forma de pagamento são combinadas pelo WhatsApp."}</p>
                 </form>
               )}
             </div>
