@@ -184,11 +184,21 @@ function blobToBase64(blob) {
   });
 }
 
-/** Grava um arquivo em imageBlobs e devolve { path, url }. */
+/** Guarda a imagem no Cloudflare R2 (pela API do site) e devolve { path, url }.
+ *  Se o R2 falhar, cai no jeito antigo (Firestore imageBlobs) para não travar o envio. */
 export async function uploadBlob(folder, blob, onProgress) {
-  const ref = doc(collection(db, "imageBlobs"));
   onProgress?.(0.1);
   const data = await blobToBase64(blob);
+  try {
+    const token = await auth.currentUser?.getIdToken();
+    const r = await fetch("/api/img/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      body: JSON.stringify({ data, contentType: blob.type, folder }),
+    });
+    if (r.ok) { const j = await r.json(); onProgress?.(1); return { path: j.path, url: j.url }; }
+  } catch { /* usa o Firestore abaixo */ }
+  const ref = doc(collection(db, "imageBlobs"));
   await setDoc(ref, { data, contentType: blob.type, size: blob.size, folder, createdAt: serverTimestamp(), owner: auth.currentUser?.uid || "" });
   onProgress?.(1);
   return { path: `imageBlobs/${ref.id}`, url: `/api/img/${ref.id}` };
@@ -215,6 +225,12 @@ export async function uploadImage(file, folder, { onProgress, thumb = true, maxE
 
 /** Apaga arquivos enviados (aceita caminhos imageBlobs/{id}; ignora outros). */
 export async function deleteStoragePaths(paths) {
-  await Promise.all((paths || []).filter((p) => typeof p === "string" && p.startsWith("imageBlobs/")).map((p) =>
-    deleteDoc(doc(db, p)).catch((e) => console.warn("Falha ao apagar", p, e))));
+  const list = (paths || []).filter((p) => typeof p === "string" && p.startsWith("imageBlobs/"));
+  if (!list.length) return;
+  const token = await auth.currentUser?.getIdToken().catch(() => null);
+  await Promise.all(list.map(async (p) => {
+    // A mesma imagem pode estar no R2 (nova ou já migrada) e no Firestore (antiga): apaga dos dois.
+    await fetch(`/api/img/${p.slice("imageBlobs/".length)}`, { method: "DELETE", headers: token ? { Authorization: `Bearer ${token}` } : {} }).catch(() => {});
+    await deleteDoc(doc(db, p)).catch(() => {});
+  }));
 }
