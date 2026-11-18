@@ -1,6 +1,7 @@
 // Editor do site, no estilo Shopify/Wix: painel de edição à esquerda e o site
 // de verdade à direita (iframe), que muda na hora. Clicar numa parte do site
 // abre o campo dela aqui. Nada vai para o ar até clicar em "Salvar".
+import FontPicker from "../../components/admin/FontPicker.jsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
@@ -213,13 +214,12 @@ export default function SiteEditor() {
     ),
     fontes: (
       <>
-        <SelectField label="Fonte dos títulos" value={form.fonts?.display} onChange={(e) => setForm((f) => ({ ...f, fonts: { ...f.fonts, display: e.target.value } }))}>
-          {DISPLAY_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label} — {f.mood}</option>)}
-        </SelectField>
-        <p className="rounded-xl bg-paper px-4 py-3 text-2xl" style={{ fontFamily: `"${form.fonts?.display}"` }}>{form.hero?.title || "Momentos que merecem ser lembrados"}</p>
-        <SelectField label="Fonte dos textos e menus" value={form.fonts?.body} onChange={(e) => setForm((f) => ({ ...f, fonts: { ...f.fonts, body: e.target.value } }))}>
-          {BODY_FONTS.map((f) => <option key={f.id} value={f.id}>{f.label}</option>)}
-        </SelectField>
+        <p className="field-label">Fonte dos títulos</p>
+        <FontPicker kind="display" fonts={DISPLAY_FONTS} value={form.fonts?.display} featured={4} columns="grid-cols-2"
+          onChange={(id) => setForm((f) => ({ ...f, fonts: { ...f.fonts, display: id } }))} />
+        <p className="field-label mt-2">Fonte dos textos e menus</p>
+        <FontPicker kind="body" fonts={BODY_FONTS} value={form.fonts?.body} featured={4} columns="grid-cols-2"
+          onChange={(id) => setForm((f) => ({ ...f, fonts: { ...f.fonts, body: id } }))} />
       </>
     ),
     identidade: (

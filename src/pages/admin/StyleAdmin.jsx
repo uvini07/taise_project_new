@@ -1,3 +1,4 @@
+import FontPicker from "../../components/admin/FontPicker.jsx";
 import { useEffect, useState } from "react";
 import { Check, ExternalLink, PlayCircle, Save } from "lucide-react";
 import { AdminHeader, Section } from "../../components/admin/AdminUI.jsx";
@@ -281,32 +282,9 @@ export default function StyleAdmin() {
 
         <Section title="2. Fontes" text="Uma fonte para os títulos e outra para os textos e menus. A mudança aparece aqui na hora como prévia.">
           <p className="mb-3 text-sm font-medium">Títulos</p>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {DISPLAY_FONTS.map((f) => {
-              const on = form.fonts.display === f.id;
-              return (
-                <button key={f.id} type="button" onClick={() => setFont("display", f.id)} aria-pressed={on}
-                  className={`rounded-2xl border bg-surface px-4 py-4 text-left transition ${on ? "border-wine-900 ring-4 ring-wine-900/10" : "border-ink/10 hover:border-ink/25"}`}>
-                  <span className="block text-3xl leading-none text-ink" style={{ fontFamily: `"${f.id}"` }}>Aa</span>
-                  <span className="mt-3 block text-sm font-medium">{f.label}</span>
-                  <span className="block text-xs text-ink-muted">{f.mood}</span>
-                </button>
-              );
-            })}
-          </div>
+          <FontPicker kind="display" fonts={DISPLAY_FONTS} value={form.fonts.display} onChange={(id) => setFont("display", id)} columns="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6" />
           <p className="mb-3 mt-6 text-sm font-medium">Textos e menus</p>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-            {BODY_FONTS.map((f) => {
-              const on = form.fonts.body === f.id;
-              return (
-                <button key={f.id} type="button" onClick={() => setFont("body", f.id)} aria-pressed={on}
-                  className={`rounded-2xl border bg-surface px-4 py-3 text-left transition ${on ? "border-wine-900 ring-4 ring-wine-900/10" : "border-ink/10 hover:border-ink/25"}`}>
-                  <span className="block text-lg text-ink" style={{ fontFamily: `"${f.id}"` }}>Agende já</span>
-                  <span className="block text-xs text-ink-muted">{f.label}</span>
-                </button>
-              );
-            })}
-          </div>
+          <FontPicker kind="body" fonts={BODY_FONTS} value={form.fonts.body} onChange={(id) => setFont("body", id)} columns="grid-cols-2 sm:grid-cols-3 lg:grid-cols-6" />
           <div className="mt-6 rounded-2xl border border-ink/10 bg-paper p-6">
             <p className="eyebrow">Prévia</p>
             <p className="display-md mt-2">{form.hero?.title || "Momentos que merecem ser lembrados"}</p>
