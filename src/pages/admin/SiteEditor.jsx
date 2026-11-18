@@ -1,6 +1,7 @@
 // Editor do site, no estilo Shopify/Wix: painel de edição à esquerda e o site
 // de verdade à direita (iframe), que muda na hora. Clicar numa parte do site
 // abre o campo dela aqui. Nada vai para o ar até clicar em "Salvar".
+import { TutorialButton } from "../../components/admin/Tutorial.jsx";
 import FontPicker from "../../components/admin/FontPicker.jsx";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -320,6 +321,7 @@ export default function SiteEditor() {
           </button>
         </div>
         <div className="ml-auto flex items-center gap-2 lg:ml-0">
+          <TutorialButton tkey="editor" className="btn-ghost btn-sm hidden sm:inline-flex" />
           <a href={site} target="_blank" rel="noopener noreferrer" className="btn-ghost btn-sm hidden sm:inline-flex"><ExternalLink className="h-4 w-4" /> Abrir site</a>
           <button type="button" className="btn-primary btn-sm" onClick={save} disabled={saving || !dirty}>
             {saving ? <Spinner className="h-4 w-4" /> : dirty ? <Save className="h-4 w-4" /> : <Check className="h-4 w-4" />} {dirty ? "Salvar alterações" : "Tudo salvo"}

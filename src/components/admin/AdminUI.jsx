@@ -1,3 +1,4 @@
+import { TutorialButton } from "./Tutorial.jsx";
 import { useRef, useState } from "react";
 import { ImagePlus, Plus, Trash2, X } from "lucide-react";
 import Spinner from "../common/Spinner.jsx";
@@ -10,7 +11,7 @@ export function AdminHeader({ title, text, actions }) {
         <h1 className="font-display text-4xl">{title}</h1>
         {text && <p className="mt-1.5 max-w-2xl text-sm text-ink-muted">{text}</p>}
       </div>
-      {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
+      <div className="flex flex-wrap gap-2"><TutorialButton />{actions}</div>
     </div>
   );
 }

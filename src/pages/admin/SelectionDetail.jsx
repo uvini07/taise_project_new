@@ -5,6 +5,7 @@ import {
 } from "lucide-react";
 import { StatCard } from "../../components/admin/AdminUI.jsx";
 import { ActivityLog, ClientEditor, ClientLink, ReleasedModal, DemoBanner, DropZone, ProgressBar } from "../../components/admin/ClientPagesUI.jsx";
+import { TutorialButton } from "../../components/admin/Tutorial.jsx";
 import CoverPicker from "../../components/admin/CoverPicker.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import PageLoader from "../../components/common/PageLoader.jsx";
@@ -178,7 +179,10 @@ export default function SelectionDetail() {
     <>
       {confirmUI}
       <ReleasedModal open={released} onClose={() => setReleased(false)} kind="selection" item={s} password={pass} />
-      <Link to="/adm/selecao" className="mb-4 inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink"><ArrowLeft className="h-4 w-4" /> Seleções</Link>
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <Link to="/adm/selecao" className="inline-flex items-center gap-1.5 text-sm text-ink-muted hover:text-ink"><ArrowLeft className="h-4 w-4" /> Seleções</Link>
+        <TutorialButton />
+      </div>
 
       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
