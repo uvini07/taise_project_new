@@ -5,7 +5,8 @@ export const LEGAL_INFO = {
   company: "[RAZÃO SOCIAL OU NOME COMPLETO]",
   doc: "[CNPJ OU CPF]",
   address: "[ENDEREÇO COMPLETO]",
-  email: "[E-MAIL DE CONTATO]",
+  email: "revelaphotography@gmail.com",
+  phone: "(11) 97181-3986",
   city: "[CIDADE/UF DO FORO]",
   updated: "18 de novembro de 2026",
 };
@@ -56,7 +57,7 @@ export const TERMS = {
     ["10. Alterações e foro", [
       "Podemos atualizar estes Termos. Mudanças importantes serão avisadas por e-mail ou no painel com antecedência.",
       `Estes Termos seguem as leis do Brasil. Fica eleito o foro da comarca de ${I.city}, ressalvado o direito do consumidor de escolher o foro do seu domicílio.`,
-      `Dúvidas: ${I.email}.`,
+      `Dúvidas: ${I.email} ou WhatsApp ${I.phone}.`,
     ]],
   ],
 };
@@ -94,13 +95,13 @@ export const PRIVACY = {
     ]],
     ["7. Seus direitos", [
       "Você pode pedir: confirmação de que tratamos seus dados, acesso, correção, anonimização ou exclusão, portabilidade, informação sobre compartilhamento e revogação do consentimento.",
-      `Fotógrafas podem pedir pelo e-mail ${I.email}. Clientes de uma fotógrafa devem falar primeiro com ela, que é a responsável pelos seus dados; podemos ajudá-la a atender o pedido.`,
+      `Fotógrafas podem pedir pelo e-mail ${I.email} ou pelo WhatsApp ${I.phone}. Clientes de uma fotógrafa devem falar primeiro com ela, que é a responsável pelos seus dados; podemos ajudá-la a atender o pedido.`,
     ]],
     ["8. Cookies e armazenamento local", [
       "Usamos o armazenamento do navegador apenas para o funcionamento do serviço, como manter você conectada, lembrar preferências e saber quais tutoriais você já viu. Não usamos cookies de publicidade.",
     ]],
     ["9. Contato e atualizações", [
-      `Encarregado de dados (DPO): ${I.company}, ${I.email}.`,
+      `Encarregado de dados (DPO): ${I.company}, ${I.email}, WhatsApp ${I.phone}.`,
       "Podemos atualizar esta Política. A data da última versão fica no topo desta página.",
     ]],
   ],
