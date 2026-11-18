@@ -45,6 +45,7 @@ export default function RevelaSignup() {
   const [errors, setErrors] = useState({});
   const [busy, setBusy] = useState(false);
   const [submitErr, setSubmitErr] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [taken, setTaken] = useState(null); // null = conferindo
   const navigate = useNavigate();
 
@@ -224,6 +225,10 @@ export default function RevelaSignup() {
                       Você usa a Revela de graça por {TRIAL_DAYS} dias, com todas as ferramentas. Nenhum cartão é pedido agora.
                     </p>
                   )}
+                  <label className="mt-5 flex items-start gap-3 text-[14px] leading-relaxed text-rv-ameixa">
+                    <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-[#2B2540]" />
+                    <span>Li e aceito os <Link to="/termos" target="_blank" className="rv-link font-medium">Termos de uso</Link> e a <Link to="/privacidade" target="_blank" className="rv-link font-medium">Política de privacidade</Link>.</span>
+                  </label>
                   {submitErr && <p role="alert" className="mt-4 rounded-2xl bg-rv-rosa/10 px-4 py-3 text-[14px] text-rv-ameixa">{submitErr}</p>}
                 </div>
               )}
@@ -236,7 +241,7 @@ export default function RevelaSignup() {
                 : <span className="hidden sm:block" />}
               {step < STEPS.length - 1
                 ? <button type="button" onClick={next} className="rv-btn rv-btn-primary w-full justify-center sm:w-auto">Continuar<ArrowRight className="h-4 w-4" aria-hidden /></button>
-                : <button type="button" className="rv-btn rv-btn-primary w-full justify-center sm:w-auto" onClick={startTrial} disabled={!SIGNUP_OPEN || busy}>
+                : <button type="button" className="rv-btn rv-btn-primary w-full justify-center sm:w-auto" onClick={startTrial} disabled={!SIGNUP_OPEN || busy || !agreed}>
                     {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <span className="rv-btn-dot" aria-hidden />}
                     {busy ? "Criando seu estúdio…" : `Usar teste de ${TRIAL_DAYS} dias`}
                   </button>}

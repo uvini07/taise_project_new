@@ -9,6 +9,8 @@ import { LEGACY_SITE_ROOTS, RESERVED_SLUGS, legacyRedirect, setCurrentStudio } f
 // Revela (raiz do domínio): página inicial, planos, entrar e cadastro.
 const RevelaHome = lazy(() => import("./revela/pages/RevelaHome.jsx"));
 const RevelaPlans = lazy(() => import("./revela/pages/RevelaPlans.jsx"));
+const RevelaTerms = lazy(() => import("./revela/pages/RevelaLegal.jsx").then((m) => ({ default: m.RevelaTerms })));
+const RevelaPrivacy = lazy(() => import("./revela/pages/RevelaLegal.jsx").then((m) => ({ default: m.RevelaPrivacy })));
 const RevelaTools = lazy(() => import("./revela/pages/RevelaTools.jsx"));
 const RevelaLogin = lazy(() => import("./revela/pages/RevelaLogin.jsx"));
 const RevelaSignup = lazy(() => import("./revela/pages/RevelaSignup.jsx"));
@@ -88,6 +90,8 @@ export default function App() {
           <Routes>
             <Route path="/" element={revela(RevelaHome)} />
             <Route path="/planos" element={revela(RevelaPlans)} />
+            <Route path="/termos" element={revela(RevelaTerms)} />
+            <Route path="/privacidade" element={revela(RevelaPrivacy)} />
             <Route path="/ferramentas" element={revela(RevelaTools)} />
             <Route path="/entrar" element={revela(RevelaLogin)} />
             <Route path="/cadastro" element={revela(RevelaSignup)} />

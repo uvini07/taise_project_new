@@ -41,7 +41,7 @@ export default function Footer() {
       <div className="border-t border-white/10">
         <div className="rv-wrap flex flex-col gap-2 py-6 text-[13px] text-rv-lavanda/60 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Revela</p>
-          <p>Fotografias: StockSnap (CC0)</p>
+          <p className="flex flex-wrap gap-x-4 gap-y-1"><Link to="/termos" className="hover:text-white">Termos de uso</Link><Link to="/privacidade" className="hover:text-white">Privacidade</Link><span>Fotografias: StockSnap (CC0)</span></p>
         </div>
       </div>
     </footer>
