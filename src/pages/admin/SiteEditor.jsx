@@ -233,6 +233,12 @@ export default function SiteEditor() {
         <ImageInput label="Logo (para fundo escuro, opcional)" aspect="aspect-[16/7]" value={form.logoLightUrl} hint="Usada sobre fotos e nos modelos escuros, como o Cinema."
           onUpload={async (file, p) => { const img = await up("logo-light")(file, p, { thumb: false, maxEdge: 1200 }); setForm((f) => ({ ...f, logoLightUrl: img.url, logoLightPath: img.path })); }}
           onRemove={() => setForm((f) => ({ ...f, logoLightUrl: "", logoLightPath: "" }))} />
+        <SelectField label="Qual logo usar no site" value={form.logoMode || "auto"} onChange={(e) => setForm((f) => ({ ...f, logoMode: e.target.value }))}
+          hint="No automático, a versão clara entra sobre fotos e quando o fundo do site é escuro.">
+          <option value="auto">Automático (pelo fundo)</option>
+          <option value="dark" disabled={!form.logoUrl}>Sempre a logo para fundo claro</option>
+          <option value="light" disabled={!form.logoLightUrl}>Sempre a logo para fundo escuro</option>
+        </SelectField>
       </>
     ),
     topo: (

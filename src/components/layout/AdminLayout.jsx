@@ -130,7 +130,7 @@ function TrialBanner() {
 function AdminBrand({ compact = false }) {
   const { settings } = useSettings();
   if (isLegacyStudio() || settings.logoUrl) {
-    return <Link to="/adm/dashboard" className={compact ? "" : "mb-5 block px-2"}><Logo className={compact ? "h-10 w-auto" : "h-14 w-auto"} eager /></Link>;
+    return <Link to="/adm/dashboard" className={compact ? "" : "mb-5 block px-2"}><Logo className={compact ? "h-10 w-auto" : "h-14 w-auto"} eager followSiteChoice={false} /></Link>;
   }
   return (
     <Link to="/adm/editor?painel=identidade"
