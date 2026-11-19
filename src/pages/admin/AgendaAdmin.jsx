@@ -677,6 +677,9 @@ function PaymentBox({ a, pct, onSet }) {
         {p.state === "sinal" && <>Pago <strong>{formatBRL(p.paid)}</strong> de {formatBRL(total)} · <strong className="text-warning">faltam {formatBRL(p.rest)}</strong></>}
         {(p.state === "none" || p.state === "review") && <>Nada pago ainda · sinal de {perc}%: <strong>{formatBRL(depositCents)}</strong></>}
         {a.deposit?.note && <span className="mt-1 block text-xs text-ink-muted">{a.deposit.note}</span>}
+        <span className="mt-1 block text-xs text-ink-muted">{["infinitepay", "mercadopago"].includes(a.deposit?.provider)
+          ? "Pago pelo site: atualiza sozinho quando a cliente paga."
+          : "Pix na sua chave, dinheiro ou transferência: marque abaixo quando receber."}</span>
       </dd>
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         <span className="mr-1 text-xs text-ink-muted">Marcar:</span>

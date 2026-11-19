@@ -92,6 +92,23 @@ export default function PaymentsAdmin() {
         })}
       </div>
 
+      {(() => {
+        const auto = f.provider === "infinitepay" || f.provider === "mercadopago";
+        return (
+          <div className={`mt-6 flex items-start gap-3 rounded-2xl p-4 text-sm ${auto ? "bg-success/10" : "bg-gold/10"}`}>
+            {auto ? <Zap className="mt-0.5 h-5 w-5 shrink-0 text-success" /> : <Wallet className="mt-0.5 h-5 w-5 shrink-0 text-gold-dark" />}
+            <div>
+              <p className="font-medium text-ink">{auto ? "Sua agenda se organiza sozinha" : "Você controla os pagamentos na Agenda"}</p>
+              <p className="mt-1 text-ink-soft">{auto
+                ? "Quando a cliente paga, o pedido na Agenda muda sozinho para “Sinal pago” ou “Quitado”, com o valor que falta. Você não precisa conferir nem marcar nada."
+                : f.provider === "pix"
+                  ? "Com o Pix na sua chave, o dinheiro cai direto na sua conta, mas o site não fica sabendo. Confira no seu banco e, na Agenda, abra o pedido e marque “Sinal pago” ou “Quitado”."
+                  : "Sem pagamento pelo site, vocês combinam o pagamento pelo WhatsApp. Quando a cliente pagar, abra o pedido na Agenda e marque “Sinal pago” ou “Quitado” para saber quem já pagou."}</p>
+            </div>
+          </div>
+        );
+      })()}
+
       {f.provider !== "none" && (
         <div className="card mt-6 space-y-4 p-5">
           <Toggle label="Permitir pagar em partes (sinal + restante)" checked={f.allowPartial !== false}
