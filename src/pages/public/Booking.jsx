@@ -7,6 +7,7 @@ import PageLoader from "../../components/common/PageLoader.jsx";
 import Spinner from "../../components/common/Spinner.jsx";
 import { Checkbox, TextArea, TextField } from "../../components/common/Fields.jsx";
 import { EmptyState, ErrorState } from "../../components/common/States.jsx";
+import PaymentReturn from "../../components/booking/PaymentReturn.jsx";
 import PayDeposit from "../../components/booking/PayDeposit.jsx";
 import WhatsAppLink from "../../components/common/WhatsAppLink.jsx";
 import { WhatsAppIcon } from "../../components/common/Icons.jsx";
@@ -162,18 +163,7 @@ export default function Booking() {
   }
 
   const backFromPay = params.get("pagamento");
-  if (backFromPay && !done) {
-    return (
-      <section className="container-x flex min-h-[60vh] items-center justify-center py-16">
-        <div className="w-full max-w-md text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-wine-900 text-cream"><Check className="h-8 w-8" /></div>
-          <h1 className="display-md mt-6">Obrigado!</h1>
-          <p className="mt-3 text-ink-muted">Assim que o pagamento do sinal for aprovado, a fotógrafa recebe o aviso e confirma o seu horário pelo WhatsApp.</p>
-          <Link to={sitePath("/")} className="btn-primary mt-8">Voltar ao início</Link>
-        </div>
-      </section>
-    );
-  }
+  if (backFromPay && !done) return <PaymentReturn apptId={backFromPay} />;
 
   if (done) {
     return (

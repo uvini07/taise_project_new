@@ -22,6 +22,7 @@ const About = lazy(() => import("./pages/public/About.jsx"));
 const Packages = lazy(() => import("./pages/public/Packages.jsx"));
 const PackageDetail = lazy(() => import("./pages/public/PackageDetail.jsx"));
 const Gallery = lazy(() => import("./pages/public/Gallery.jsx"));
+function KeepQuery({ to }) { const { search } = useLocation(); return <Navigate to={`${to}${search}`} replace />; }
 const Booking = lazy(() => import("./pages/public/Booking.jsx"));
 const VIP = lazy(() => import("./pages/public/VIP.jsx"));
 const Contact = lazy(() => import("./pages/public/Contact.jsx"));
@@ -71,7 +72,7 @@ function StudioGate() {
         <Route path="galeria" element={<Gallery />} />
         <Route path="galeria/:slug" element={<Gallery />} />
         <Route path="agenda" element={<Booking />} />
-        <Route path="agendar" element={<Navigate to="../agenda" replace />} />
+        <Route path="agendar" element={<KeepQuery to="../agenda" />} />
         <Route path="vip" element={<VIP />} />
         <Route path="vip/:slug" element={<VIP />} />
         <Route path="contato" element={<Contact />} />

@@ -257,7 +257,7 @@ export default async function handler(req, res) {
           handle: String(cfg.infiniteTag).replace(/^[@$]/, ""),
           order_nsu: apptId,
           items: [{ quantity: 1, price: amountCents, description: desc }],
-          redirect_url: `${site()}/${studio}/agendar?pagamento=${apptId}`,
+          redirect_url: `${site()}/${studio}/agenda?pagamento=${apptId}`,
           webhook_url: `${site()}/api/pagamentos?provider=ip&studio=${studio}`,
           customer: { name: appt.name || undefined, email: appt.email || undefined, phone_number: appt.phone ? `+${appt.phone}` : undefined },
         }),
