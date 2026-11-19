@@ -37,8 +37,9 @@ async function fromFirestore(id) {
   return { type: doc.fields?.contentType?.stringValue || "image/webp", buf: Buffer.from(data, "base64") };
 }
 
-function send(res, img) {
+function send(res, img, source) {
   res.setHeader("Content-Type", img.type);
+  res.setHeader("X-Img-Source", source);
   res.setHeader("Cache-Control", "public, max-age=31536000, s-maxage=31536000, immutable");
   res.status(200).send(img.buf);
 }
@@ -49,12 +50,13 @@ export default async function handler(req, res) {
     if (req.method === "GET") {
       if (!okId(id)) return res.status(400).end("id inválido");
       const hit = await fromR2(id);
-      if (hit) return send(res, hit);
+      if (hit) return send(res, hit, "r2");
       const old = await fromFirestore(id);
       if (!old) return res.status(404).end("não encontrada");
       // Copia para o R2 (a próxima leitura já vem de lá). Falhou? Serve do mesmo jeito.
-      await r2().send(new PutObjectCommand({ Bucket: BUCKET, Key: key(id), Body: old.buf, ContentType: old.type, Metadata: { origem: "firestore" } })).catch(() => {});
-      return send(res, old);
+      const copied = await r2().send(new PutObjectCommand({ Bucket: BUCKET, Key: key(id), Body: old.buf, ContentType: old.type, Metadata: { origem: "firestore" } }))
+        .then(() => true, (e) => { console.error("img copia R2", e?.name || e?.message); return false; });
+      return send(res, old, copied ? "firestore-copiada" : "firestore");
     }
 
     const user = await userFrom(req);
