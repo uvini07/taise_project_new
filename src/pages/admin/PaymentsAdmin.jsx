@@ -77,12 +77,14 @@ export default function PaymentsAdmin() {
       <div className="grid gap-3 sm:grid-cols-2">
         {OPTIONS.map(({ id, title, text, Icon }) => {
           const on = f.provider === id;
+          // Mercado Pago: "Em breve" até a conexão automática estar configurada.
+          const soon = id === "mercadopago" && !mp.loading && !mp.oauth && !mp.connected;
           return (
-            <button key={id} type="button" onClick={() => setF((x) => ({ ...x, provider: id }))} aria-pressed={on}
-              className={`card flex items-start gap-3 p-4 text-left transition ${on ? "ring-2 ring-wine-900" : "hover:border-ink/30"}`}>
+            <button key={id} type="button" disabled={soon} onClick={() => setF((x) => ({ ...x, provider: id }))} aria-pressed={on}
+              className={`card flex items-start gap-3 p-4 text-left transition ${on ? "ring-2 ring-wine-900" : soon ? "cursor-not-allowed opacity-60" : "hover:border-ink/30"}`}>
               <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${on ? "bg-wine-900 text-cream" : "bg-surface text-ink-soft"}`}><Icon className="h-5 w-5" /></span>
               <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-2 font-medium">{title}{on && <Check className="h-4 w-4 text-wine-900" />}</span>
+                <span className="flex items-center gap-2 font-medium">{title}{on && <Check className="h-4 w-4 text-wine-900" />}{soon && <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[11px] font-medium text-gold-dark">Em breve</span>}</span>
                 <span className="mt-1 block text-sm text-ink-muted">{text}</span>
               </span>
             </button>

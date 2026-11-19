@@ -80,10 +80,10 @@ export const TUTORIALS = {
   recebimentos: {
     title: "Recebimentos",
     steps: [
-      { icon: QrCode, title: "Receba o sinal pelo site", text: "Escolha como o cliente paga o sinal ao agendar: Pix com a sua chave, Pix pelo Mercado Pago ou InfinitePay. O dinheiro vai direto para você.", ui: ["Pix", "Mercado Pago", "InfinitePay"] },
+      { icon: QrCode, title: "Receba o sinal pelo site", text: "Escolha como o cliente paga o sinal ao agendar: Pix com a sua chave ou InfinitePay (o Mercado Pago chega em breve). O dinheiro vai direto para você.", ui: ["Pix", "InfinitePay"] },
       { icon: Wallet, title: "Defina o sinal", text: "Escolha a porcentagem do valor do pacote que o cliente paga ao agendar (ex.: 30%).", ui: ["Sinal (%)"] },
-      { icon: KeyRound, title: "Conecte a sua conta", text: "No Mercado Pago, toque em “Conectar com Mercado Pago” e entre na sua conta. Na InfinitePay, basta a sua InfiniteTag. No Pix, a sua chave.", ui: ["Conectar com Mercado Pago"] },
-      { icon: Check, title: "Acompanhe na Agenda", text: "Cada pedido mostra se o sinal está pago. Mercado Pago e InfinitePay confirmam sozinhos.", ui: ["Sinal pago"] },
+      { icon: KeyRound, title: "Conecte a sua conta", text: "No Pix, basta a sua chave. Na InfinitePay, a sua InfiniteTag (o @ que aparece no app).", ui: ["Chave Pix", "InfiniteTag"] },
+      { icon: Check, title: "Acompanhe na Agenda", text: "Cada pedido mostra se o sinal está pago. A InfinitePay confirma sozinha; no Pix com a sua chave, você marca como pago.", ui: ["Sinal pago"] },
     ],
   },
   financeiro: {
