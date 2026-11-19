@@ -184,7 +184,11 @@ export default async function handler(req, res) {
     if (!apptSnap.exists) return res.status(404).json({ error: "Agendamento não encontrado." });
     const appt = apptSnap.data();
     const cfg = setSnap.data()?.payments || {};
-    const amountCents = depositOf(appt, cfg);
+    // Sinal (obrigatório, % do pacote) ou "quitar": o valor total de uma vez.
+    const totalCents = appt.priceCents || 0;
+    const mode = req.body.mode === "total" && totalCents > 0 ? "total" : "sinal";
+    const amountCents = mode === "total" ? totalCents : depositOf(appt, cfg);
+    const pending = (extra) => ({ deposit: { status: "pending", mode, amountCents, totalCents, ...extra } });
 
     if (action === "status") {
       let st = appt.deposit?.status || "none";
@@ -192,20 +196,21 @@ export default async function handler(req, res) {
       if (st === "pending" && appt.deposit?.provider === "mercadopago" && appt.deposit?.mpId) {
         const tok = await mpTokenOf(db, studio);
         const o = tok ? await mpGet(tok, `/v1/orders/${appt.deposit.mpId}`) : null;
-        if (orderPaid(o)) { await markPaid(ref, "mercadopago", { ref: String(o.id), amountCents }); st = "paid"; }
+        if (orderPaid(o)) { await markPaid(ref, "mercadopago", { ref: String(o.id), amountCents: appt.deposit.amountCents }); st = "paid"; }
       }
-      return res.status(200).json({ status: st });
+      return res.status(200).json({ status: st, mode: appt.deposit?.mode || "sinal", amountCents: appt.deposit?.amountCents || null, totalCents });
     }
 
     if (action !== "start") return res.status(400).json({ error: "Ação inválida." });
     if (["cancelled", "canceled", "rejected"].includes(appt.status)) return res.status(409).json({ error: "Este agendamento foi cancelado." });
-    if (appt.deposit?.status === "paid") return res.status(200).json({ status: "paid", amountCents });
-    const desc = `Sinal · ${appt.packageName || "Ensaio"} · ${appt.date || ""} ${appt.time || ""}`.slice(0, 120);
+    if (appt.deposit?.status === "paid") return res.status(200).json({ status: "paid", mode: appt.deposit.mode || "sinal", amountCents: appt.deposit.amountCents || null, totalCents });
+    const pct = Math.min(100, Math.max(1, Number(cfg.depositPercent) || 30));
+    const desc = `${mode === "total" ? "Pagamento total" : `Sinal (${pct}%)`} · ${appt.packageName || "Ensaio"} · ${appt.date || ""} ${appt.time || ""}`.slice(0, 120);
 
     if (cfg.provider === "pix") {
       if (!cfg.pixKey) return res.status(409).json({ error: "Pagamento pelo site indisponível." });
-      await ref.set({ deposit: { status: "pending", provider: "pix", amountCents } }, { merge: true });
-      return res.status(200).json({ provider: "pix", amountCents, pixKey: cfg.pixKey, pixName: cfg.pixName || "", pixCity: cfg.pixCity || "", txid: apptId.slice(0, 25) });
+      await ref.set(pending({ provider: "pix" }), { merge: true });
+      return res.status(200).json({ provider: "pix", mode, amountCents, totalCents, pixKey: cfg.pixKey, pixName: cfg.pixName || "", pixCity: cfg.pixCity || "", txid: apptId.slice(0, 25) });
     }
 
     if (cfg.provider === "mercadopago") {
@@ -216,8 +221,8 @@ export default async function handler(req, res) {
       const d = appt.deposit;
       if (d?.provider === "mercadopago" && d.mpId && d.amountCents === amountCents && d.qr) {
         const o = await mpGet(sec.mpToken, `/v1/orders/${d.mpId}`);
-        if (orderPaid(o)) { await markPaid(ref, "mercadopago", { ref: String(o.id), amountCents }); return res.status(200).json({ status: "paid", amountCents }); }
-        if (o && ["action_required", "created"].includes(o.status)) return res.status(200).json({ provider: "mercadopago", amountCents, qr: d.qr, qrBase64: orderPix(o).qr_code_base64 || null });
+        if (orderPaid(o)) { await markPaid(ref, "mercadopago", { ref: String(o.id), amountCents }); return res.status(200).json({ status: "paid", mode, amountCents, totalCents }); }
+        if (o && ["action_required", "created"].includes(o.status)) return res.status(200).json({ provider: "mercadopago", mode, amountCents, totalCents, qr: d.qr, qrBase64: orderPix(o).qr_code_base64 || null });
       }
       const r = await fetch(`${MP}/v1/orders`, {
         method: "POST",
@@ -238,8 +243,8 @@ export default async function handler(req, res) {
         console.error("mp order", r.status, JSON.stringify(o?.errors || o?.message || o).slice(0, 500));
         return res.status(502).json({ error: "Não foi possível gerar o Pix agora. Tente de novo em instantes." });
       }
-      await ref.set({ deposit: { status: "pending", provider: "mercadopago", amountCents, mpId: String(o.id), qr: pm.qr_code } }, { merge: true });
-      return res.status(200).json({ provider: "mercadopago", amountCents, qr: pm.qr_code, qrBase64: pm.qr_code_base64 || null });
+      await ref.set(pending({ provider: "mercadopago", mpId: String(o.id), qr: pm.qr_code }), { merge: true });
+      return res.status(200).json({ provider: "mercadopago", mode, amountCents, totalCents, qr: pm.qr_code, qrBase64: pm.qr_code_base64 || null });
     }
 
     if (cfg.provider === "infinitepay") {
@@ -260,8 +265,8 @@ export default async function handler(req, res) {
         console.error("ip link", r.status, j);
         return res.status(502).json({ error: "Não foi possível abrir o pagamento agora. Tente de novo em instantes." });
       }
-      await ref.set({ deposit: { status: "pending", provider: "infinitepay", amountCents } }, { merge: true });
-      return res.status(200).json({ provider: "infinitepay", amountCents, url: j.url });
+      await ref.set(pending({ provider: "infinitepay" }), { merge: true });
+      return res.status(200).json({ provider: "infinitepay", mode, amountCents, totalCents, url: j.url });
     }
 
     return res.status(409).json({ error: "Pagamento pelo site indisponível." });

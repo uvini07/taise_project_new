@@ -21,7 +21,7 @@ export const TUTORIALS = {
     steps: [
       { icon: CalendarDays, title: "Seus horários disponíveis", text: "Em Disponibilidade, marque os dias e horários em que você atende. O site só oferece ao cliente o que estiver livre.", ui: ["Disponibilidade", "Salvar"] },
       { icon: Check, title: "Confirme os pedidos", text: "Quando alguém agenda pelo site, o pedido aparece em “Aguardando sua resposta”. Confirme ou recuse com um toque. O horário fica reservado até você decidir.", ui: ["Confirmar", "Recusar"] },
-      { icon: QrCode, title: "Sinal pago", text: "Se você ativou Recebimentos, cada pedido mostra se o sinal foi pago. No Pix com a sua chave, use “Marcar como pago” quando o dinheiro cair.", ui: ["Sinal pago", "Marcar como pago"] },
+      { icon: QrCode, title: "Sinal e quitação", text: "Cada pedido mostra se está com o sinal pendente, sinal pago (e quanto falta) ou quitado. Pela InfinitePay a confirmação é automática; no Pix com a sua chave ou em dinheiro, abra o pedido e marque “Sinal pago” ou “Quitado”.", ui: ["Sinal pago", "Quitado"] },
       { icon: MessageCircle, title: "Fale com o cliente", text: "Abra um agendamento para ver os dados, remarcar, anotar detalhes e chamar o cliente no WhatsApp.", ui: ["WhatsApp", "Remarcar"] },
     ],
   },

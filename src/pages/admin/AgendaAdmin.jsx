@@ -19,7 +19,7 @@ import { useAsync } from "../../hooks/useAsync.js";
 import { APPOINTMENT_STATUS } from "../../config/constants.js";
 import {
   addAppointmentNote, changeAppointmentStatus, createManualAppointment, freeSlotsForAdmin, listAppointments,
-  deleteAppointment, listOpenRequests, rescheduleAppointment, saveAvailability, setDepositStatus, updateAppointmentDetails,
+  deleteAppointment, listOpenRequests, rescheduleAppointment, saveAvailability, setPaymentState, updateAppointmentDetails,
 } from "../../services/admin/agendaAdmin.js";
 import { fetchTakenLocks, getAvailability } from "../../services/agendaService.js";
 import { listAllPackages } from "../../services/admin/packagesAdmin.js";
@@ -90,6 +90,7 @@ function AppointmentActions({ a, change, busy, onOpen }) {
 
 function AppointmentModal({ a, cfg, onClose, onChanged, change }) {
   const toast = useToast();
+  const { settings: siteSettings } = useSettings();
   const [confirmDelUI, confirmDel] = useConfirm();
   const [tab, setTab] = useState("info");
   const [note, setNote] = useState("");
@@ -134,18 +135,10 @@ function AppointmentModal({ a, cfg, onClose, onChanged, change }) {
           <dl className="grid gap-3 rounded-2xl bg-paper p-4 text-sm sm:grid-cols-2">
             <div><dt className="text-ink-muted">Pacote</dt><dd>{a.packageName || "—"} {a.lotName && `· ${a.lotName}`}</dd></div>
             <div><dt className="text-ink-muted">Valor combinado</dt><dd>{formatBRL(a.priceCents)}</dd></div>
-            {a.deposit && (
-              <div className="sm:col-span-2">
-                <dt className="text-ink-muted">Sinal{a.deposit.amountCents ? ` (${formatBRL(a.deposit.amountCents)})` : ""}</dt>
-                <dd className="mt-1 flex flex-wrap items-center gap-2">
-                  <DepositBadge d={a.deposit} />
-                  {a.deposit.note && <span className="text-xs text-ink-muted">{a.deposit.note}</span>}
-                  {a.deposit.status !== "paid"
-                    ? <button type="button" className="btn-ghost btn-sm" onClick={() => run(() => setDepositStatus(a.id, "paid"), "Sinal marcado como pago.")}>Marcar como pago</button>
-                    : <button type="button" className="btn-ghost btn-sm" onClick={() => run(() => setDepositStatus(a.id, "pending"), "Sinal voltou para pendente.")}>Desfazer</button>}
-                </dd>
-              </div>
-            )}
+            <div className="sm:col-span-2">
+              <PaymentBox a={a} pct={siteSettings.payments?.depositPercent}
+                onSet={(state, opts, msg) => run(() => setPaymentState(a.id, state, opts), msg)} />
+            </div>
             <div><dt className="text-ink-muted">Origem</dt><dd>{a.source === "admin" ? "Lançado no painel" : "Site"}</dd></div>
             <div><dt className="text-ink-muted">Pedido em</dt><dd>{formatDateTime(a.createdAt)}</dd></div>
           </dl>
@@ -586,7 +579,7 @@ export default function AgendaAdmin() {
                 {pending.map((a) => (
                   <li key={a.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium">{a.name} {a.vipCampaignId && <Badge tone="gold">VIP</Badge>} {a.deposit && <DepositBadge d={a.deposit} />}</p>
+                      <p className="font-medium">{a.name} {a.vipCampaignId && <Badge tone="gold">VIP</Badge>} <DepositBadge d={a.deposit} total={a.priceCents} /></p>
                       <p className="text-sm text-ink-muted">{formatDayLong(a.date)}, {a.time} · {a.packageName} · {formatBRL(a.priceCents)}</p>
                     </div>
                     <StatusBadge status={a.status} />
@@ -628,7 +621,7 @@ export default function AgendaAdmin() {
                               <td className="whitespace-nowrap tabular-nums">{formatDayBR(a.date)}<br /><span className="text-ink-muted">{a.time}</span></td>
                               <td><p className="font-medium">{a.name}</p><p className="text-xs text-ink-muted">{formatPhoneBR(a.phone)}</p></td>
                               <td className="text-sm">{a.packageName || "—"}<br /><span className="text-xs text-ink-muted">{a.lotName}</span></td>
-                              <td className="whitespace-nowrap tabular-nums">{formatBRL(a.priceCents)}</td>
+                              <td className="whitespace-nowrap tabular-nums">{formatBRL(a.priceCents)} <span className="ml-1 inline-block align-middle"><DepositBadge d={a.deposit} total={a.priceCents} /></span></td>
                               <td><StatusBadge status={a.status} /></td>
                               <td><div className="flex justify-end"><AppointmentActions a={a} change={change} busy={busy} onOpen={setOpen} /></div></td>
                             </tr>
@@ -647,9 +640,50 @@ export default function AgendaAdmin() {
 }
 
 const PROVIDER_NAME = { pix: "Pix", mercadopago: "Mercado Pago", infinitepay: "InfinitePay" };
-function DepositBadge({ d }) {
-  const via = PROVIDER_NAME[d.provider] ? ` · ${PROVIDER_NAME[d.provider]}` : "";
-  if (d.status === "paid") return <Badge tone="success">Sinal pago{via}</Badge>;
-  if (d.status === "review") return <Badge tone="warning">Sinal a conferir{via}</Badge>;
-  return <Badge tone="muted">Sinal pendente{via}</Badge>;
+/** Quanto já foi pago deste ensaio: nada, sinal ou quitado. */
+function paymentOf(d, total) {
+  if (!d || d.status !== "paid") return { state: d?.status === "review" ? "review" : "none", paid: 0, rest: total || 0 };
+  const paid = d.amountCents || 0;
+  const full = d.mode === "total" || (total && paid >= total);
+  return { state: full ? "total" : "sinal", paid, rest: full ? 0 : Math.max(0, (total || 0) - paid) };
+}
+function DepositBadge({ d, total }) {
+  const via = d && PROVIDER_NAME[d.provider] ? ` · ${PROVIDER_NAME[d.provider]}` : "";
+  const p = paymentOf(d, total);
+  if (p.state === "total") return <Badge tone="success">Quitado{via}</Badge>;
+  if (p.state === "sinal") return <Badge tone="success">Sinal pago{via}</Badge>;
+  if (p.state === "review") return <Badge tone="warning">Pagamento a conferir{via}</Badge>;
+  return <Badge tone="muted">Sinal pendente</Badge>;
+}
+/** Pagamento do ensaio: mostra o que foi pago e deixa marcar à mão (Pix próprio, dinheiro…). */
+function PaymentBox({ a, pct, onSet }) {
+  const total = a.priceCents || 0;
+  const p = paymentOf(a.deposit, total);
+  const perc = Math.min(100, Math.max(1, Number(pct) || 30));
+  const depositCents = Math.max(100, Math.round((total * perc) / 100));
+  const opt = (state, label, msg) => (
+    <button type="button" aria-pressed={p.state === state}
+      onClick={() => onSet(state, { depositCents, totalCents: total }, msg)}
+      className={`rounded-full border px-3 py-1.5 text-xs ${p.state === state ? "border-wine-900 bg-wine-900 text-cream" : "border-ink/15 text-ink-soft hover:border-ink/30"}`}>{label}</button>
+  );
+  return (
+    <div className="rounded-xl border border-ink/10 bg-surface p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <dt className="text-ink-muted">Pagamento</dt>
+        <DepositBadge d={a.deposit} total={total} />
+      </div>
+      <dd className="mt-2 text-sm">
+        {p.state === "total" && <>Quitado: <strong>{formatBRL(p.paid || total)}</strong></>}
+        {p.state === "sinal" && <>Pago <strong>{formatBRL(p.paid)}</strong> de {formatBRL(total)} · <strong className="text-warning">faltam {formatBRL(p.rest)}</strong></>}
+        {(p.state === "none" || p.state === "review") && <>Nada pago ainda · sinal de {perc}%: <strong>{formatBRL(depositCents)}</strong></>}
+        {a.deposit?.note && <span className="mt-1 block text-xs text-ink-muted">{a.deposit.note}</span>}
+      </dd>
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        <span className="mr-1 text-xs text-ink-muted">Marcar:</span>
+        {opt("none", "Nada pago", "Pagamento marcado como pendente.")}
+        {opt("sinal", `Sinal pago (${formatBRL(depositCents)})`, "Sinal marcado como pago.")}
+        {opt("total", `Quitado (${formatBRL(total)})`, "Ensaio marcado como quitado.")}
+      </div>
+    </div>
+  );
 }

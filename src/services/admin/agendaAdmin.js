@@ -127,16 +127,21 @@ export async function addAppointmentNote(id, note) {
   });
 }
 
-/** Sinal pago/pendente (Pix manual ou correção de um aviso automático). */
-export async function setDepositStatus(id, status) {
-  await updateDoc(sDoc("appointments", id), {
-    "deposit.status": status,
-    "deposit.paidAt": status === "paid" ? serverTimestamp() : null,
-    "deposit.confirmedBy": status === "paid" ? "painel" : null,
-    updatedAt: serverTimestamp(),
-    history: arrayUnion(historyEntry("edit", { fields: ["deposit"] })),
-  });
-  audit("appointment.deposit", "appointments", id, { status });
+/** Pagamento do ensaio marcado à mão: "none" (nada pago), "sinal" ou "total" (quitado). */
+export async function setPaymentState(id, state, { depositCents = null, totalCents = null } = {}) {
+  const ref = sDoc("appointments", id);
+  const patch = state === "none"
+    ? { "deposit.status": "pending", "deposit.mode": null, "deposit.amountCents": null, "deposit.paidAt": null }
+    : {
+      "deposit.status": "paid",
+      "deposit.mode": state,
+      "deposit.amountCents": state === "total" ? totalCents : depositCents,
+      "deposit.totalCents": totalCents,
+      "deposit.paidAt": serverTimestamp(),
+      "deposit.confirmedBy": "painel",
+    };
+  await updateDoc(ref, { ...patch, updatedAt: serverTimestamp(), history: arrayUnion(historyEntry("edit", { fields: ["deposit"], payment: state })) });
+  audit("appointment.payment", "appointments", id, { state });
 }
 
 export async function updateAppointmentDetails(id, patch) {

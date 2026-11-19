@@ -188,7 +188,7 @@ export default function Booking() {
             <div className="flex justify-between gap-4"><dt className="text-ink-muted">Valor</dt><dd className="text-right font-medium">{formatBRL(done.priceCents)}</dd></div>
             <div className="flex justify-between gap-4"><dt className="text-ink-muted">Código</dt><dd className="font-mono font-medium tracking-wider">{done.code}</dd></div>
           </dl>
-          <PayDeposit apptId={done.id} payments={settings.payments} />
+          <PayDeposit apptId={done.id} payments={settings.payments} priceCents={done.priceCents} />
           <WhatsAppLink number={settings.contact.bookingWhatsapp || settings.contact.whatsapp} message={waMessages.booking(done)} context="agenda-enviado" className="btn-primary mt-8 w-full py-3.5">
             <WhatsAppIcon className="h-4 w-4" /> Avisar pelo WhatsApp
           </WhatsAppLink>
