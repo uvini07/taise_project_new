@@ -7,6 +7,8 @@ import PageLoader from "../../components/common/PageLoader.jsx";
 import Spinner from "../../components/common/Spinner.jsx";
 import { Checkbox, TextArea, TextField } from "../../components/common/Fields.jsx";
 import { EmptyState, ErrorState } from "../../components/common/States.jsx";
+import ClientLoginModal from "../../components/booking/ClientLoginModal.jsx";
+import { addClientBooking, getClientProfile, watchClient } from "../../services/clientAccount.js";
 import PaymentReturn from "../../components/booking/PaymentReturn.jsx";
 import PayDeposit from "../../components/booking/PayDeposit.jsx";
 import WhatsAppLink from "../../components/common/WhatsAppLink.jsx";
@@ -52,6 +54,20 @@ export default function Booking() {
   const [form, setForm] = useState({ name: "", phone: "", email: "", notes: "", consent: false });
   const [errors, setErrors] = useState({});
   const [sending, setSending] = useState(false);
+  // Conta da cliente (Google): pedida antes de enviar o agendamento.
+  const [client, setClient] = useState(null);
+  const [askLogin, setAskLogin] = useState(null); // { phone } enquanto o modal está aberto
+  useEffect(() => watchClient(async (u) => {
+    setClient(u);
+    if (!u) return;
+    const prof = await getClientProfile(u.uid).catch(() => null);
+    setForm((f) => ({
+      ...f,
+      name: f.name || prof?.name || u.displayName || "",
+      phone: f.phone || (prof?.phone ? prof.phone.replace(/^55/, "") : ""),
+      email: f.email || u.email || "",
+    }));
+  }), []);
   const [done, setDone] = useState(null);
 
   // Acesso VIP verificado na página da campanha (guardado só nesta aba).
@@ -125,18 +141,24 @@ export default function Booking() {
   }
 
   async function submit(ev) {
-    ev.preventDefault();
+    ev?.preventDefault();
     const phone = validate();
     if (!phone || !slot) return;
+    if (!client) { setAskLogin({ phone }); return; }
+    await send(phone, client);
+  }
+
+  async function send(phone, user) {
     setSending(true);
     try {
       const res = await createBookingRequest({
         pkg, lot, durationMin: duration,
         slot: { ...slot, date: day },
-        name: form.name.trim(), phone, email: form.email.trim(), notes: form.notes.trim(),
+        name: form.name.trim(), phone, email: (form.email || user?.email || "").trim(), notes: form.notes.trim(),
         vip: vipCampaign ? { campaignId: vipCampaign.id, priceCents: price } : null,
       });
       track.booking(pkg.id);
+      if (user) addClientBooking(user.uid, res).catch(() => {});
       setDone(res);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
@@ -182,7 +204,7 @@ export default function Booking() {
           <WhatsAppLink number={settings.contact.bookingWhatsapp || settings.contact.whatsapp} message={waMessages.booking(done)} context="agenda-enviado" className="btn-primary mt-8 w-full py-3.5">
             <WhatsAppIcon className="h-4 w-4" /> Avisar pelo WhatsApp
           </WhatsAppLink>
-          <Link to={sitePath("/")} className="btn-ghost mt-3">Voltar ao início</Link>
+          <Link to={sitePath("/minha-conta")} className="btn-ghost mt-3">Ver em Minha conta</Link>
         </div>
       </section>
     );
@@ -193,6 +215,11 @@ export default function Booking() {
 
   return (
     <>
+      {askLogin && (
+        <ClientLoginModal name={form.name.trim()} phone={askLogin.phone} studioName={settings.legalName || settings.brandName}
+          onClose={() => setAskLogin(null)}
+          onDone={(u) => { const p = askLogin.phone; setAskLogin(null); send(p, u); }} />
+      )}
       <PageHeader eyebrow="Agenda" title="Agende o seu ensaio"
         text={cfg.publicNote || "Escolha o pacote, a data e o horário. O pedido fica reservado até a confirmação pelo WhatsApp."}>
         {vipCampaign && (

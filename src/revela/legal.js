@@ -72,7 +72,7 @@ export const PRIVACY = {
     ]],
     ["2. Que dados coletamos", [
       "Da fotógrafa: nome, nome do estúdio, e-mail, WhatsApp, senha (guardada de forma cifrada pelo provedor de login), dados do plano e do pagamento da assinatura (os dados do cartão ficam só com a Stripe) e o conteúdo enviado (fotos, textos, logos).",
-      "Dos clientes da fotógrafa: nome, WhatsApp, e-mail (se informado), data e horário agendados, fotos escolhidas e comentários deixados na seleção.",
+      "Dos clientes da fotógrafa: nome, WhatsApp, e-mail, data e horário agendados, fotos escolhidas e comentários deixados na seleção. Para agendar, o cliente entra com a conta Google: recebemos apenas o nome e o e-mail dessa conta (nunca a senha), e registramos a data e a versão do consentimento dado.",
       "De quem visita os sites: dados técnicos de acesso (páginas vistas, aparelho, navegador, cidade aproximada e endereço IP) para estatísticas e segurança, inclusive o registro de tentativas de captura de tela nas páginas de seleção protegidas.",
     ]],
     ["3. Para que usamos", [
@@ -95,6 +95,7 @@ export const PRIVACY = {
     ]],
     ["7. Seus direitos", [
       "Você pode pedir: confirmação de que tratamos seus dados, acesso, correção, anonimização ou exclusão, portabilidade, informação sobre compartilhamento e revogação do consentimento.",
+      "Clientes das fotógrafas podem ver e apagar os próprios dados a qualquer momento em “Minha conta”, no site de cada estúdio.",
       `Fotógrafas podem pedir pelo e-mail ${I.email} ou pelo WhatsApp ${I.phone}. Clientes de uma fotógrafa devem falar primeiro com ela, que é a responsável pelos seus dados; podemos ajudá-la a atender o pedido.`,
     ]],
     ["8. Cookies e armazenamento local", [

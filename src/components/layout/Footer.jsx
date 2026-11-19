@@ -30,6 +30,7 @@ export default function Footer({ hasVip }) {
     <div className={`flex flex-col items-center justify-between gap-2 text-xs sm:flex-row ${cls}`}>
       <span>© {year} {settings.legalName || settings.brandName}</span>
       <span className="flex gap-5">
+        <Link to={sitePath("/minha-conta")} className="hover:underline">Minha conta</Link>
         <Link to={sitePath("/politicas")} className="hover:underline">Políticas e privacidade</Link>
         <Link to="/adm" className="hover:underline">Área restrita</Link>
       </span>
