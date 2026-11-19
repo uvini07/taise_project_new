@@ -155,6 +155,12 @@ export default function PaymentsAdmin() {
             <TextField label="Sua InfiniteTag" value={f.infiniteTag} onChange={up("infiniteTag")} placeholder="ex.: nanafotos" className="sm:max-w-sm"
               hint="É o seu @ na InfinitePay (aparece no app, em Perfil). Sem o $ ou @." />
           )}
+          {f.provider === "infinitepay" && (
+            <p className="rounded-xl bg-gold/10 p-3 text-sm text-ink-soft">
+              <strong>Importante:</strong> ative o <strong>Checkout externo</strong> na sua conta InfinitePay, senão o pagamento não abre para a cliente.
+              Pelo computador, entre em <a className="text-wine-900 underline" href="https://app.infinitepay.io/external-checkout#configuracoes?enabled=true" target="_blank" rel="noopener noreferrer">app.infinitepay.io › Checkout externo › Configurações</a> e ligue a opção.
+            </p>
+          )}
         </div>
       )}
 

@@ -265,6 +265,7 @@ export default async function handler(req, res) {
       const j = await r.json().catch(() => null);
       if (!r.ok || !j?.url) {
         console.error("ip link", r.status, j);
+        if (j?.error === "external_checkout_not_enabled") return res.status(409).json({ error: "O pagamento online ainda não foi ativado pela fotógrafa. Fale com ela pelo WhatsApp." });
         return res.status(502).json({ error: "Não foi possível abrir o pagamento agora. Tente de novo em instantes." });
       }
       await ref.set(pending({ provider: "infinitepay" }), { merge: true });
