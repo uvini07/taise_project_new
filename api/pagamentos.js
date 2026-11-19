@@ -186,7 +186,9 @@ export default async function handler(req, res) {
     const cfg = setSnap.data()?.payments || {};
     // Sinal (obrigatório, % do pacote) ou "quitar": o valor total de uma vez.
     const totalCents = appt.priceCents || 0;
-    const mode = req.body.mode === "total" && totalCents > 0 ? "total" : "sinal";
+    // A fotógrafa pode desligar o pagamento em partes: aí é sempre o total.
+    const partial = cfg.allowPartial !== false;
+    const mode = (!partial || req.body.mode === "total") && totalCents > 0 ? "total" : "sinal";
     const amountCents = mode === "total" ? totalCents : depositOf(appt, cfg);
     const pending = (extra) => ({ deposit: { status: "pending", mode, amountCents, totalCents, ...extra } });
 

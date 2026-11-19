@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Check, Loader2, QrCode, Unplug, Wallet, Zap } from "lucide-react";
 import { AdminHeader } from "../../components/admin/AdminUI.jsx";
-import { TextField } from "../../components/common/Fields.jsx";
+import { TextField, Toggle } from "../../components/common/Fields.jsx";
 import { useSettings } from "../../contexts/SettingsContext.jsx";
 import { useToast } from "../../contexts/ToastContext.jsx";
 import { saveSettings } from "../../services/admin/settingsAdmin.js";
@@ -20,7 +20,7 @@ const OPTIONS = [
 export default function PaymentsAdmin() {
   const { settings } = useSettings();
   const toast = useToast();
-  const [f, setF] = useState(() => ({ provider: "none", depositPercent: 30, pixKey: "", pixName: "", pixCity: "", infiniteTag: "", ...(settings.payments || {}) }));
+  const [f, setF] = useState(() => ({ provider: "none", allowPartial: true, depositPercent: 30, pixKey: "", pixName: "", pixCity: "", infiniteTag: "", ...(settings.payments || {}) }));
   const [saving, setSaving] = useState(false);
   const [mp, setMp] = useState({ loading: true, connected: false, account: null });
   const [mpBusy, setMpBusy] = useState(false);
@@ -50,13 +50,13 @@ export default function PaymentsAdmin() {
 
   async function save() {
     const pct = Math.round(Number(f.depositPercent));
-    if (f.provider !== "none" && !(pct >= 1 && pct <= 100)) return toast.error("O sinal deve ser de 1% a 100%.");
+    if (f.provider !== "none" && f.allowPartial !== false && !(pct >= 1 && pct <= 100)) return toast.error("O sinal deve ser de 1% a 100%.");
     if (f.provider === "pix" && (!f.pixKey.trim() || !f.pixName.trim())) return toast.error("Informe a chave Pix e o nome de quem recebe.");
     if (f.provider === "infinitepay" && !f.infiniteTag.trim()) return toast.error("Informe a sua InfiniteTag.");
     if (f.provider === "mercadopago" && !mp.connected) return toast.error("Conecte o Mercado Pago antes de salvar.");
     setSaving(true);
     try {
-      const payments = { provider: f.provider, depositPercent: pct || 30, pixKey: f.pixKey.trim(), pixName: f.pixName.trim(), pixCity: f.pixCity.trim(), infiniteTag: f.infiniteTag.trim().replace(/^[@$]/, "") };
+      const payments = { provider: f.provider, allowPartial: f.allowPartial !== false, depositPercent: pct || 30, pixKey: f.pixKey.trim(), pixName: f.pixName.trim(), pixCity: f.pixCity.trim(), infiniteTag: f.infiniteTag.trim().replace(/^[@$]/, "") };
       await saveSettings({ payments });
       toast.success(f.provider === "none" ? "Salvo. O site não cobra o sinal." : "Salvo! O site já oferece o pagamento do sinal.");
     } catch { toast.error("Não foi possível salvar."); }
@@ -94,8 +94,15 @@ export default function PaymentsAdmin() {
 
       {f.provider !== "none" && (
         <div className="card mt-6 space-y-4 p-5">
-          <TextField label="Sinal (% do valor do pacote)" type="number" min={1} max={100} inputMode="numeric" value={f.depositPercent} onChange={up("depositPercent")} className="sm:max-w-xs"
-            hint="Ex.: 30 = a cliente paga 30% ao agendar e o restante combinado com você." />
+          <Toggle label="Permitir pagar em partes (sinal + restante)" checked={f.allowPartial !== false}
+            onChange={(v) => setF((x) => ({ ...x, allowPartial: v }))}
+            hint={f.allowPartial !== false
+              ? "A cliente escolhe: pagar só o sinal agora (e o restante depois, com você) ou quitar tudo."
+              : "Desligado: a cliente paga o valor total do pacote ao agendar."} />
+          {f.allowPartial !== false && (
+            <TextField label="Sinal (% do valor do pacote)" type="number" min={1} max={100} inputMode="numeric" value={f.depositPercent} onChange={up("depositPercent")} className="sm:max-w-xs"
+              hint="Ex.: 30 = a cliente paga 30% ao agendar e o restante combinado com você." />
+          )}
 
           {f.provider === "pix" && (
             <div className="grid gap-4 sm:grid-cols-2">

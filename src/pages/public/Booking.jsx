@@ -309,7 +309,9 @@ export default function Booking() {
                     {sending ? <Spinner className="h-4 w-4" /> : <CalendarCheck className="h-4 w-4" />} Enviar pedido de agendamento
                   </button>
                   <p className="text-xs text-ink-muted">{settings.payments?.provider && settings.payments.provider !== "none"
-                    ? `Depois de enviar, você pode pagar o sinal (${Number(settings.payments.depositPercent) || 30}%) aqui mesmo. O valor vai direto para a fotógrafa.`
+                    ? (settings.payments.allowPartial !== false
+                      ? `Depois de enviar, você paga o sinal (${Number(settings.payments.depositPercent) || 30}%) ou o valor total aqui mesmo. O valor vai direto para a fotógrafa.`
+                      : "Depois de enviar, você paga o valor do ensaio aqui mesmo. O valor vai direto para a fotógrafa.")
                     : "Não há pagamento pelo site. A confirmação e a forma de pagamento são combinadas pelo WhatsApp."}</p>
                 </form>
               )}

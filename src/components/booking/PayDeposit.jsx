@@ -43,6 +43,7 @@ export default function PayDeposit({ apptId, payments, priceCents = 0 }) {
   const pct = Math.min(100, Math.max(1, Number(payments.depositPercent) || 30));
   const depositCents = Math.max(100, Math.round((priceCents * pct) / 100));
   const restOf = (paidCents) => Math.max(0, priceCents - (paidCents || 0));
+  const partial = payments.allowPartial !== false;
 
   if (paid) {
     const full = paid.mode === "total";
@@ -56,6 +57,21 @@ export default function PayDeposit({ apptId, payments, priceCents = 0 }) {
             ? "O ensaio está quitado. A fotógrafa já recebeu o pagamento."
             : <>Você pagou {formatBRL(paid.amountCents)}. Faltam <strong>{formatBRL(rest)}</strong>, combinados com a fotógrafa.</>}
         </p>
+      </div>
+    );
+  }
+
+  if (!state.data && !partial) {
+    const via = provider === "infinitepay" ? "Pix ou cartão" : "Pix";
+    return (
+      <div className="card card-pad mt-6 text-left">
+        <p className="font-medium">Garanta o seu horário</p>
+        <p className="mt-1 text-sm text-ink-muted">Para reservar, pague o valor do ensaio por {via}. O valor vai direto para a fotógrafa.</p>
+        {state.error && <p className="mt-2 text-sm text-danger">{state.error}</p>}
+        <button type="button" onClick={() => start("total")} disabled={!!state.loading} className="btn-primary mt-4 w-full justify-between py-3">
+          <span className="flex items-center gap-2">{state.loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />} Pagar o ensaio</span>
+          <span>{formatBRL(priceCents)}</span>
+        </button>
       </div>
     );
   }
